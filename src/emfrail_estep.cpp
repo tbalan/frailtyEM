@@ -34,7 +34,7 @@ double repeats2(std::vector<int> &vec, const int &nev) {
   if(vec[0] > 1) res += logfactorial(vec[0]);
 
   // the end is either at the end of the vector or when we get a 0.
-  for(int i = 1; i < vec.size(); i++) {
+  for(unsigned int i = 1; i < vec.size(); i++) {
 
     if(vec[i] == 0) break;
 

@@ -150,7 +150,48 @@ emfrail <- function(.data, .formula, .distribution, .control) {
                 mcox = list(coefficients = mcox$coefficients), explp = explp, Cvec = Cvec,
                 .control = .control, return_loglik = FALSE)
 
-  res <- list(opt_object, final_fit)
+  # that the hessian
+  h <- sqrt(1/(attr(opt_object, "details")[[3]]))/2
+
+
+  final_fit_minus <- em_fit(logfrailtypar = opt_object$p1 - h,
+                      dist = .distribution$dist, pvfm = .distribution$pvfm,
+                      Y = Y, Xmat = X, id = id, nev_id = nev_id, newrisk = newrisk, basehaz_line = basehaz_line,
+                      mcox = list(coefficients = mcox$coefficients), explp = explp, Cvec = Cvec,
+                      .control = .control, return_loglik = FALSE)
+
+  final_fit_plus <- em_fit(logfrailtypar = opt_object$p1 + h,
+                            dist = .distribution$dist, pvfm = .distribution$pvfm,
+                            Y = Y, Xmat = X, id = id, nev_id = nev_id, newrisk = newrisk, basehaz_line = basehaz_line,
+                            mcox = list(coefficients = mcox$coefficients), explp = explp, Cvec = Cvec,
+                            .control = .control, return_loglik = FALSE)
+
+  # instructional: this should be more or less equal to the
+  # -(final_fit_plus$loglik + final_fit_minus$loglik - 2 * final_fit$loglik)/h^2
+
+  # se_logtheta^2 / (2 * (final_fit$loglik -final_fit_plus$loglik ))
+
+  deta_dtheta <- (c(final_fit_plus$coef, final_fit_plus$haz$haz_tev) -
+    c(final_fit_minus$coef, final_fit_minus$haz$haz_tev)) / (2*h)
+
+  adj_se <- diag(deta_dtheta %*% (1/(attr(opt_object, "details")[[3]])) %*% t(deta_dtheta))
+
+
+  res <- list(outer_m = opt_object,
+              res = list(loglik = final_fit$loglik,
+                         dist = final_fit$dist,
+                         theta = final_fit$frailtypar,
+                         haz = data.frame(time = final_fit$haz$time,
+                                         cumhaz = final_fit$haz$cumhaz),
+                                          #se = final_fit$se[(1 + length(final_fit$coef)):length(final_fit$se)]),
+                         z = data.frame(id = names(final_fit$Cvec),
+                                        Lambda = final_fit$Cvec,
+                                         z = final_fit$estep[,2] / final_fit$estep[,1]),
+                                        coef = final_fit$coef,
+                        se_coef = final_fit$se[seq_along(final_fit$coef)],
+                         se_coef_adj = (final_fit$se - adj_se)[seq_along(final_fit$coef)] ),
+
+              mcox = mcox)
   attr(res, "class") <- "emfrail"
 
   res
