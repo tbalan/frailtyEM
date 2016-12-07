@@ -13,10 +13,14 @@ em_fit <- function(logfrailtypar, dist, pvfm,
 
   .pars <- dist_to_pars(dist, logfrailtypar, pvfm)
 
-  if (isTRUE(.control$verbose))
-    print(paste0("dist=", .pars$dist,
+
+  if (isTRUE(.control$verbose)) {
+    print(paste0(#"dist=", .pars$dist,
+                 "logfrailtypar= ", logfrailtypar,
                  " / alpha=", .pars$alpha,
                  " / bbeta=", .pars$bbeta))
+  }
+
 
 
   loglik_old = -Inf
@@ -88,7 +92,10 @@ em_fit <- function(logfrailtypar, dist, pvfm,
     }
 
   }
-  if(isTRUE(return_loglik)) return(-loglik)  # for when maximizing
+  if(isTRUE(return_loglik)) {
+    if(isTRUE(.control$verbose)) print(paste("loglik = ",loglik))
+    return(-loglik)
+  }  # for when maximizing
 
   # Standard error calculation
   # First part, second derivatives
@@ -192,25 +199,25 @@ em_fit <- function(logfrailtypar, dist, pvfm,
   I_hh <- m_d2l_dhdh - I_hh_loss
   I_hg <- m_d2l_dhdg - t(I_gh_loss)
 
-  I_full <- matrix(0, ncol(Xmat) + length(hh$tev), ncol(Xmat) + length(hh$tev))
-
-  I_full[1:length(mcox$coefficients), 1:length(mcox$coefficients)] <- m_d2l_dgdg # should be positive on the diagonal as it is a sort of e(x^2)
-
-  I_full[(length(mcox$coefficients)+1):nrow(I_full), (length(mcox$coefficients)+1):nrow(I_full) ] <- m_d2l_dhdh
-
-  I_full[1:length(mcox$coefficients), (length(mcox$coefficients)+1):nrow(I_full) ] <- t(m_d2l_dhdg)
-  I_full[(length(mcox$coefficients)+1):nrow(I_full), 1:length(mcox$coefficients) ] <- m_d2l_dhdg
+  # I_full <- matrix(0, ncol(Xmat) + length(hh$tev), ncol(Xmat) + length(hh$tev))
+  #
+  # I_full[1:length(mcox$coefficients), 1:length(mcox$coefficients)] <- m_d2l_dgdg # should be positive on the diagonal as it is a sort of e(x^2)
+  #
+  # I_full[(length(mcox$coefficients)+1):nrow(I_full), (length(mcox$coefficients)+1):nrow(I_full) ] <- m_d2l_dhdh
+  #
+  # I_full[1:length(mcox$coefficients), (length(mcox$coefficients)+1):nrow(I_full) ] <- t(m_d2l_dhdg)
+  # I_full[(length(mcox$coefficients)+1):nrow(I_full), 1:length(mcox$coefficients) ] <- m_d2l_dhdg
   # in simulated data, I_full gives a negative eigenvalue for the coefficient part!!!!!!!!!!!!!!!!!!!!!!!!
   #I_full %>% solve %>% diag %>% sqrt
 
-  I_loss <- matrix(0, ncol(Xmat) + length(hh$tev), ncol(Xmat) + length(hh$tev))
-
-  I_loss[1:length(mcox$coefficients), 1:length(mcox$coefficients)] <- I_gg_loss # should be positive on the diagonal as it is a sort of e(x^2)
-
-  I_loss[(length(mcox$coefficients)+1):nrow(I_full), (length(mcox$coefficients)+1):nrow(I_full) ] <- I_hh_loss
-
-  I_loss[1:length(mcox$coefficients), (length(mcox$coefficients)+1):nrow(I_full) ] <- I_gh_loss
-  I_loss[(length(mcox$coefficients)+1):nrow(I_full), 1:length(mcox$coefficients) ] <- t(I_gh_loss)
+  # I_loss <- matrix(0, ncol(Xmat) + length(hh$tev), ncol(Xmat) + length(hh$tev))
+  #
+  # I_loss[1:length(mcox$coefficients), 1:length(mcox$coefficients)] <- I_gg_loss # should be positive on the diagonal as it is a sort of e(x^2)
+  #
+  # I_loss[(length(mcox$coefficients)+1):nrow(I_full), (length(mcox$coefficients)+1):nrow(I_full) ] <- I_hh_loss
+  #
+  # I_loss[1:length(mcox$coefficients), (length(mcox$coefficients)+1):nrow(I_full) ] <- I_gh_loss
+  # I_loss[(length(mcox$coefficients)+1):nrow(I_full), 1:length(mcox$coefficients) ] <- t(I_gh_loss)
   #
   # I_loss %>% solve %>% diag %>% sqrt
   # I_loss %>% eigen(only.values = TRUE)

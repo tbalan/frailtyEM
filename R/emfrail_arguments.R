@@ -8,6 +8,7 @@
 #' @return A list of arguments suitable for \code{emfrail()}!
 #' @export
 #'
+#' @note The \code{frailtypar} argument must be positive.
 #' @seealso \code{\link{emfrail}, \link{emfrail_control}}
 #' @examples
 #' emfrail_distribution()

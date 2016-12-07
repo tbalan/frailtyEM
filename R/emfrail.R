@@ -35,7 +35,21 @@
 #'
 #' @examples
 #' dat <- survival::rats
-#' m1 <- emfrail(.data =  dat, .formula = Surv(rep(0, nrow(dat)), time, status) ~  rx + sex + cluster(litter))
+#' m1 <- emfrail(.data =  dat, .formula = Surv(rep(0, nrow(dat)), time, status) ~  rx + sex + cluster(litter),
+#' .distribution = emfrail_distribution(dist = "gamma"))
+#' m1
+#'
+#' m2 <- emfrail(.data =  dat, .formula = Surv(rep(0, nrow(dat)), time, status) ~  rx + sex + cluster(litter),
+#'               .distribution = emfrail_distribution(dist = "pvf"))
+#' m2
+#'
+#' m3 <- emfrail(.data =  dat, .formula = Surv(rep(0, nrow(dat)), time, status) ~  rx + sex + cluster(litter),
+#'               .distribution = emfrail_distribution(dist = "stable"),
+#'               .control = emfrail_control(verbose = FALSE))
+#' m3
+#'
+#'
+#'
 #'
 #' # draw the profile likelihood for different values of the frailty variance (gamma frailty)
 #' fr_var <- c(0.001, 0.01, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9)
@@ -52,6 +66,28 @@
 #'                  method = "breslow")$history[[1]][[3]])
 #'
 #' lines(fr_var, prof_lik_cph, col = 2)
+#'
+#'
+#' simulated data ----------------------------------------------------------
+#' set.seed(1)
+#' x <- sample(c(0,1), 300, TRUE)
+#' z <- rep(rgamma(100, 1, 1), each = 3)
+#'
+#' time <- rexp(300, rate = z * exp(0.5*x) )
+#'
+#' censtime <- 5
+#' status <- rep(1, 300)
+#'
+#' status[time >= censtime] <- 0
+#' time[status == 0] <- censtime
+#' time0 <- rep(0, 300)
+#'
+#' dd <- data.frame(id = rep(1:100, each = 3), x = x, time0 = time0, time = time, status = status)
+#'
+#'
+#' emfrail(.data =  dd, .formula = Surv(rep(0, nrow(dat)), time, status) ~  x + cluster(id),
+#'         .distribution = emfrail_distribution( dist = "stable"),
+#'         .control = emfrail_control(opt_fit = TRUE))
 
 emfrail <- function(.data, .formula, .distribution, .control) {
   Call <- match.call()
@@ -136,11 +172,14 @@ emfrail <- function(.data, .formula, .distribution, .control) {
   opt_object <- optimx::optimx(par = log(.distribution$frailtypar), fn = em_fit,
                hessian = TRUE,
                #lower = -10000, upper = 10000,
-               method = "BFGS", #control = .control$opt_control$control,
+               method = .control$opt_control$method, #control = .control$opt_control$control,
                dist = .distribution$dist, pvfm = .distribution$pvfm,
                Y = Y, Xmat = X, id = id, nev_id = nev_id, newrisk = newrisk, basehaz_line = basehaz_line,
                mcox = list(coefficients = mcox$coefficients), explp = explp, Cvec = Cvec,
                .control = .control)
+
+
+
 
 
 

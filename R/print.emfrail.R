@@ -18,7 +18,7 @@ print.emfrail <- function(obj) {
     cat("LRT for frailty,",(-outer_info$value - cox_info$loglik[2]), "on 0.5 df => p =", pchisq(-outer_info$value - cox_info$loglik[2], df = 0.5, lower.tail = FALSE), "\n\n")
 
 
-    cat("Frailty parameter:", inner_info$frailtypar, "se: ", msm::deltamethod(~exp(x1), mean = outer_info$p1,
+    cat("Frailty parameter:", inner_info$theta, "se: ", msm::deltamethod(~exp(x1), mean = outer_info$p1,
         cov = 1/attr(outer_info, "details")[[3]]), "\n")
 
     if (inner_info$dist %in% c("gamma", "pvf")) {
@@ -28,7 +28,7 @@ print.emfrail <- function(obj) {
         lower_bound <- 1/exp(high)
         upper_bound <- 1/exp(low)
 
-        cat("Frailty variance:", (1/inner_info$frailtypar) %>% round(digits = 3) %>% format(nsmall = 2), "se:", msm::deltamethod(~1/exp(x1),
+        cat("Frailty variance:", (1/inner_info$theta) %>% round(digits = 3) %>% format(nsmall = 2), "se:", msm::deltamethod(~1/exp(x1),
             mean = outer_info$p1, cov = 1/attr(outer_info, "details")[[3]]) %>% round(digits = 3) %>% format(nsmall = 2))
         cat(" // 95% CI: [", lower_bound %>% round(digits = 3) %>% format(nsmall = 2), ",", upper_bound %>% round(digits = 3) %>%
             format(nsmall = 2), "]")
