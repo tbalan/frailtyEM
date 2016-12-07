@@ -189,7 +189,7 @@ emfrail <- function(.data, .formula, .distribution, .control) {
                                          z = final_fit$estep[,2] / final_fit$estep[,1]),
                                         coef = final_fit$coef,
                         se_coef = final_fit$se[seq_along(final_fit$coef)],
-                         se_coef_adj = (final_fit$se - adj_se)[seq_along(final_fit$coef)] ),
+                         se_coef_adj = (final_fit$se + adj_se)[seq_along(final_fit$coef)] ),
 
               mcox = mcox)
   attr(res, "class") <- "emfrail"
