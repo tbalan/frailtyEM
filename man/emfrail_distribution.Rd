@@ -7,11 +7,11 @@
 emfrail_distribution(dist = "gamma", frailtypar = 2, pvfm = -1/2)
 }
 \arguments{
-\item{dist}{One of "gamma", "stable" or "pvf".}
+\item{dist}{One of 'gamma', 'stable' or 'pvf'.}
 
-\item{frailtypar}{A starting value for the "outer" maximization with respect to the frailty parameter \eqn{\theta}. Must be positive.}
+\item{frailtypar}{A starting value for the 'outer' maximization with respect to the frailty parameter \eqn{\theta}. Must be positive.}
 
-\item{pvfm}{Only relevant if \code{dist = "pvf"} is used. It determines which PVF distribution should be used. Must be  larger than -1 and not equal to 0.}
+\item{pvfm}{Only relevant if \code{dist = 'pvf'} is used. It determines which PVF distribution should be used. Must be  larger than -1 and not equal to 0.}
 }
 \value{
 A list of arguments suitable for \code{emfrail()}!
@@ -19,9 +19,12 @@ A list of arguments suitable for \code{emfrail()}!
 \description{
 Distribution parameters for emfrail
 }
+\note{
+The \code{frailtypar} argument must be positive.
+}
 \examples{
 emfrail_distribution()
-emfrail_distribution(dist = "pvf", frailtypar = 1.5, pvfm = 0.5)
+emfrail_distribution(dist = 'pvf', frailtypar = 1.5, pvfm = 0.5)
 }
 \seealso{
 \code{\link{emfrail}, \link{emfrail_control}}

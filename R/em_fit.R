@@ -29,7 +29,12 @@ em_fit <- function(logfrailtypar, dist, pvfm,
 
   convergence <- FALSE
   while(!isTRUE(convergence)) {
-    e_step_val <- Estep(Cvec, nev_id, alpha = .pars$alpha, bbeta = .pars$bbeta, pvfm = pvfm, dist = .pars$dist)
+
+    if(dist=="gamma" & isTRUE(.control$fast_fit)) {
+      e_step_val <- fast_Estep(Cvec, nev_id, alpha = .pars$alpha, bbeta = .pars$bbeta, pvfm = pvfm, dist = .pars$dist)
+    } else {
+      e_step_val <- Estep(Cvec, nev_id, alpha = .pars$alpha, bbeta = .pars$bbeta, pvfm = pvfm, dist = .pars$dist)
+    }
 
     logz <- log(rep(e_step_val[,1] / e_step_val[,2],   rle(id)$lengths))
     # something only for the gamma:
@@ -39,7 +44,7 @@ em_fit <- function(logfrailtypar, dist, pvfm,
     nev_tp <- tapply(X = Y[,3], INDEX = Y[,2], sum)
     nev_tp <- nev_tp[nev_tp!=0]
     loglik <- sum((log(basehaz_line) + t(mcox$coefficients %*% t(Xmat)))[Y[,3] == 1]) +
-     sum(log(e_step_val[,2]) + e_step_val[,3]) + sum(Y[,3]) - sum(nev_tp * log(nev_tp))# +  sum(nev_id * lp_individual)
+     sum(e_step_val[,3]) + sum(Y[,3]) - sum(nev_tp * log(nev_tp))# +  sum(nev_id * lp_individual)
     #
     # this is actually identical value:
     # loglik <- sum((log(basehaz_line) + t(mcox$coefficients %*% t(Xmat)))[Y[,3] == 1]) +
@@ -60,23 +65,29 @@ em_fit <- function(logfrailtypar, dist, pvfm,
                                 method = "breslow", rownames = NULL)
 
 
-    # NOTE: this is what linear.predictors actually is:
+    #cc1 <- coxph(Surv(tstart, tstop, status) ~ x + offset(logz), dat1, method = "breslow")
+
+    # NOTE: this ids what linear.predictors actually is:
     # exp(mcox$coefficients * (Xmat - mean(Xmat)) + logz)
 
+    #cur <- survfit(cc1, newdata= data.frame(x = 0, logz = 0))
 
+    #cur$cumhaz
 
     # How I calculate the cumulative hazard corresponding to each line in the data set...
 
 
     hh <- getchz(Y = Y, newrisk = 1, explp = exp(mcox$linear.predictors + t(mcox$coefficients) %*% mcox$means) )
 
+    hh$tev
+    hh$haz_tev
     # plot(hh$time, hh$haz)
     # points(Y[,2], basehaz_line1, col = 2)
 
     # this is the baseline cumulative hazard for each line.
     # the idea is that this is only changes within an individual at the end of the line, and not in between. That's why it's correct.
     cumhaz_line <- sapply(X = apply(as.matrix(Y[,c(1,2)]), 1, as.list),
-                          FUN = function(x)  sum(hh$haz_tev[x$start <= hh$tev & hh$tev <= x$stop]))
+                          FUN = function(x)  sum(hh$haz_tev[x$start < hh$tev & hh$tev <= x$stop]))
 
     #
     basehaz_line <- hh$haz_tev[match(Y[,2], hh$tev)]

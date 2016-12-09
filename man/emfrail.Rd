@@ -41,7 +41,21 @@ The family of supported distributions can be one of gamma, positive stable or PV
 }
 \examples{
 dat <- survival::rats
-m1 <- emfrail(.data =  dat, .formula = Surv(rep(0, nrow(dat)), time, status) ~  rx + sex + cluster(litter))
+m1 <- emfrail(.data =  dat, .formula = Surv(rep(0, nrow(dat)), time, status) ~  rx + sex + cluster(litter),
+.distribution = emfrail_distribution(dist = "gamma"))
+m1
+
+m2 <- emfrail(.data =  dat, .formula = Surv(rep(0, nrow(dat)), time, status) ~  rx + sex + cluster(litter),
+              .distribution = emfrail_distribution(dist = "pvf"))
+m2
+
+m3 <- emfrail(.data =  dat, .formula = Surv(rep(0, nrow(dat)), time, status) ~  rx + sex + cluster(litter),
+              .distribution = emfrail_distribution(dist = "stable"),
+              .control = emfrail_control(verbose = FALSE))
+m3
+
+
+
 
 # draw the profile likelihood for different values of the frailty variance (gamma frailty)
 fr_var <- c(0.001, 0.01, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9)
@@ -58,5 +72,27 @@ prof_lik_cph <- sapply(fr_var, function(th)
                  method = "breslow")$history[[1]][[3]])
 
 lines(fr_var, prof_lik_cph, col = 2)
+
+
+simulated data ----------------------------------------------------------
+set.seed(1)
+x <- sample(c(0,1), 300, TRUE)
+z <- rep(rgamma(100, 1, 1), each = 3)
+
+time <- rexp(300, rate = z * exp(0.5*x) )
+
+censtime <- 5
+status <- rep(1, 300)
+
+status[time >= censtime] <- 0
+time[status == 0] <- censtime
+time0 <- rep(0, 300)
+
+dd <- data.frame(id = rep(1:100, each = 3), x = x, time0 = time0, time = time, status = status)
+
+
+emfrail(.data =  dd, .formula = Surv(rep(0, nrow(dat)), time, status) ~  x + cluster(id),
+        .distribution = emfrail_distribution( dist = "stable"),
+        .control = emfrail_control(opt_fit = TRUE))
 }
 

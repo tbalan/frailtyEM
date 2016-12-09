@@ -213,9 +213,22 @@ double wrap_integral(int n, const double& alpha, const double &bbeta, const doub
  */
 
 
+
 //' Perform the E step calculations
 //'
-//' This is an inner wrapper for the C++ functions which perform the E step and is not made to be used by anybody ever.
+//' This is an inner wrapper for the C++ functions which perform the E step and is not intended to be used directly.
+//' This function does not check the input.
+//' For a data set with \code{K} clusters,
+//' @param c Vector of length \code{K} of cumulative hazards, i.e. total accumulated hazards within a cluster
+//' @param delta Vector of integers of length \code{K} of the number of events for each cluster
+//' @param alpha,bbeta Parameters of the frailty distribution
+//' @param pvfm Parameter for the PVF distribution, only matters in that case
+//' @param dist One of 0 (for gamma), 1 (for stable) or 2 (for PVF)
+//'
+//' @return A \code{K x 3} matrix where the first column and the second column are the numerators
+//' and the denominators of the frailty fraction (without the Laplace transform) and the
+//' last column is the log(denominator) + log-Laplace transform, i.e. the log-likelihood contribution
+//'
 //' @export
 // [[Rcpp::export]]
 NumericMatrix Estep(NumericVector c, IntegerVector delta, double alpha, double bbeta,
@@ -270,14 +283,14 @@ NumericMatrix Estep(NumericVector c, IntegerVector delta, double alpha, double b
     }
 
       if(dist == 0) {
-        Z(i,2) = -1.0 * exponent_gamma(alpha, bbeta, c[i], 0);
+        Z(i,2) = -1.0 * exponent_gamma(alpha, bbeta, c[i], 0) + std::log(Z(i,1));
       } else {
         if(dist == 1) {
-          Z(i,2) = -1.0 * exponent_stab(alpha, bbeta, c[i], 0);
+          Z(i,2) = -1.0 * exponent_stab(alpha, bbeta, c[i], 0) + std::log(Z(i,1));
         } else
-          Z(i,2) =  -1.0 * exponent_pvf(alpha, bbeta, pvfm, c[i], 0);
+          Z(i,2) =  -1.0 * exponent_pvf(alpha, bbeta, pvfm, c[i], 0) + std::log(Z(i,1));
       }
-    //Z(i, 2) = -1.0 * exponent_gamma(alpha, bbeta, c[i], 0);     // log laplace transform (- alpha phi(c))
+    //Z(i, 2) is the contribution to the log-likelihood now
 
   }
   return Z;

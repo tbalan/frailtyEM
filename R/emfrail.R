@@ -88,6 +88,14 @@
 #' emfrail(.data =  dd, .formula = Surv(rep(0, nrow(dat)), time, status) ~  x + cluster(id),
 #'         .distribution = emfrail_distribution( dist = "stable"),
 #'         .control = emfrail_control(opt_fit = TRUE))
+#'
+#'
+#' #Recurrent events --------------------------------------------------------
+#'
+# data("bladder")
+# coxph(Surv(start, stop, status) ~ treatment + frailty(id), data = bladder1, method = "breslow")
+# emfrail(bladder1, Surv(start, stop, status) ~ treatment + cluster(id))
+
 
 emfrail <- function(.data, .formula, .distribution, .control) {
   Call <- match.call()
@@ -115,7 +123,10 @@ emfrail <- function(.data, .formula, .distribution, .control) {
 
 
   # get the model matrix
-  X <- model.matrix(.formula, .data)[,-c(1, pos_cluster), drop=FALSE]
+  X1 <- model.matrix(.formula, .data)
+  # this is necessary because when factors have more levels, pos_cluster doesn't correspond any more
+  pos_cluster_X1 <- grep("cluster", colnames(X1))
+  X <- X1[,-c(1, pos_cluster_X1), drop=FALSE]
   # note: X has no attributes, in coxph it does.
 
 
@@ -190,7 +201,7 @@ emfrail <- function(.data, .formula, .distribution, .control) {
                 .control = .control, return_loglik = FALSE)
 
   # that the hessian
-  h <- sqrt(1/(attr(opt_object, "details")[[3]]))/2
+  h <- as.numeric(sqrt(1/(attr(opt_object, "details")[[3]]))/2)
 
 
   final_fit_minus <- em_fit(logfrailtypar = opt_object$p1 - h,

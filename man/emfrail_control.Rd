@@ -5,8 +5,8 @@
 \title{Control parameters for emfrail}
 \usage{
 emfrail_control(eps = 0.001, maxit = Inf, opt_fit = TRUE,
-  verbose = FALSE, opt_control = list(method = "bobyqa", itnmax = NULL,
-  control = list()))
+  verbose = FALSE, fast_fit = TRUE, opt_control = list(method = "bobyqa",
+  itnmax = NULL, control = list()))
 }
 \arguments{
 \item{eps}{Convergence criterion for the inner loops (the EM algorithm) for fixed frailty parameters}
@@ -16,6 +16,8 @@ emfrail_control(eps = 0.001, maxit = Inf, opt_fit = TRUE,
 \item{opt_fit}{Logical. Whether the outer optimization should be carried out. If \code{FALSE}, then the frailty parameter is treated as fixed.}
 
 \item{verbose}{Logical. Whether to print out information about what is going on during maximization.}
+
+\item{fast_fit}{Logical. Whether to go the faster route in the E step and calculate directly (when possible)}
 
 \item{opt_control}{A list with arguments to be sent to the maximizer. Currently ignored, will be useful in the future.}
 }

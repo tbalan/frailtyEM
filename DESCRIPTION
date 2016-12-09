@@ -25,7 +25,9 @@ Collate:
     'emfrail_aux.R'
     'emfrail.R'
     'emfrail_arguments.R'
+    'fast_Estep.R'
     'print.emfrail.R'
-Suggests: knitr,
+Suggests:
+    knitr,
     rmarkdown
 VignetteBuilder: knitr

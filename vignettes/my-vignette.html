@@ -12,7 +12,7 @@
 
 <meta name="author" content="Theodor Adrian Balan" />
 
-<meta name="date" content="2016-12-05" />
+<meta name="date" content="2016-12-09" />
 
 <title>Shared frailty models</title>
 
@@ -70,7 +70,7 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 
 <h1 class="title toc-ignore">Shared frailty models</h1>
 <h4 class="author"><em>Theodor Adrian Balan</em></h4>
-<h4 class="date"><em>2016-12-05</em></h4>
+<h4 class="date"><em>2016-12-09</em></h4>
 
 
 
@@ -135,6 +135,14 @@ z_i = \frac{E[z ^ N_{i+1} \exp(-z \Lambda_i)]}{E[z ^ N_{i} \exp(-z \Lambda_i)]} 
 \psi^{(k)} (c) = (-1)^{k-1} (k-1)! (\beta + c)^{-k}
 \]</span></p>
 <p>To parametrize it with one parameter <span class="math inline">\(\theta &gt; 0\)</span> (which is 1/variance) we have the restriction <span class="math inline">\(\beta = \alpha = \theta\)</span>, i.e. mean equals 1.</p>
+<div id="fast-fit" class="section level4">
+<h4>Fast fit</h4>
+<p>For fast fitting, we see that <span class="math display">\[
+\mathcal{L}(c) = \beta^\alpha (\beta + c)^{-\alpha}
+\]</span> and then we can write all the derivatives like: <span class="math display">\[
+\mathcal{L}^{(k)}(c) = \beta^\alpha (\beta + c)^{-\alpha - k} \Gamma(\alpha + k) / \Gamma(\alpha)
+\]</span></p>
+</div>
 </div>
 <div id="stable" class="section level3">
 <h3>stable</h3>
