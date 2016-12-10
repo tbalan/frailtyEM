@@ -1,8 +1,10 @@
-#' Title
+#' Print method for emfrail objects
 #'
-#' @param obj
+#' This function is included in case someone wants to access this output quickly,
+#' and can look into the code.
+#' @param obj An emfrail object
 #'
-#' @return muie
+#' @return Nothing
 #' @export
 print.emfrail <- function(obj) {
     outer_info <- obj[[1]]

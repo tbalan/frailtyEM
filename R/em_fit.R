@@ -250,6 +250,7 @@ em_fit <- function(logfrailtypar, dist, pvfm,
 
   #Imat %>% solve %>% diag %>% sqrt
 
+  Vcov = solve(Imat)
 
 
   # with this one we will also need SE estimates and all the stuff
@@ -262,7 +263,8 @@ em_fit <- function(logfrailtypar, dist, pvfm,
                Cvec = Cvec,
                estep = e_step_val,
                coef = mcox$coefficients,
-               se = solve(Imat) %>% diag %>% sqrt)
+               se = Vcov %>% diag %>% sqrt,
+               Vcov = Vcov)
 
     res
   }

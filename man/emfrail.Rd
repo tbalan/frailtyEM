@@ -4,7 +4,8 @@
 \alias{emfrail}
 \title{Fitting shared frailty models wiht the EM algorithm}
 \usage{
-emfrail(.data, .formula, .distribution, .control)
+emfrail(.data, .formula, .distribution = emfrail_distribution(),
+  .control = emfrail_control())
 }
 \arguments{
 \item{.data}{A data frame in which the formula argument can be evaluated}
@@ -94,5 +95,9 @@ dd <- data.frame(id = rep(1:100, each = 3), x = x, time0 = time0, time = time, s
 emfrail(.data =  dd, .formula = Surv(rep(0, nrow(dat)), time, status) ~  x + cluster(id),
         .distribution = emfrail_distribution( dist = "stable"),
         .control = emfrail_control(opt_fit = TRUE))
+
+
+#Recurrent events --------------------------------------------------------
+
 }
 

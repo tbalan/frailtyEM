@@ -97,12 +97,18 @@
 # emfrail(bladder1, Surv(start, stop, status) ~ treatment + cluster(id))
 
 
-emfrail <- function(.data, .formula, .distribution, .control) {
+emfrail <- function(.data, .formula,
+                    .distribution = emfrail_distribution(),
+                    .control = emfrail_control()) {
   Call <- match.call()
 
+
   if(missing(.formula)  | missing(.data)) stop("Missing arguments")
-  if(missing(.distribution)) .distribution <- emfrail_distribution()
-  if(missing(.control)) .control <- emfrail_control()
+  # if(missing(.distribution)) {
+  #   .distribution <-  emfrail_distribution()
+  #   print("default distribution")
+  # }
+  # if(missing(.control)) .control <- emfrail_control()
 
   cluster <- function(x) x
   mf <- model.frame(.formula, .data)
@@ -179,6 +185,7 @@ emfrail <- function(.data, .formula, .distribution, .control) {
            .control = .control))
   }
 
+
   # otherwise, the maximizer
   opt_object <- optimx::optimx(par = log(.distribution$frailtypar), fn = em_fit,
                hessian = TRUE,
@@ -224,7 +231,7 @@ emfrail <- function(.data, .formula, .distribution, .control) {
   deta_dtheta <- (c(final_fit_plus$coef, final_fit_plus$haz$haz_tev) -
     c(final_fit_minus$coef, final_fit_minus$haz$haz_tev)) / (2*h)
 
-  adj_se <- diag(deta_dtheta %*% (1/(attr(opt_object, "details")[[3]])) %*% t(deta_dtheta))
+  adj_se <- sqrt(diag(deta_dtheta %*% (1/(attr(opt_object, "details")[[3]])) %*% t(deta_dtheta)))
 
 
   res <- list(outer_m = opt_object,
@@ -238,10 +245,11 @@ emfrail <- function(.data, .formula, .distribution, .control) {
                                         Lambda = final_fit$Cvec,
                                          z = final_fit$estep[,2] / final_fit$estep[,1]),
                                         coef = final_fit$coef,
-                        se_coef = final_fit$se[seq_along(final_fit$coef)],
+                         se_coef = final_fit$se[seq_along(final_fit$coef)],
                          se_coef_adj = (final_fit$se + adj_se)[seq_along(final_fit$coef)] ),
-
-              mcox = mcox)
+              mcox = mcox,
+              vcov = final_fit$Vcov,
+              vcov_adj = final_fit$Vcov + deta_dtheta %*% (1/(attr(opt_object, "details")[[3]])) %*% t(deta_dtheta) )
   attr(res, "class") <- "emfrail"
 
   res

@@ -2,17 +2,18 @@
 % Please edit documentation in R/print.emfrail.R
 \name{print.emfrail}
 \alias{print.emfrail}
-\title{Title}
+\title{Print method for emfrail objects}
 \usage{
 \method{print}{emfrail}(obj)
 }
 \arguments{
-\item{obj}{}
+\item{obj}{An emfrail object}
 }
 \value{
-muie
+Nothing
 }
 \description{
-Title
+This function is included in case someone wants to access this output quickly,
+and can look into the code.
 }
 
