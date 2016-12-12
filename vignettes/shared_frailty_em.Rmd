@@ -161,6 +161,78 @@ $\alpha = \frac{m + 1}{m} \theta.$
 So how about when $m<0$? Well this implies that also $\alpha < 0$, and since the $\mathrm{sign}(m) = -1$, we might as well take $\alpha = \vert \frac{m + 1}{m} \theta \vert$. Then the only correction that is still needed is a $-1$ in the $\mathcal{L}$.
 
 
+## Ascertainment
+There is a situation when the data set migt come from some ascertainment scheme that prevents individuals from being observed from time 0. For this example, I supress the subscript $i$ for the cluster. 
+
+Now assume that observation $j$ in the cluster is in the data set if $A_j$ happens, and we call 
+$$
+A = A_1 \cup A_2 ... \cup A_n
+$$
+Then by Bayes' theorem the distribution of the frailty is given by 
+$$
+f_{Z|A}(z) = \frac{P(A|z) f(z)}{\int_z P(A|z) f(z) dz} = \frac{P(A|z)f(z)}{E_Z[P(A|z)]}
+$$
+Now this has Laplace transform
+$$
+\mathcal{L}_{Z|A}(c) = \frac{E_Z[e^{-cz}P(A|z)]}{E_Z[P(A|z)]}
+$$
+So basically it all boils down to writing $P(A|z)$. 
+
+### Left truncation
+In the left truncation scenario, i.e. where 
+$$
+P(A_j|z) = P(T_j >t_j|z) = E[\exp(-z \Lambda_{Lj})]
+$$
+and we have
+$P(A|z) = \prod_j P(A_j|z)$ with $\Lambda_{Lj}$ the risk accumulated until the entry time $t_{Lj}$. Then denote 
+$$
+\Lambda_{L} = \sum_j \Lambda_{Lj}
+$$
+which can be seen as a sort of missing risk. 
+
+In that case we see that
+$$
+\mathcal{L}_{Z|A}(c) = \frac{E_Z[e^{-z (c + \Lambda_{L})}]}{E_Z[e^{-z\Lambda_{L}}]}
+$$
+which means that
+$$
+\mathcal{L}_{Z|A}(c) = \frac{\mathcal{L}_Z(c + \Lambda_{L})}{\mathcal{L}_Z(\Lambda_L)}
+$$
+Now if we are in the PVF framework,
+
+
+$$
+\mathcal{L}_{Z|A}(c) = \frac{\exp(-\alpha \psi(c + \Lambda_L))}{\exp(-\alpha \psi(\Lambda_l))}
+
+$$
+so 
+
+$$
+\mathcal{L}_{Z|A}(c) = \exp(-\alpha [\psi(c + \Lambda_L) - \psi(\Lambda_L)])
+$$
+
+#### gamma frailty
+For the gamma distribution recall that $\psi(x) = \log(\beta + c) - \log(\beta)$ so then
+$$
+\mathcal{L}_{Z|A}(c) = \exp\left[-\alpha \log(\beta + \Lambda_L + c) - \log(\beta + \Lambda_L)\right] 
+))
+$$
+So for the gamma distribution the essence is a change in parameters $\beta \rightarrow \beta + \Lambda_L$. 
+In other words, the adjustment that has to happen is that the E step, if there are $k$ events,
+$$
+z = \frac{\alpha + k}{\beta + \Lambda_L + \Lambda}
+$$
+which is funny because this is as if taking a person coming from the time 0.
+
+We have that 
+$$
+\mathcal{L}_{Z|A}(c) = (\beta + \Lambda_L)^\alpha (\beta + \Lambda_L + c)^{-\alpha}
+$$
+so the $k$-th derivative is
+$$
+\mathcal{L}_{Z|A}^{(k)}(c) = \frac{(\beta + \Lambda_L)^\alpha}{(\beta + \Lambda_L + c)^{\alpha + k}} \frac{\Gamma(\alpha +k)}{\Gamma(\alpha)} 
+$$
+so this is what we should have as likelihood contribution.
 
 Vignettes are long form documentation commonly included in packages. Because they are part of the distribution of the package, they need to be as compact as possible. The `html_vignette` output type provides a custom style sheet (and tweaks some options) to ensure that the resulting html is as small as possible. The `html_vignette` format:
 
