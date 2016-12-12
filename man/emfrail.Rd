@@ -75,7 +75,7 @@ prof_lik_cph <- sapply(fr_var, function(th)
 lines(fr_var, prof_lik_cph, col = 2)
 
 
-simulated data ----------------------------------------------------------
+# simulated data ----------------------------------------------------------
 set.seed(1)
 x <- sample(c(0,1), 300, TRUE)
 z <- rep(rgamma(100, 1, 1), each = 3)
@@ -99,5 +99,29 @@ emfrail(.data =  dd, .formula = Surv(rep(0, nrow(dat)), time, status) ~  x + clu
 
 #Recurrent events --------------------------------------------------------
 
+data("bladder")
+coxph(Surv(start, stop, status) ~ treatment + frailty(id), data = bladder1, method = "breslow")
+mod2 <- emfrail(bladder1, Surv(start, stop, status) ~ treatment + cluster(id))
+
+# Plotting the baseline cumulative hazard / intensity
+
+with(mod2$res$haz,
+     plot(time, cumhaz, type = "s", ylim = c(0, max(cumhaz) + 2 * max(se_chz_adj)),
+     main = "Cumulative baseline hazard",
+     ylab = "H0"))
+with(mod2$res$haz, lines(time, cumhaz - 1.96*se_chz, col = 2))
+with(mod2$res$haz, lines(time, cumhaz + 1.96*se_chz, col = 2))
+with(mod2$res$haz, lines(time, cumhaz - 1.96*se_chz_adj, col = 3, lty = 2))
+with(mod2$res$haz, lines(time, cumhaz + 1.96*se_chz_adj, col = 3, lty = 2))
+legend(x = 0, y = 5, legend = c("95\% CI", "adjusted 95\% CI"), col = c(2,3), lty = c(1,2))
+
+# with ggplot2
+library(ggplot2)
+ggplot(K$res$haz, aes(x = time)) +
+geom_ribbon(aes(ymin = cumhaz - 1.96*se_chz, ymax = cumhaz + 1.96*se_chz),  fill = "grey70") +
+  geom_ribbon(aes(ymin = cumhaz - 1.96*se_chz_adj, ymax = cumhaz + 1.96*se_chz_adj),  fill = "pink", alpha = 0.2) +
+  geom_step(aes(y = cumhaz)) +
+  ggtitle("Cumulative baseline hazard") +
+  ylab("H0")
 }
 

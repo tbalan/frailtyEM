@@ -25,7 +25,9 @@ emfrail_distribution <- function(dist = "gamma", frailtypar = 2, pvfm = -1/2) {
         stop("pvfm must be >-1 and not equal to 0")
 
 
-    list(dist = dist, frailtypar = frailtypar, pvfm = pvfm)
+    res <- list(dist = dist, frailtypar = frailtypar, pvfm = pvfm)
+    attr(res, "class") <- c("emfrail_distribution")
+    return(res)
 }
 
 
@@ -53,6 +55,7 @@ emfrail_control <- function(eps = 0.001, maxit = Inf, opt_fit = TRUE, verbose = 
 
     # Here some checks
 
-    list(eps = eps, maxit = maxit, opt_fit = opt_fit, verbose = verbose, fast_fit = fast_fit, opt_control = opt_control)
-
+    res <- list(eps = eps, maxit = maxit, opt_fit = opt_fit, verbose = verbose, fast_fit = fast_fit, opt_control = opt_control)
+    attr(res, "class") <- c("emfrail_control")
+    res
 }

@@ -68,7 +68,7 @@
 #' lines(fr_var, prof_lik_cph, col = 2)
 #'
 #'
-#' simulated data ----------------------------------------------------------
+#' # simulated data ----------------------------------------------------------
 #' set.seed(1)
 #' x <- sample(c(0,1), 300, TRUE)
 #' z <- rep(rgamma(100, 1, 1), each = 3)
@@ -92,11 +92,30 @@
 #'
 #' #Recurrent events --------------------------------------------------------
 #'
-# data("bladder")
-# coxph(Surv(start, stop, status) ~ treatment + frailty(id), data = bladder1, method = "breslow")
-# emfrail(bladder1, Surv(start, stop, status) ~ treatment + cluster(id))
-
-
+#' data("bladder")
+#' coxph(Surv(start, stop, status) ~ treatment + frailty(id), data = bladder1, method = "breslow")
+#' mod2 <- emfrail(bladder1, Surv(start, stop, status) ~ treatment + cluster(id))
+#'
+#' # Plotting the baseline cumulative hazard / intensity
+#'
+#' with(mod2$res$haz,
+#'      plot(time, cumhaz, type = "s", ylim = c(0, max(cumhaz) + 2 * max(se_chz_adj)),
+#'      main = "Cumulative baseline hazard",
+#'      ylab = "H0"))
+#' with(mod2$res$haz, lines(time, cumhaz - 1.96*se_chz, col = 2))
+#' with(mod2$res$haz, lines(time, cumhaz + 1.96*se_chz, col = 2))
+#' with(mod2$res$haz, lines(time, cumhaz - 1.96*se_chz_adj, col = 3, lty = 2))
+#' with(mod2$res$haz, lines(time, cumhaz + 1.96*se_chz_adj, col = 3, lty = 2))
+#' legend(x = 0, y = 5, legend = c("95% CI", "adjusted 95% CI"), col = c(2,3), lty = c(1,2))
+#'
+#' # with ggplot2
+#' library(ggplot2)
+#' ggplot(K$res$haz, aes(x = time)) +
+#' geom_ribbon(aes(ymin = cumhaz - 1.96*se_chz, ymax = cumhaz + 1.96*se_chz),  fill = "grey70") +
+#'   geom_ribbon(aes(ymin = cumhaz - 1.96*se_chz_adj, ymax = cumhaz + 1.96*se_chz_adj),  fill = "pink", alpha = 0.2) +
+#'   geom_step(aes(y = cumhaz)) +
+#'   ggtitle("Cumulative baseline hazard") +
+#'   ylab("H0")
 emfrail <- function(.data, .formula,
                     .distribution = emfrail_distribution(),
                     .control = emfrail_control()) {
@@ -231,25 +250,46 @@ emfrail <- function(.data, .formula,
   deta_dtheta <- (c(final_fit_plus$coef, final_fit_plus$haz$haz_tev) -
     c(final_fit_minus$coef, final_fit_minus$haz$haz_tev)) / (2*h)
 
-  adj_se <- sqrt(diag(deta_dtheta %*% (1/(attr(opt_object, "details")[[3]])) %*% t(deta_dtheta)))
+  #adj_se <- sqrt(diag(deta_dtheta %*% (1/(attr(opt_object, "details")[[3]])) %*% t(deta_dtheta)))
 
 
-  res <- list(outer_m = opt_object,
+  ncoef = length(final_fit$coef)
+
+  vcov_adj = final_fit$Vcov + deta_dtheta %*% (1/(attr(opt_object, "details")[[3]])) %*% t(deta_dtheta)
+
+  varH <- final_fit$Vcov[(ncoef + 1): nrow(final_fit$Vcov), (ncoef+ 1): nrow(final_fit$Vcov)]
+  varH_adj <- vcov_adj[(ncoef + 1): nrow(final_fit$Vcov), (ncoef+ 1): nrow(final_fit$Vcov)]
+
+  varH_time <- numeric(nrow(varH))
+  for(i in 1:nrow(varH)) {
+    varH_time[i] = sum(varH[1:i, 1:i])
+  }
+
+  varH_adj_time <- numeric(nrow(varH))
+  for(i in 1:nrow(varH)) {
+    varH_adj_time[i] = sum(varH_adj[1:i, 1:i])
+  }
+
+
+res <- list(outer_m = opt_object,
               res = list(loglik = final_fit$loglik,
                          dist = final_fit$dist,
                          theta = final_fit$frailtypar,
-                         haz = data.frame(time = final_fit$haz$time,
-                                         cumhaz = final_fit$haz$cumhaz),
+                         haz = data.frame(time = final_fit$haz$tev,
+                                         cumhaz = cumsum(final_fit$haz$haz_tev),
+                                         se_chz = sqrt(varH_time),
+                                         se_chz_adj = sqrt(varH_adj_time)),
                                           #se = final_fit$se[(1 + length(final_fit$coef)):length(final_fit$se)]),
                          z = data.frame(id = names(final_fit$Cvec),
                                         Lambda = final_fit$Cvec,
                                          z = final_fit$estep[,2] / final_fit$estep[,1]),
                                         coef = final_fit$coef,
-                         se_coef = final_fit$se[seq_along(final_fit$coef)],
-                         se_coef_adj = (final_fit$se + adj_se)[seq_along(final_fit$coef)] ),
-              mcox = mcox,
+                         se_coef = sqrt(diag(final_fit$Vcov)[seq_along(final_fit$coef)]),
+                         se_coef_adj = sqrt(diag(vcov_adj)[seq_along(final_fit$coef)] )),
+                   mcox = mcox,
               vcov = final_fit$Vcov,
-              vcov_adj = final_fit$Vcov + deta_dtheta %*% (1/(attr(opt_object, "details")[[3]])) %*% t(deta_dtheta) )
+              vcov_adj = vcov_adj
+               )
   attr(res, "class") <- "emfrail"
 
   res
