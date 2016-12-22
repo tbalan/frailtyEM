@@ -263,7 +263,8 @@ em_fit <- function(logfrailtypar, dist, pvfm,
                Cvec = Cvec,
                estep = e_step_val,
                coef = mcox$coefficients,
-               Vcov = Vcov)
+               Vcov = Vcov,
+               pvfm = pvfm)
 
     res
   }

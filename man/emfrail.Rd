@@ -117,7 +117,7 @@ legend(x = 0, y = 5, legend = c("95\% CI", "adjusted 95\% CI"), col = c(2,3), lt
 
 # with ggplot2
 library(ggplot2)
-ggplot(K$res$haz, aes(x = time)) +
+ggplot(mod2$res$haz, aes(x = time)) +
 geom_ribbon(aes(ymin = cumhaz - 1.96*se_chz, ymax = cumhaz + 1.96*se_chz),  fill = "grey70") +
   geom_ribbon(aes(ymin = cumhaz - 1.96*se_chz_adj, ymax = cumhaz + 1.96*se_chz_adj),  fill = "pink", alpha = 0.2) +
   geom_step(aes(y = cumhaz)) +

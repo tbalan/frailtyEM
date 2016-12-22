@@ -110,7 +110,7 @@
 #'
 #' # with ggplot2
 #' library(ggplot2)
-#' ggplot(K$res$haz, aes(x = time)) +
+#' ggplot(mod2$res$haz, aes(x = time)) +
 #' geom_ribbon(aes(ymin = cumhaz - 1.96*se_chz, ymax = cumhaz + 1.96*se_chz),  fill = "grey70") +
 #'   geom_ribbon(aes(ymin = cumhaz - 1.96*se_chz_adj, ymax = cumhaz + 1.96*se_chz_adj),  fill = "pink", alpha = 0.2) +
 #'   geom_step(aes(y = cumhaz)) +
@@ -119,6 +119,13 @@
 emfrail <- function(.data, .formula,
                     .distribution = emfrail_distribution(),
                     .control = emfrail_control()) {
+
+  if(!inherits(.distribution, "emfrail_distribution"))
+    stop(".distribution argument misspecified; see ?emfrail_distribution()")
+
+  if(!inherits(.control, "emfrail_control"))
+    stop(".control argument misspecified; see ?emfrail_control()")
+
   Call <- match.call()
 
 
@@ -274,6 +281,7 @@ emfrail <- function(.data, .formula,
 res <- list(outer_m = opt_object,
               res = list(loglik = final_fit$loglik,
                          dist = final_fit$dist,
+                         pvfm = final_fit$pvfm,
                          theta = final_fit$frailtypar,
                          haz = data.frame(time = final_fit$haz$tev,
                                          cumhaz = cumsum(final_fit$haz$haz_tev),

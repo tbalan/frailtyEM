@@ -14,10 +14,22 @@ print.emfrail <- function(obj) {
     # cat('Object of class', class(obj), '\n')
     cat("Shared frailty model with frailty distribution:", inner_info$dist, "\n", "\n")
 
+    if(inner_info$dist ==  "pvf") {
+      cat("pvf m =", inner_info$pvfm, " ")
+      if(inner_info$pvfm == -0.5) cat("(Inverse Gaussian)")
+      if(inner_info$pvfm > 0) cat(" //e stimated mass at 0:", exp(-(inner_info$pvfm+1) / inner_info$pvfm *inner_info$theta))
+      cat("\n")
+    }
+      cat()
+
     cat("Outer loops:", outer_info$fevals, "// optimizer:", rownames(outer_info), "\n")
     cat("(marginal) log-likelihood: ", -outer_info$value, "\n")
     cat("(no-frailty) log-likelihood:", cox_info$loglik[2], "\n\n")
-    cat("LRT for frailty,",(-outer_info$value - cox_info$loglik[2]), "on 0.5 df => p =", pchisq(-outer_info$value - cox_info$loglik[2], df = 0.5, lower.tail = FALSE), "\n\n")
+    cat("LRT for frailty,",
+        2 * (-outer_info$value - cox_info$loglik[2]),
+        "on (chisq(1) + chisq(0))/2 => p =",
+        pchisq(2 * (-outer_info$value - cox_info$loglik[2]), df = 1, lower.tail = FALSE)/2,
+        "\n\n")
 
 
     cat("Frailty parameter:", inner_info$theta, "se: ", msm::deltamethod(~exp(x1), mean = outer_info$p1,
@@ -51,4 +63,7 @@ print.emfrail <- function(obj) {
 
     printCoefmat(tmp, signif.stars = TRUE, P.values = TRUE, has.Pvalue = TRUE)
 }
+
+
+
 
