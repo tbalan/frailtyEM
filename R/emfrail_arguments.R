@@ -40,6 +40,8 @@ emfrail_distribution <- function(dist = "gamma", frailtypar = 2, pvfm = -1/2) {
 #' @param opt_fit Logical. Whether the outer optimization should be carried out. If \code{FALSE}, then the frailty parameter is treated as fixed.
 #' @param verbose Logical. Whether to print out information about what is going on during maximization.
 #' @param fast_fit Logical. Whether to go the faster route in the E step and calculate directly (when possible)
+#' @param zerotol Lower limit for 1/frailtypar (variance in case of gamma / pvf). Below this value, the variance is taken to be 0 and the
+#' EM is not actually performed. The log-likelihood returned by em_fit is that for the Cox model.
 #' @param opt_control A list with arguments to be sent to the maximizer. Currently ignored, will be useful in the future.
 #'
 #' @return A list of arguments suitable for \code{emfrail()}!
@@ -49,13 +51,14 @@ emfrail_distribution <- function(dist = "gamma", frailtypar = 2, pvfm = -1/2) {
 #' emfrail_control()
 #' emfrail_control(eps = 10e-7)
 emfrail_control <- function(eps = 0.001, maxit = Inf, opt_fit = TRUE, verbose = FALSE, fast_fit = TRUE,
+                            zerotol = 1e-4,
                             opt_control = list(method = "bobyqa",
     itnmax = NULL, control = list())) {
     # calculate SE as well
 
     # Here some checks
 
-    res <- list(eps = eps, maxit = maxit, opt_fit = opt_fit, verbose = verbose, fast_fit = fast_fit, opt_control = opt_control)
+    res <- list(eps = eps, maxit = maxit, opt_fit = opt_fit, zerotol = zerotol, verbose = verbose, fast_fit = fast_fit, opt_control = opt_control)
     attr(res, "class") <- c("emfrail_control")
     res
 }

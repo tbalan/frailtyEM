@@ -11,6 +11,23 @@ em_fit <- function(logfrailtypar, dist, pvfm,
                    return_loglik = TRUE
 ) {
 
+  # no events/time point, needed for the likelihood calculation
+  nev_tp <- tapply(X = Y[,3], INDEX = Y[,2], sum)
+  nev_tp <- nev_tp[nev_tp!=0]
+
+  # if the logfrailtypar is large, i.e. frailtypar is large, i.e. fr. variance close to 0, then
+  if(logfrailtypar > log(1/.control$zerotol)) {
+    warning("Frailty parameter very large, frailty variance close to 0")
+    loglik <- sum((log(basehaz_line) + t(mcox$coefficients %*% t(Xmat)))[Y[,3] == 1]) +
+       sum(Y[,3]) - sum(nev_tp * log(nev_tp))
+
+    if(isTRUE(return_loglik)) {
+      if(isTRUE(.control$verbose)) print(paste("loglik = ",loglik))
+      return(-loglik)
+    }
+
+  }
+
   .pars <- dist_to_pars(dist, logfrailtypar, pvfm)
 
 
@@ -40,9 +57,9 @@ em_fit <- function(logfrailtypar, dist, pvfm,
     # something only for the gamma:
     # logz <- log(rep((.pars$alpha + nev_id )/ (.pars$alpha + Cvec),   rle(id)$lengths))
 
-
-    nev_tp <- tapply(X = Y[,3], INDEX = Y[,2], sum)
-    nev_tp <- nev_tp[nev_tp!=0]
+#
+#     nev_tp <- tapply(X = Y[,3], INDEX = Y[,2], sum)
+#     nev_tp <- nev_tp[nev_tp!=0]
     loglik <- sum((log(basehaz_line) + t(mcox$coefficients %*% t(Xmat)))[Y[,3] == 1]) +
      sum(e_step_val[,3]) + sum(Y[,3]) - sum(nev_tp * log(nev_tp))# +  sum(nev_id * lp_individual)
     #
@@ -79,8 +96,8 @@ em_fit <- function(logfrailtypar, dist, pvfm,
 
     hh <- getchz(Y = Y, newrisk = 1, explp = exp(mcox$linear.predictors + t(mcox$coefficients) %*% mcox$means) )
 
-    hh$tev
-    hh$haz_tev
+    # hh$tev
+    # hh$haz_tev
     # plot(hh$time, hh$haz)
     # points(Y[,2], basehaz_line1, col = 2)
 
