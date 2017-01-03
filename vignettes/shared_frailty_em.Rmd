@@ -115,13 +115,13 @@ $$
 
 
 ### stable
-For the positive stable distribution, we have $\beta \in (0,1)$
+For the positive stable distribution, we have $\beta \in (0,1)$ (if $\beta = 1$ then it means that the marginal hazards are equal to the conditional hazards; if we have conditional covariate effect $\gamma$ then the marginal effect is $\beta \gamma$ so it is attenuated; predictive hazard ratios decrease to 1 over time)
 $$
 \psi(c) = c^\beta
 $$
 and
 $$
-\psi'(c) = \beta c^{beta - 1}
+\psi'(c) = \beta c^{\beta - 1}
 $$
 and
 $$
@@ -132,6 +132,28 @@ $$
 \psi^{(k)}(c) = \frac{\Gamma(k - \beta)}{\Gamma(1 - \beta)} (-1)^{k - 1} c^{\beta - 1}
 $$
 To parametrize it with one parameter $\theta > 1$ (note: has to be larger than 1!) we have $\beta = 1 - 1/\theta$ and $\alpha = \theta / ( \theta - 1)$. The idea is that we let the user give a $\theta>0$, and the program increments this by 1 anyway. 
+
+#### Fine fit
+Fine Glidden and Lee proposed in a paper in JRSS B (2003) to use the fact that $\beta$ would be should be a weighed average between two hazard ratios: a *very* conditional one, obtained from stratifying for each cluster and a marginal one, obtained from a normal Cox model. However, this seems to work well in only a few scenarios.
+
+They also assume that covariates vary within clusters and that at the marginal and conditional level we have the same covariates.
+
+#### Martinussen fit
+Martinussen and Pipper proposed in a paper in LiDA in 2005. A property of the stable model is that the marginal baseline hazard is
+$$
+h_0(t) = \alpha \lambda_0(t) \Lambda_0(t)^{\alpha - 1}.
+$$
+then we have that the baseline cumulative hazard is
+$$
+H_0(t) = \Lambda_0(t)^\alpha
+$$
+
+Then we can write the log-likelihood (conditional) with 
+$$
+\lambda_0(t) = d (H_0(t))^{1/\alpha}
+$$
+
+Then they say like that: the marginal hazard is the conditional times $E(z_i|t)$ with the estimate of $z_i$ at time $t$. They construct a likelihood with this $z_i|t$ calculated with an estimator of $H_0(t)$ under independence. Then they profile out $\lambda_0(t)$ like in a Cox model.
 
 ### pvf
 For the pvf distribution with $m > -1$ and $m!=0$, we have the Laplace transform
