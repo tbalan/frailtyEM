@@ -163,35 +163,31 @@ emfrail <- function(.data, .formula,
 
 
   # some stuff for creating the C vector, is used all along.
-
+  # mcox also works with empty matrices, but also with NULL as x.
   mcox <- survival::agreg.fit(x = X, y = Y, strata = NULL, offset = NULL, init = NULL,
-                              control = survival::coxph.control(), weights = NULL, method = "breslow", rownames = NULL)
+                              control = survival::coxph.control(),
+                              weights = NULL, method = "breslow", rownames = NULL)
 
   # the "baseline" case // this will stay constant
-  x2 <- matrix(rep(0, ncol(X)), nrow = 1, dimnames = list(123, dimnames(X)[[2]]))
-  x2 <- scale(x2, center = mcox$means, scale = FALSE)
 
+  if(length(X) == 0) {
+    newrisk <- 1
+    exp_g_x <- matrix(rep(1, length(mcox$linear.predictors)), nrow = 1)
+    g <- 0
+  } else {
+    x2 <- matrix(rep(0, ncol(X)), nrow = 1, dimnames = list(123, dimnames(X)[[2]]))
+    x2 <- (scale(x2, center = mcox$means, scale = FALSE))
+    newrisk <- exp(c(x2 %*% mcox$coefficients) + 0)
+    exp_g_x <- exp(mcox$coefficients %*% t(X))
+    g <- mcox$coefficients
+  }
 
-  # this is a fake tstart tstop with the indices in the total time points
-  # Yfake <- cbind(match(Y[,1], all_times), match(Y[,2], all_times), Y[,3])
-
-
-
-  # first time - no offset M step
-
-
-  # we have: exp(linear predictors)
-  # do we need this? this actually has everything centered...
-
-
-  explp <- exp(mcox$linear.predictors)
-
-  newrisk <- exp(c(x2 %*% mcox$coefficients) + 0)
+  explp <- exp(mcox$linear.predictors) # these are with centered covariates
 
   hh <- getchz(Y = Y, newrisk = newrisk, explp = explp)
   cumhaz_line <- sapply(X = apply(as.matrix(Y[,c(1,2)]), 1, as.list),
                         FUN = function(x)  sum(hh$haz_tev[x$start <= hh$tev & hh$tev <= x$stop])) *
-    exp(mcox$coefficients %*% t(X))
+    exp_g_x # this is supposed to be without centered covariates.
 
   basehaz_line <- hh$haz_tev[match(Y[,2], hh$tev)]
 
@@ -207,7 +203,7 @@ emfrail <- function(.data, .formula,
     return(em_fit(logfrailtypar = log(.distribution$frailtypar),
            dist = .distribution$dist, pvfm = .distribution$pvfm,
            Y = Y, Xmat = X, id = id, nev_id = nev_id, newrisk = newrisk, basehaz_line = basehaz_line,
-           mcox = list(coefficients = mcox$coefficients), explp = explp, Cvec = Cvec,
+           mcox = list(coefficients = g), explp = explp, Cvec = Cvec,
            .control = .control))
   }
 
@@ -219,7 +215,7 @@ emfrail <- function(.data, .formula,
                method = .control$opt_control$method, #control = .control$opt_control$control,
                dist = .distribution$dist, pvfm = .distribution$pvfm,
                Y = Y, Xmat = X, id = id, nev_id = nev_id, newrisk = newrisk, basehaz_line = basehaz_line,
-               mcox = list(coefficients = mcox$coefficients), explp = explp, Cvec = Cvec,
+               mcox = list(coefficients = g), explp = explp, Cvec = Cvec,
                .control = .control)
 
 

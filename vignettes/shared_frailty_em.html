@@ -12,7 +12,7 @@
 
 <meta name="author" content="Theodor Adrian Balan" />
 
-<meta name="date" content="2016-12-15" />
+<meta name="date" content="2017-01-04" />
 
 <title>Shared frailty models</title>
 
@@ -70,7 +70,7 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 
 <h1 class="title toc-ignore">Shared frailty models</h1>
 <h4 class="author"><em>Theodor Adrian Balan</em></h4>
-<h4 class="date"><em>2016-12-15</em></h4>
+<h4 class="date"><em>2017-01-04</em></h4>
 
 
 
@@ -146,15 +146,32 @@ z_i = \frac{E[z ^ N_{i+1} \exp(-z \Lambda_i)]}{E[z ^ N_{i} \exp(-z \Lambda_i)]} 
 </div>
 <div id="stable" class="section level3">
 <h3>stable</h3>
-<p>For the positive stable distribution, we have <span class="math inline">\(\beta \in (0,1)\)</span> <span class="math display">\[
+<p>For the positive stable distribution, we have <span class="math inline">\(\beta \in (0,1)\)</span> (if <span class="math inline">\(\beta = 1\)</span> then it means that the marginal hazards are equal to the conditional hazards; if we have conditional covariate effect <span class="math inline">\(\gamma\)</span> then the marginal effect is <span class="math inline">\(\beta \gamma\)</span> so it is attenuated; predictive hazard ratios decrease to 1 over time) <span class="math display">\[
 \psi(c) = c^\beta
 \]</span> and <span class="math display">\[
-\psi'(c) = \beta c^{beta - 1}
+\psi'(c) = \beta c^{\beta - 1}
 \]</span> and <span class="math display">\[
 \psi''(c) = \beta (\beta - 1) c^{\beta - 1}
 \]</span> Now the problem is that <span class="math inline">\(\beta - 1 &lt; 0\)</span> and then we run into trouble with the gamma function that is not defined for negative values. Because of that, we write it like this: <span class="math display">\[
 \psi^{(k)}(c) = \frac{\Gamma(k - \beta)}{\Gamma(1 - \beta)} (-1)^{k - 1} c^{\beta - 1}
 \]</span> To parametrize it with one parameter <span class="math inline">\(\theta &gt; 1\)</span> (note: has to be larger than 1!) we have <span class="math inline">\(\beta = 1 - 1/\theta\)</span> and <span class="math inline">\(\alpha = \theta / ( \theta - 1)\)</span>. The idea is that we let the user give a <span class="math inline">\(\theta&gt;0\)</span>, and the program increments this by 1 anyway.</p>
+<div id="fine-fit" class="section level4">
+<h4>Fine fit</h4>
+<p>Fine Glidden and Lee proposed in a paper in JRSS B (2003) to use the fact that <span class="math inline">\(\beta\)</span> would be should be a weighed average between two hazard ratios: a <em>very</em> conditional one, obtained from stratifying for each cluster and a marginal one, obtained from a normal Cox model. However, this seems to work well in only a few scenarios.</p>
+<p>They also assume that covariates vary within clusters and that at the marginal and conditional level we have the same covariates.</p>
+</div>
+<div id="martinussen-fit" class="section level4">
+<h4>Martinussen fit</h4>
+<p>Martinussen and Pipper proposed in a paper in LiDA in 2005. A property of the stable model is that the marginal baseline hazard is <span class="math display">\[
+h_0(t) = \alpha \lambda_0(t) \Lambda_0(t)^{\alpha - 1}.
+\]</span> then we have that the baseline cumulative hazard is <span class="math display">\[
+H_0(t) = \Lambda_0(t)^\alpha
+\]</span></p>
+<p>Then we can write the log-likelihood (conditional) with <span class="math display">\[
+\lambda_0(t) = d (H_0(t))^{1/\alpha}
+\]</span></p>
+<p>Then they say like that: the marginal hazard is the conditional times <span class="math inline">\(E(z_i|t)\)</span> with the estimate of <span class="math inline">\(z_i\)</span> at time <span class="math inline">\(t\)</span>. They construct a likelihood with this <span class="math inline">\(z_i|t\)</span> calculated with an estimator of <span class="math inline">\(H_0(t)\)</span> under independence. Then they profile out <span class="math inline">\(\lambda_0(t)\)</span> like in a Cox model.</p>
+</div>
 </div>
 <div id="pvf" class="section level3">
 <h3>pvf</h3>

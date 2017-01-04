@@ -15,10 +15,18 @@ em_fit <- function(logfrailtypar, dist, pvfm,
   nev_tp <- tapply(X = Y[,3], INDEX = Y[,2], sum)
   nev_tp <- nev_tp[nev_tp!=0]
 
+  print("hello im in em_fit")
+
+  if(length(Xmat)==0) {
+    lp <- matrix(rep(0, nrow(Y)),ncol = 1)
+  } else {
+    lp <- t(mcox$coefficients %*% t(Xmat))
+  }
+
   # if the logfrailtypar is large, i.e. frailtypar is large, i.e. fr. variance close to 0, then
   if(logfrailtypar > log(1/.control$zerotol)) {
     warning("Frailty parameter very large, frailty variance close to 0")
-    loglik <- sum((log(basehaz_line) + t(mcox$coefficients %*% t(Xmat)))[Y[,3] == 1]) +
+    loglik <- sum((log(basehaz_line) + lp)[Y[,3] == 1]) +
        sum(Y[,3]) - sum(nev_tp * log(nev_tp))
 
     if(isTRUE(return_loglik)) {
@@ -60,7 +68,7 @@ em_fit <- function(logfrailtypar, dist, pvfm,
 #
 #     nev_tp <- tapply(X = Y[,3], INDEX = Y[,2], sum)
 #     nev_tp <- nev_tp[nev_tp!=0]
-    loglik <- sum((log(basehaz_line) + t(mcox$coefficients %*% t(Xmat)))[Y[,3] == 1]) +
+    loglik <- sum((log(basehaz_line) + lp)[Y[,3] == 1]) +
      sum(e_step_val[,3]) + sum(Y[,3]) - sum(nev_tp * log(nev_tp))# +  sum(nev_id * lp_individual)
     #
     # this is actually identical value:
@@ -93,8 +101,13 @@ em_fit <- function(logfrailtypar, dist, pvfm,
 
     # How I calculate the cumulative hazard corresponding to each line in the data set...
 
+    if(length(Xmat)==0) {
+      lp <- mcox$linear.predictors
+    } else {
+      lp <- mcox$linear.predictors + t(mcox$coefficients) %*% mcox$means
+    }
 
-    hh <- getchz(Y = Y, newrisk = 1, explp = exp(mcox$linear.predictors + t(mcox$coefficients) %*% mcox$means) )
+    hh <- getchz(Y = Y, newrisk = 1, explp = exp(lp) )
 
     # hh$tev
     # hh$haz_tev
@@ -109,7 +122,14 @@ em_fit <- function(logfrailtypar, dist, pvfm,
     #
     basehaz_line <- hh$haz_tev[match(Y[,2], hh$tev)]
 
-    Cvec <- tapply(X = cumhaz_line * exp(mcox$coefficients %*% t(Xmat)),
+    if(length(Xmat==0)) {
+      exp_g_x <- exp_g_x <- matrix(rep(1, length(mcox$linear.predictors)), nrow = 1)
+    } else {
+      exp_g_x <- exp(mcox$coefficients %*% t(Xmat))
+    }
+
+
+    Cvec <- tapply(X = cumhaz_line * exp_g_x,
                    INDEX = id,
                    FUN = sum)
 
@@ -128,31 +148,37 @@ em_fit <- function(logfrailtypar, dist, pvfm,
   # Standard error calculation
   # First part, second derivatives
 
-  z_elp = exp(mcox$linear.predictors + t(mcox$coefficients) %*% mcox$means)
-  elp = exp(mcox$linear.predictors + t(mcox$coefficients) %*% mcox$means)  / exp(logz)
+  z_elp = exp(lp)
+  elp = exp(lp)  / exp(logz)
 
   # by line !
-  # cumhaz_line contains
-  x <- lapply(apply(Xmat, 1, list), function(x) x[[1]])
-  x_z_elp <- mapply(function(a,b) a*b, x, z_elp, SIMPLIFY = FALSE)
-  x_z_elp_H0 <- mapply(function(a,b,c) a*b*c, x, z_elp, cumhaz_line, SIMPLIFY = FALSE)
-  x_elp_H0 <- mapply(function(a,b,c) a*b*c, x, z_elp / exp(logz), cumhaz_line, SIMPLIFY = FALSE)
+  if(length(Xmat>0)) {
+    x <- lapply(apply(Xmat, 1, list), function(x) x[[1]])
+    x_z_elp <- mapply(function(a,b) a*b, x, z_elp, SIMPLIFY = FALSE)
+    x_z_elp_H0 <- mapply(function(a,b,c) a*b*c, x, z_elp, cumhaz_line, SIMPLIFY = FALSE)
+    x_elp_H0 <- mapply(function(a,b,c) a*b*c, x, z_elp / exp(logz), cumhaz_line, SIMPLIFY = FALSE)
 
-  xx <- lapply(x, function(x) x %*% t(x) )
-  xx_z_elp_H0 <- mapply(function(a,b, c) a * b * c, xx, z_elp, cumhaz_line, SIMPLIFY = FALSE)
+    xx <- lapply(x, function(x) x %*% t(x) )
+    xx_z_elp_H0 <- mapply(function(a,b, c) a * b * c, xx, z_elp, cumhaz_line, SIMPLIFY = FALSE)
+    m_d2l_dgdg <- Reduce("+", xx_z_elp_H0)
+
+    m_d2l_dhdg <- hh$tev %>%
+      lapply(function(tk) which(Y[,1] < tk & tk <= Y[,2])) %>%
+      lapply(function(x) x_z_elp[x]) %>%
+      lapply(function(...) Reduce("+", ...)) %>%
+      do.call(rbind, .)
+    # this is the most R piece of code I have ever written
+  } else {
+    m_d2l_dgdg <- NULL
+    m_d2l_dhdg <- NULL
+  }
 
 
 
-  m_d2l_dgdg <- Reduce("+", xx_z_elp_H0)
 
   m_d2l_dhdh <- diag(nev_tp/hh$haz_tev^2)
 
-  m_d2l_dhdg <- hh$tev %>%
-    lapply(function(tk) which(Y[,1] < tk & tk <= Y[,2])) %>%
-    lapply(function(x) x_z_elp[x]) %>%
-    lapply(function(...) Reduce("+", ...)) %>%
-    do.call(rbind, .)
-  # this is the most R piece of code I have ever written
+
 #
 
 
@@ -167,20 +193,26 @@ em_fit <- function(logfrailtypar, dist, pvfm,
   zz <- estep_plusone[,1] /estep_again[,2]
   z <- e_step_val[,1] / e_step_val[,2]
 
-  #sum(delta_ij * x_ij)
-  dl1_dg <- Reduce("+", mapply(function(a,b) a*b, Y[,3], x, SIMPLIFY = FALSE))
-  # sum z x H
-  dl2_dg <- Reduce("+", x_z_elp_H0)
+  if(lenght(Xmat > 0)) {
 
 
-  # this one to add; removes the part with (EZ)^2 and adds part with E(Z^2)
-  cor_dg <- x_elp_H0 %>%
-    tapply(id, function(...) Reduce("+", ...)) %>%
-    lapply(function(x) x %*% t(x)) %>%
-    mapply(function(a,b) a * b, ., zz - z^2, SIMPLIFY = FALSE) %>%
-    Reduce("+", .)
+    #sum(delta_ij * x_ij)
+    dl1_dg <- Reduce("+", mapply(function(a,b) a*b, Y[,3], x, SIMPLIFY = FALSE))
+    # sum z x H
+    dl2_dg <- Reduce("+", x_z_elp_H0)
 
-  I_gg_loss <- (dl1_dg  - dl2_dg) %*% t(dl1_dg - dl2_dg) + cor_dg
+
+    # this one to add; removes the part with (EZ)^2 and adds part with E(Z^2)
+    cor_dg <- x_elp_H0 %>%
+      tapply(id, function(...) Reduce("+", ...)) %>%
+      lapply(function(x) x %*% t(x)) %>%
+      mapply(function(a,b) a * b, ., zz - z^2, SIMPLIFY = FALSE) %>%
+      Reduce("+", .)
+
+    I_gg_loss <- (dl1_dg  - dl2_dg) %*% t(dl1_dg - dl2_dg) + cor_dg
+
+  } else
+    I_gg_loss <- NULL
 
 
   dl1_dh <- nev_tp / hh$haz_tev
@@ -198,7 +230,7 @@ em_fit <- function(logfrailtypar, dist, pvfm,
   #   do.call(rbind, .) %>%
   #   apply(2,sum)
 
-  # correction
+  # correction this has to be re-done
   cor_dh <- split(data.frame(elp, y1 = Y[,1], y2 = Y[,2]), id) %>%
     lapply(function(dat) lapply(hh$tev, function(tk) sum(dat$elp[dat$y1 < tk & tk <= dat$y2]))) %>%
     lapply(function(...) do.call(c, ...)) %>%  # these are the c_ik without the z man.
