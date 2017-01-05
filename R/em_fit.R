@@ -211,9 +211,19 @@ em_fit <- function(logfrailtypar, dist, pvfm,
 
     I_gg_loss <- (dl1_dg  - dl2_dg) %*% t(dl1_dg - dl2_dg) + cor_dg
 
-  } else
-    I_gg_loss <- NULL
+    cor_dg_dh <- split(data.frame(elp, y1 = Y[,1], y2 = Y[,2]), id) %>%
+      lapply(function(dat) lapply(hh$tev, function(tk) sum(dat$elp[dat$y1 < tk & tk <= dat$y2]))) %>%
+      lapply(function(...) do.call(c, ...)) %>%
+      mapply(function(a, b) a %*% t(b), tapply(x_elp_H0, id, function(...) Reduce("+", ...))  ,. , SIMPLIFY = FALSE) %>%
+      mapply(function(a,b) a * b, ., zz - z^2, SIMPLIFY = FALSE) %>%
+      Reduce("+",.)
 
+    I_gh_loss <- (dl1_dg  - dl2_dg) %*% t(dl1_dh - dl2_dh) + cor_dg_dh
+
+  } else {
+    I_gg_loss <- NULL
+    I_gh_loss <- NULL
+  }
 
   dl1_dh <- nev_tp / hh$haz_tev
 
@@ -239,21 +249,6 @@ em_fit <- function(logfrailtypar, dist, pvfm,
     Reduce("+",.)
 
   I_hh_loss <- (dl1_dh - dl2_dh) %*% t(dl1_dh - dl2_dh) + cor_dh
-
-
-
-
-
-  cor_dg_dh <- split(data.frame(elp, y1 = Y[,1], y2 = Y[,2]), id) %>%
-    lapply(function(dat) lapply(hh$tev, function(tk) sum(dat$elp[dat$y1 < tk & tk <= dat$y2]))) %>%
-    lapply(function(...) do.call(c, ...)) %>%
-    mapply(function(a, b) a %*% t(b), tapply(x_elp_H0, id, function(...) Reduce("+", ...))  ,. , SIMPLIFY = FALSE) %>%
-    mapply(function(a,b) a * b, ., zz - z^2, SIMPLIFY = FALSE) %>%
-    Reduce("+",.)
-
-
-  I_gh_loss <- (dl1_dg  - dl2_dg) %*% t(dl1_dh - dl2_dh) + cor_dg_dh
-
 
   I_gg <- m_d2l_dgdg - I_gg_loss
   I_hh <- m_d2l_dhdh - I_hh_loss
