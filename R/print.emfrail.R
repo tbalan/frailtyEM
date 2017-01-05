@@ -17,18 +17,18 @@ print.emfrail <- function(obj) {
     if(inner_info$dist ==  "pvf") {
       cat("pvf m =", inner_info$pvfm, " ")
       if(inner_info$pvfm == -0.5) cat("(Inverse Gaussian)")
-      if(inner_info$pvfm > 0) cat(" //e stimated mass at 0:", exp(-(inner_info$pvfm+1) / inner_info$pvfm *inner_info$theta))
+      if(inner_info$pvfm > 0) cat(" //estimated mass at 0:", exp(-(inner_info$pvfm+1) / inner_info$pvfm *inner_info$theta))
       cat("\n")
     }
       cat()
 
     cat("Outer loops:", outer_info$fevals, "// optimizer:", rownames(outer_info), "\n")
     cat("(marginal) log-likelihood: ", -outer_info$value, "\n")
-    cat("(no-frailty) log-likelihood:", cox_info$loglik[2], "\n\n")
+    cat("(no-frailty) log-likelihood:", cox_info$loglik[length(cox_info$loglik)], "\n\n")
     cat("LRT for frailty,",
-        2 * (-outer_info$value - cox_info$loglik[2]),
+        2 * (-outer_info$value - cox_info$loglik[length(cox_info$loglik)]),
         "on (chisq(1) + chisq(0))/2 => p =",
-        pchisq(2 * (-outer_info$value - cox_info$loglik[2]), df = 1, lower.tail = FALSE)/2,
+        pchisq(2 * (-outer_info$value - cox_info$loglik[length(cox_info$loglik)]), df = 1, lower.tail = FALSE)/2,
         "\n\n")
 
 
@@ -51,17 +51,21 @@ print.emfrail <- function(obj) {
 
 
 
+    if(!is.null(inner_info$coef)) {
+      cat("Regression coefficients:\n")
 
-    cat("Regression coefficients:\n")
 
 
+      tmp <- inner_info %>% with(cbind(coef, exp(coef), se_coef, se_coef_adj, coef/se_coef, 1 - pchisq((coef/se_coef)^2,
+                                                                                                       1)))
 
-    tmp <- inner_info %>% with(cbind(coef, exp(coef), se_coef, se_coef_adj, coef/se_coef, 1 - pchisq((coef/se_coef)^2,
-        1)))
+      dimnames(tmp) <- list(names(inner_info$coef), c("coef", "exp(coef)", "se(coef)", "adjusted se", "z", "p"))
 
-    dimnames(tmp) <- list(names(inner_info$coef), c("coef", "exp(coef)", "se(coef)", "adjusted se", "z", "p"))
+      printCoefmat(tmp, signif.stars = TRUE, P.values = TRUE, has.Pvalue = TRUE)
+    }
 
-    printCoefmat(tmp, signif.stars = TRUE, P.values = TRUE, has.Pvalue = TRUE)
+    invisible(obj)
+
 }
 
 

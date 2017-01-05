@@ -15,18 +15,18 @@ em_fit <- function(logfrailtypar, dist, pvfm,
   nev_tp <- tapply(X = Y[,3], INDEX = Y[,2], sum)
   nev_tp <- nev_tp[nev_tp!=0]
 
-  print("hello im in em_fit")
+  #print("hello im in em_fit")
 
   if(length(Xmat)==0) {
-    lp <- matrix(rep(0, nrow(Y)),ncol = 1)
+    g_x <- matrix(rep(0, nrow(Y)),ncol = 1)
   } else {
-    lp <- t(mcox$coefficients %*% t(Xmat))
+    g_x <- t(mcox$coefficients %*% t(Xmat))
   }
 
   # if the logfrailtypar is large, i.e. frailtypar is large, i.e. fr. variance close to 0, then
   if(logfrailtypar > log(1/.control$zerotol)) {
     warning("Frailty parameter very large, frailty variance close to 0")
-    loglik <- sum((log(basehaz_line) + lp)[Y[,3] == 1]) +
+    loglik <- sum((log(basehaz_line) + g_x)[Y[,3] == 1]) +
        sum(Y[,3]) - sum(nev_tp * log(nev_tp))
 
     if(isTRUE(return_loglik)) {
@@ -65,11 +65,10 @@ em_fit <- function(logfrailtypar, dist, pvfm,
     # something only for the gamma:
     # logz <- log(rep((.pars$alpha + nev_id )/ (.pars$alpha + Cvec),   rle(id)$lengths))
 
-#
-#     nev_tp <- tapply(X = Y[,3], INDEX = Y[,2], sum)
-#     nev_tp <- nev_tp[nev_tp!=0]
-    loglik <- sum((log(basehaz_line) + lp)[Y[,3] == 1]) +
+
+    loglik <- sum((log(basehaz_line) + g_x)[Y[,3] == 1]) +
      sum(e_step_val[,3]) + sum(Y[,3]) - sum(nev_tp * log(nev_tp))# +  sum(nev_id * lp_individual)
+
     #
     # this is actually identical value:
     # loglik <- sum((log(basehaz_line) + t(mcox$coefficients %*% t(Xmat)))[Y[,3] == 1]) +
@@ -82,7 +81,7 @@ em_fit <- function(logfrailtypar, dist, pvfm,
 
     loglik_old <- loglik
 
-    #print(paste0("loglik is ", loglik, " coef are ", paste0(mcox$coefficients, collapse = " ")))
+    # print(paste0("loglik is ", loglik, " coef are ", paste0(mcox$coefficients, collapse = " ")))
 
 
     mcox <- survival::agreg.fit(x = Xmat, y = Y, strata = NULL, offset = logz, init = NULL,
@@ -122,14 +121,14 @@ em_fit <- function(logfrailtypar, dist, pvfm,
     #
     basehaz_line <- hh$haz_tev[match(Y[,2], hh$tev)]
 
-    if(length(Xmat==0)) {
-      exp_g_x <- exp_g_x <- matrix(rep(1, length(mcox$linear.predictors)), nrow = 1)
+    if(length(Xmat)==0) {
+      g_x <- t(matrix(rep(0, length(mcox$linear.predictors)), nrow = 1))
     } else {
-      exp_g_x <- exp(mcox$coefficients %*% t(Xmat))
+      g_x <- t(mcox$coefficients %*% t(Xmat))
     }
 
 
-    Cvec <- tapply(X = cumhaz_line * exp_g_x,
+    Cvec <- tapply(X = cumhaz_line * exp(g_x),
                    INDEX = id,
                    FUN = sum)
 
@@ -151,8 +150,9 @@ em_fit <- function(logfrailtypar, dist, pvfm,
   z_elp = exp(lp)
   elp = exp(lp)  / exp(logz)
 
+  # message("calculating Information Matrix...")
   # by line !
-  if(length(Xmat>0)) {
+  if(length(Xmat)>0) {
     x <- lapply(apply(Xmat, 1, list), function(x) x[[1]])
     x_z_elp <- mapply(function(a,b) a*b, x, z_elp, SIMPLIFY = FALSE)
     x_z_elp_H0 <- mapply(function(a,b,c) a*b*c, x, z_elp, cumhaz_line, SIMPLIFY = FALSE)
@@ -193,7 +193,17 @@ em_fit <- function(logfrailtypar, dist, pvfm,
   zz <- estep_plusone[,1] /estep_again[,2]
   z <- e_step_val[,1] / e_step_val[,2]
 
-  if(lenght(Xmat > 0)) {
+
+
+  dl1_dh <- nev_tp / hh$haz_tev
+
+  dl2_dh <- hh$tev %>%
+    lapply(function(tk) which(Y[,1] < tk & tk <= Y[,2])) %>%
+    lapply(function(lin) sum(z_elp[lin])) %>%
+    do.call(c, .)
+
+
+  if(length(Xmat) > 0) {
 
 
     #sum(delta_ij * x_ij)
@@ -225,12 +235,7 @@ em_fit <- function(logfrailtypar, dist, pvfm,
     I_gh_loss <- NULL
   }
 
-  dl1_dh <- nev_tp / hh$haz_tev
 
-  dl2_dh <- hh$tev %>%
-    lapply(function(tk) which(Y[,1] < tk & tk <= Y[,2])) %>%
-    lapply(function(lin) sum(z_elp[lin])) %>%
-    do.call(c, .)
 
   # also:
   # dl2_dh <- split(data.frame(elp, y1 = Y[,1], y2 = Y[,2]), id) %>%
@@ -240,7 +245,7 @@ em_fit <- function(logfrailtypar, dist, pvfm,
   #   do.call(rbind, .) %>%
   #   apply(2,sum)
 
-  # correction this has to be re-done
+  # correction
   cor_dh <- split(data.frame(elp, y1 = Y[,1], y2 = Y[,2]), id) %>%
     lapply(function(dat) lapply(hh$tev, function(tk) sum(dat$elp[dat$y1 < tk & tk <= dat$y2]))) %>%
     lapply(function(...) do.call(c, ...)) %>%  # these are the c_ik without the z man.
@@ -250,18 +255,23 @@ em_fit <- function(logfrailtypar, dist, pvfm,
 
   I_hh_loss <- (dl1_dh - dl2_dh) %*% t(dl1_dh - dl2_dh) + cor_dh
 
-  I_gg <- m_d2l_dgdg - I_gg_loss
   I_hh <- m_d2l_dhdh - I_hh_loss
-  I_hg <- m_d2l_dhdg - t(I_gh_loss)
 
-  Imat <- matrix(0, ncol(Xmat) + length(hh$tev), ncol(Xmat) + length(hh$tev))
+  if(length(Xmat)>0) {
+    I_gg <- m_d2l_dgdg - I_gg_loss
+    I_hg <- m_d2l_dhdg - t(I_gh_loss)
 
-  Imat[1:length(mcox$coefficients), 1:length(mcox$coefficients)] <- I_gg
+    Imat <- matrix(0, ncol(Xmat) + length(hh$tev), ncol(Xmat) + length(hh$tev))
 
-  Imat[(length(mcox$coefficients)+1):nrow(Imat), (length(mcox$coefficients)+1):nrow(Imat)] <- I_hh
+    Imat[1:length(mcox$coefficients), 1:length(mcox$coefficients)] <- I_gg
 
-  Imat[1:length(mcox$coefficients), (length(mcox$coefficients)+1):nrow(Imat) ] <- t(I_hg)
-  Imat[(length(mcox$coefficients)+1):nrow(Imat), 1:length(mcox$coefficients) ] <- I_hg
+    Imat[(length(mcox$coefficients)+1):nrow(Imat), (length(mcox$coefficients)+1):nrow(Imat)] <- I_hh
+
+    Imat[1:length(mcox$coefficients), (length(mcox$coefficients)+1):nrow(Imat) ] <- t(I_hg)
+    Imat[(length(mcox$coefficients)+1):nrow(Imat), 1:length(mcox$coefficients) ] <- I_hg
+
+  } else Imat <- I_hh
+
 
   #Imat %>% solve %>% diag %>% sqrt
 
