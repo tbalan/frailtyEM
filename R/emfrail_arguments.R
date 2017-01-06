@@ -1,4 +1,3 @@
-
 #' Distribution parameters for emfrail
 #'
 #' @param dist One of 'gamma', 'stable' or 'pvf'.
@@ -50,6 +49,33 @@ emfrail_distribution <- function(dist = "gamma", frailtypar = 2, pvfm = -1/2) {
 #' @examples
 #' emfrail_control()
 #' emfrail_control(eps = 10e-7)
+#'
+#' # A data set with very small heterogeneity
+#' set.seed(10)
+#' x <- sample(c(0,1/2), 500, TRUE)
+#' tstart <- rep(0, 500)
+#' tstop <- rexp(1 * exp(x))
+#' status <- rep(1, 500)
+#' id <- rep(1:100, each = 5)
+#' dat <- data.frame(id, tstart, tstop, status, x)
+#'
+#' # What coxph does:
+#' library(survival)
+#' m_cph <- coxph(Surv(tstart, tstop, status) ~ x + frailty(id), dat, ties = "breslow")
+#' m_cph$history
+#' # For the frailty variance, the program tries: 0, 1, 0.5, 0.005, 0.00005, etc. Stops at 5e-7.
+#'
+#' m_ft <- emfrail(dat, Surv(tstart, tstop, status) ~ x + cluster(id))
+#' m_ft
+#'
+#' # The algorithm gives as frailty parameter 10587.88 which means frailty variance 1/10587.88 = 9.44e-05
+#' # That is because by default, zerotol = 1e-04, which is the point where the algorithm decides that the frailty is 0.
+#'
+#' # If you want the exact value of the estimate, increase the precision so the point stays somewhat interior to the parameter space.
+#' m_ft_08 <- emfrail(dat, Surv(tstart, tstop, status) ~ x + cluster(id),
+#'                    .control = emfrail_control(zerotol = 1e-8))
+#' # This gives a more precise estimate, 5845410 so frailty variance 1/5845410 = 1.71e-07
+#'
 emfrail_control <- function(eps = 0.001, maxit = Inf, opt_fit = TRUE, verbose = FALSE, fast_fit = TRUE,
                             zerotol = 1e-4,
                             opt_control = list(method = "bobyqa",

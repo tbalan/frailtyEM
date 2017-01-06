@@ -32,7 +32,7 @@
 #'
 #' The family of supported distributions can be one of gamma, positive stable or PVF (power-variance-family).
 #'
-#' @note Some possible problems may appear when the maximum likelihood estimate lies on the border of the parameter space. Usually, this will happen
+#' Some possible problems may appear when the maximum likelihood estimate lies on the border of the parameter space. Usually, this will happen
 #' when the "outer" parameter MLE is infinity (i.e. variance 0 in case of gamma and PVF). For small enough values of \eqn{1/\theta} the log-likelihood
 #' of the Cox model will be returned. The tolerance of this option can be tweaked in \code{emfrail_control()}.
 #'
@@ -206,7 +206,7 @@ emfrail <- function(.data, .formula,
     return(em_fit(logfrailtypar = log(.distribution$frailtypar),
            dist = .distribution$dist, pvfm = .distribution$pvfm,
            Y = Y, Xmat = X, id = id, nev_id = nev_id, newrisk = newrisk, basehaz_line = basehaz_line,
-           mcox = list(coefficients = g), explp = explp, Cvec = Cvec,
+           mcox = list(coefficients = g, loglik = mcox$loglik), explp = explp, Cvec = Cvec,
            .control = .control))
   }
 
@@ -218,7 +218,7 @@ emfrail <- function(.data, .formula,
                method = .control$opt_control$method, #control = .control$opt_control$control,
                dist = .distribution$dist, pvfm = .distribution$pvfm,
                Y = Y, Xmat = X, id = id, nev_id = nev_id, newrisk = newrisk, basehaz_line = basehaz_line,
-               mcox = list(coefficients = g), explp = explp, Cvec = Cvec,
+               mcox = list(coefficients = g, loglik = mcox$loglik), explp = explp, Cvec = Cvec,
                .control = .control)
 
 
@@ -229,7 +229,7 @@ emfrail <- function(.data, .formula,
   final_fit <- em_fit(logfrailtypar = opt_object$p1,
                 dist = .distribution$dist, pvfm = .distribution$pvfm,
                 Y = Y, Xmat = X, id = id, nev_id = nev_id, newrisk = newrisk, basehaz_line = basehaz_line,
-                mcox = list(coefficients = mcox$coefficients), explp = explp, Cvec = Cvec,
+                mcox = list(coefficients = mcox$coefficients, loglik = mcox$loglik), explp = explp, Cvec = Cvec,
                 .control = .control, return_loglik = FALSE)
 
   # that the hessian
