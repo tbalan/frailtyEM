@@ -14,12 +14,13 @@
 #'
 #'
 #' @export
-fast_Estep <- function(c, delta, alpha, bbeta, pvfm, dist) {
+fast_Estep <- function(c, c_lt = 0, delta, alpha, bbeta, pvfm, dist) {
 
   if(dist != 0) stop("no fast option available here")
   res <- matrix(0, length(delta), 3)
 
   if(dist==0) {
+    bbeta <- bbeta + c_lt
     res[,3] <- log(alpha)*bbeta - (alpha + delta)*log(bbeta + c) + lgamma(alpha + delta) - lgamma(alpha)
     res[,1] <- (alpha + delta)
     res[,2] <- (bbeta + c)

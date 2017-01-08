@@ -6,18 +6,19 @@
 using namespace Rcpp;
 
 // Estep
-NumericMatrix Estep(NumericVector c, IntegerVector delta, double alpha, double bbeta, const double& pvfm, const int& dist);
-RcppExport SEXP frailtoys_Estep(SEXP cSEXP, SEXP deltaSEXP, SEXP alphaSEXP, SEXP bbetaSEXP, SEXP pvfmSEXP, SEXP distSEXP) {
+NumericMatrix Estep(NumericVector c, NumericVector c_lt, IntegerVector delta, double alpha, double bbeta, const double& pvfm, const int& dist);
+RcppExport SEXP frailtoys_Estep(SEXP cSEXP, SEXP c_ltSEXP, SEXP deltaSEXP, SEXP alphaSEXP, SEXP bbetaSEXP, SEXP pvfmSEXP, SEXP distSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< NumericVector >::type c(cSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type c_lt(c_ltSEXP);
     Rcpp::traits::input_parameter< IntegerVector >::type delta(deltaSEXP);
     Rcpp::traits::input_parameter< double >::type alpha(alphaSEXP);
     Rcpp::traits::input_parameter< double >::type bbeta(bbetaSEXP);
     Rcpp::traits::input_parameter< const double& >::type pvfm(pvfmSEXP);
     Rcpp::traits::input_parameter< const int& >::type dist(distSEXP);
-    rcpp_result_gen = Rcpp::wrap(Estep(c, delta, alpha, bbeta, pvfm, dist));
+    rcpp_result_gen = Rcpp::wrap(Estep(c, c_lt, delta, alpha, bbeta, pvfm, dist));
     return rcpp_result_gen;
 END_RCPP
 }

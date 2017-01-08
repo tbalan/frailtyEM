@@ -17,7 +17,7 @@
 #' last column is the log(denominator) + log-Laplace transform, i.e. the log-likelihood contribution
 #'
 #' @export
-Estep <- function(c, delta, alpha, bbeta, pvfm, dist) {
-    .Call('frailtoys_Estep', PACKAGE = 'frailtoys', c, delta, alpha, bbeta, pvfm, dist)
+Estep <- function(c, c_lt, delta, alpha, bbeta, pvfm, dist) {
+    .Call('frailtoys_Estep', PACKAGE = 'frailtoys', c, c_lt, delta, alpha, bbeta, pvfm, dist)
 }
 

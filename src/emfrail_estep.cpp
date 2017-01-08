@@ -62,21 +62,23 @@ double repeats2(std::vector<int> &vec, const int &nev) {
 
 // the -1 signs here are all the ones except the - from the alpha. that is added in findsums
 // then the -1 from the derivative - laplace connection is also later
-double exponent_gamma(const double& alpha, const double& bbeta, const double& c, const int& nderiv) {
+double exponent_gamma(const double& alpha, const double& bbeta, const double& c, const double &c_lt, const int& nderiv) {
   if(nderiv == 0) {
-
-    return alpha * (std::log(bbeta + c) - std::log(bbeta));
+    return alpha * (std::log(bbeta + c + c_lt) - std::log(bbeta + c_lt));
+    //return alpha * (std::log(bbeta + c) - std::log(bbeta));
 
   } else
-
-    return alpha * pow(bbeta + c, -nderiv) * std::pow(std::exp(1.0), logfactorial(nderiv - 1)) *
+    return alpha * pow(bbeta + c + c_lt, -nderiv) * std::pow(std::exp(1.0), logfactorial(nderiv - 1)) *
       pow(-1.0, nderiv - 1);
+
+    // return alpha * pow(bbeta + c, -nderiv) * std::pow(std::exp(1.0), logfactorial(nderiv - 1)) *
+    //   pow(-1.0, nderiv - 1);
 }
 
-double exponent_stab(const double& alpha, const double& bbeta, const double& c, const int& nderiv) {
+double exponent_stab(const double& alpha, const double& bbeta, const double& c, const double &c_lt, const int& nderiv) {
   if(nderiv == 0) {
-
-    return alpha * std::pow(c, bbeta);
+    return alpha * (std::pow(c + c_lt, bbeta) - std::pow(c_lt, bbeta));
+    //return alpha * std::pow(c, bbeta);
   } else
    //
     // problem here: lgamma can't handle negative values, beta is in (0,1).
@@ -84,7 +86,8 @@ double exponent_stab(const double& alpha, const double& bbeta, const double& c, 
     // nderiv =2 it will be bbeta * (bbeta - 1) = bbeta * (1 - bbeta) * (-1)  // already in the negative side
     // nderiv = 3 it will be bbeta * (bbeta-1) *(bbeta - 2) = bbeta * (1 - bbeta) * (2 - bbeta) * (-1^2) ///// this is essentially
     // bbeta * (1-bbeta) * (2 - bbeta) * ()
-    return alpha * pow(c, bbeta - nderiv) * bbeta * std::exp(lgamma(nderiv - bbeta) - lgamma(1-bbeta)) * pow(-1.0, nderiv + 1) ;
+    // return alpha * pow(c, bbeta - nderiv) * bbeta * std::exp(lgamma(nderiv - bbeta) - lgamma(1-bbeta)) * pow(-1.0, nderiv + 1) ;
+    return alpha * pow(c + c_lt, bbeta - nderiv) * bbeta * std::exp(lgamma(nderiv - bbeta) - lgamma(1-bbeta)) * pow(-1.0, nderiv + 1);
   //*
   //    pow(-1.0, nderiv - 1);
 
@@ -93,7 +96,8 @@ double exponent_stab(const double& alpha, const double& bbeta, const double& c, 
 /*
  * pvfm is a constant, it is not estimated.
  */
-double exponent_pvf(const double& alpha, const double& bbeta, const double &pvfm, const double& c, const int& nderiv) {
+double exponent_pvf(const double& alpha, const double& bbeta, const double &pvfm,
+                    const double& c, const double &c_lt, const int& nderiv) {
 
   double sign = 1.0;
   if(pvfm < 0) sign = -1.0;
@@ -122,7 +126,7 @@ double exponent_pvf(const double& alpha, const double& bbeta, const double &pvfm
  * ncalls counts how many calls to the function are actually happening.
  */
 void findsums(int rest, int last, int pos, std::vector<int> combs, //int &ncalls,
-              const double& alpha, const double& bbeta, const double& c, double& res,
+              const double& alpha, const double& bbeta, const double& c, const double &c_lt, double& res,
               const double& pvfm, const int& dist) {
 
   if(rest == 0) {
@@ -157,12 +161,12 @@ void findsums(int rest, int last, int pos, std::vector<int> combs, //int &ncalls
         //Rcout<<" * "<<-1.0 * exponent_gamma(alpha, bbeta, c, *it);
         // this is the -1 that comes from - alpha all the time basically
         if(dist == 0) {
-          element = element * -1.0 * exponent_gamma(alpha, bbeta, c, *it);
+          element = element * -1.0 * exponent_gamma(alpha, bbeta, c, c_lt, *it);
         } else {
           if(dist == 1) {
-            element = element * -1.0 * exponent_stab(alpha, bbeta, c, *it);
+            element = element * -1.0 * exponent_stab(alpha, bbeta, c, c_lt, *it);
           } else
-            element = element * -1.0 * exponent_pvf(alpha, bbeta, pvfm, c, *it);
+            element = element * -1.0 * exponent_pvf(alpha, bbeta, pvfm, c, c_lt, *it);
         }
 
       }
@@ -182,7 +186,7 @@ void findsums(int rest, int last, int pos, std::vector<int> combs, //int &ncalls
 
       //ncalls++ ;
       combs[pos] = i;
-      findsums(rest - i, i, pos + 1, combs, alpha, bbeta, c, res, pvfm, dist);
+      findsums(rest - i, i, pos + 1, combs, alpha, bbeta, c, c_lt, res, pvfm, dist);
     }
 
 }
@@ -193,12 +197,13 @@ void findsums(int rest, int last, int pos, std::vector<int> combs, //int &ncalls
  */
 
 double wrap_integral(int n, const double& alpha, const double &bbeta, const double& c,
+                     const double &c_lt,
                      const double& pvfm, const int& dist) {
   std::vector<int> v(n);
 
   double res = 0.0;
 
-  findsums(n, 1, 0, v, alpha, bbeta, c, res, pvfm, dist);
+  findsums(n, 1, 0, v, alpha, bbeta, c, c_lt, res, pvfm, dist);
 
   //Rcout<<std::endl<<"wrap_integral("<<n<<", alpha="<<alpha<<", c="<<c<<") = "<<res<<std::endl;
   return res;
@@ -231,7 +236,7 @@ double wrap_integral(int n, const double& alpha, const double &bbeta, const doub
 //'
 //' @export
 // [[Rcpp::export]]
-NumericMatrix Estep(NumericVector c, IntegerVector delta, double alpha, double bbeta,
+NumericMatrix Estep(NumericVector c, NumericVector c_lt, IntegerVector delta, double alpha, double bbeta,
                     const double& pvfm, const int& dist) {
 
   /*
@@ -254,7 +259,7 @@ NumericMatrix Estep(NumericVector c, IntegerVector delta, double alpha, double b
     if(n==0) {
 
       //Rcout<<std::endl<<"numerator: "<<std::endl;
-      Z(i, 0) = pow(-1.0, 1) * wrap_integral(1, alpha, bbeta, c[i], pvfm, dist);
+      Z(i, 0) = pow(-1.0, 1) * wrap_integral(1, alpha, bbeta, c[i], c_lt[i], pvfm, dist);
       Z(i, 1) = 1;
        // log laplace transform (- alpha phi(c))
       //
@@ -270,11 +275,11 @@ NumericMatrix Estep(NumericVector c, IntegerVector delta, double alpha, double b
       // i.e. if there is 1 then we need a -1.
       // as a consequence, wrap_integral should generally be negative for odd first argument.
 
-      Z(i, 0) = pow(-1.0, n + 1) * wrap_integral(n + 1, alpha, bbeta, c[i], pvfm, dist);
+      Z(i, 0) = pow(-1.0, n + 1) * wrap_integral(n + 1, alpha, bbeta, c[i], c_lt[i], pvfm, dist);
       //Rcout<<std::endl<<"denominator: "<<std::endl;
 
 
-      Z(i, 1) = pow(-1.0, n) * wrap_integral(n , alpha, bbeta, c[i], pvfm, dist);
+      Z(i, 1) = pow(-1.0, n) * wrap_integral(n , alpha, bbeta, c[i], c_lt[i], pvfm, dist);
 
 
       // z[3 * i] =  pow(-1.0, n + 1) * wrap_integral(n + 1, alpha, bbeta, c[i]);
@@ -283,12 +288,12 @@ NumericMatrix Estep(NumericVector c, IntegerVector delta, double alpha, double b
     }
 
       if(dist == 0) {
-        Z(i,2) = -1.0 * exponent_gamma(alpha, bbeta, c[i], 0) + std::log(Z(i,1));
+        Z(i,2) = -1.0 * exponent_gamma(alpha, bbeta, c[i], c_lt[i], 0) + std::log(Z(i,1));
       } else {
         if(dist == 1) {
-          Z(i,2) = -1.0 * exponent_stab(alpha, bbeta, c[i], 0) + std::log(Z(i,1));
+          Z(i,2) = -1.0 * exponent_stab(alpha, bbeta, c[i], c_lt[i], 0) + std::log(Z(i,1));
         } else
-          Z(i,2) =  -1.0 * exponent_pvf(alpha, bbeta, pvfm, c[i], 0) + std::log(Z(i,1));
+          Z(i,2) =  -1.0 * exponent_pvf(alpha, bbeta, pvfm, c[i], c_lt[i], 0) + std::log(Z(i,1));
       }
     //Z(i, 2) is the contribution to the log-likelihood now
 

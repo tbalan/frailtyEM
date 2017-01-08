@@ -189,13 +189,21 @@ emfrail <- function(.data, .formula,
                         FUN = function(x)  sum(hh$haz_tev[x$start <= hh$tev & hh$tev <= x$stop])) *
     exp_g_x # this is supposed to be without centered covariates.
 
+
+
   basehaz_line <- hh$haz_tev[match(Y[,2], hh$tev)]
 
   Cvec <- tapply(X = cumhaz_line,
                  INDEX = id,
                  FUN = sum)
 
-
+  if(isTRUE(.distribution$left_truncation)) {
+    cumhaz_lt_line <- sapply(X = apply(as.matrix(Y[,c(1,2)]), 1, as.list),
+                             FUN = function(x) sum(hh$haz_tev[hh$tev <= x$start]))
+    Cvec_lt <- tapply(X = cumhaz_lt_line,
+                      INDEX = id,
+                      FUN = sum)
+  } else Cvec_lt <- 0 * Cvec
 
 
   # a fit just for the log-likelihood;
@@ -203,7 +211,8 @@ emfrail <- function(.data, .formula,
     return(em_fit(logfrailtypar = log(.distribution$frailtypar),
            dist = .distribution$dist, pvfm = .distribution$pvfm,
            Y = Y, Xmat = X, id = id, nev_id = nev_id, newrisk = newrisk, basehaz_line = basehaz_line,
-           mcox = list(coefficients = g), explp = explp, Cvec = Cvec,
+           mcox = list(coefficients = g), explp = explp, Cvec = Cvec, lt = .distribution$left_truncation,
+           Cvec_lt = Cvec_lt,
            .control = .control))
   }
 
@@ -216,6 +225,7 @@ emfrail <- function(.data, .formula,
                dist = .distribution$dist, pvfm = .distribution$pvfm,
                Y = Y, Xmat = X, id = id, nev_id = nev_id, newrisk = newrisk, basehaz_line = basehaz_line,
                mcox = list(coefficients = g), explp = explp, Cvec = Cvec,
+               lt = .distribution$left_truncation, Cvec_lt = Cvec_lt,
                .control = .control)
 
 
@@ -227,6 +237,7 @@ emfrail <- function(.data, .formula,
                 dist = .distribution$dist, pvfm = .distribution$pvfm,
                 Y = Y, Xmat = X, id = id, nev_id = nev_id, newrisk = newrisk, basehaz_line = basehaz_line,
                 mcox = list(coefficients = mcox$coefficients), explp = explp, Cvec = Cvec,
+                lt = .distribution$left_truncation, Cvec_lt = Cvec_lt,
                 .control = .control, return_loglik = FALSE)
 
   # that the hessian
@@ -237,12 +248,14 @@ emfrail <- function(.data, .formula,
                       dist = .distribution$dist, pvfm = .distribution$pvfm,
                       Y = Y, Xmat = X, id = id, nev_id = nev_id, newrisk = newrisk, basehaz_line = basehaz_line,
                       mcox = list(coefficients = mcox$coefficients), explp = explp, Cvec = Cvec,
+                      lt = .distribution$left_truncation, Cvec_lt = Cvec_lt,
                       .control = .control, return_loglik = FALSE)
 
   final_fit_plus <- em_fit(logfrailtypar = opt_object$p1 + h,
                             dist = .distribution$dist, pvfm = .distribution$pvfm,
                             Y = Y, Xmat = X, id = id, nev_id = nev_id, newrisk = newrisk, basehaz_line = basehaz_line,
                             mcox = list(coefficients = mcox$coefficients), explp = explp, Cvec = Cvec,
+                            lt = .distribution$left_truncation, Cvec_lt = Cvec_lt,
                             .control = .control, return_loglik = FALSE)
 
   # instructional: this should be more or less equal to the

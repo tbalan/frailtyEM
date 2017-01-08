@@ -6,7 +6,7 @@ em_fit <- function(logfrailtypar, dist, pvfm,
                    nev_id, newrisk,
                    basehaz_line,
                    mcox = list(),
-                   explp, Cvec,
+                   explp, Cvec, lt = FALSE, Cvec_lt,
                    .control,
                    return_loglik = TRUE
 ) {
@@ -56,9 +56,9 @@ em_fit <- function(logfrailtypar, dist, pvfm,
   while(!isTRUE(convergence)) {
 
     if(dist=="gamma" & isTRUE(.control$fast_fit)) {
-      e_step_val <- fast_Estep(Cvec, nev_id, alpha = .pars$alpha, bbeta = .pars$bbeta, pvfm = pvfm, dist = .pars$dist)
+      e_step_val <- fast_Estep(Cvec, Cvec_lt, nev_id, alpha = .pars$alpha, bbeta = .pars$bbeta, pvfm = pvfm, dist = .pars$dist)
     } else {
-      e_step_val <- Estep(Cvec, nev_id, alpha = .pars$alpha, bbeta = .pars$bbeta, pvfm = pvfm, dist = .pars$dist)
+      e_step_val <- Estep(Cvec, Cvec_lt, nev_id, alpha = .pars$alpha, bbeta = .pars$bbeta, pvfm = pvfm, dist = .pars$dist)
     }
 
     logz <- log(rep(e_step_val[,1] / e_step_val[,2],   rle(id)$lengths))
@@ -132,6 +132,16 @@ em_fit <- function(logfrailtypar, dist, pvfm,
                    INDEX = id,
                    FUN = sum)
 
+    # .distribution does not carry around.
+    if(isTRUE(lt)) {
+      cumhaz_lt_line <- sapply(X = apply(as.matrix(Y[,c(1,2)]), 1, as.list),
+                               FUN = function(x) sum(hh$haz_tev[hh$tev <= x$start]))
+      Cvec_lt <- tapply(X = cumhaz_lt_line * exp(g_x),
+                        INDEX = id,
+                        FUN = sum)
+    } #else Cvec_lt <- 0 * Cvec
+
+
     ncycles <- ncycles + 1
     if(ncycles > .control$maxit) {
       warning(paste("did not converge in ", .control$maxit," iterations." ))
@@ -187,8 +197,8 @@ em_fit <- function(logfrailtypar, dist, pvfm,
 
   # now for the hell of the second one.
 
-  estep_plusone <- Estep(Cvec, nev_id+1, alpha = .pars$alpha, bbeta = .pars$bbeta, pvfm = pvfm, dist = .pars$dist)
-  estep_again <- Estep(Cvec, nev_id, alpha = .pars$alpha, bbeta = .pars$bbeta, pvfm = pvfm, dist = .pars$dist)
+  estep_plusone <- Estep(Cvec, Cvec_lt, nev_id+1, alpha = .pars$alpha, bbeta = .pars$bbeta, pvfm = pvfm, dist = .pars$dist)
+  estep_again <- Estep(Cvec, Cvec_lt, nev_id, alpha = .pars$alpha, bbeta = .pars$bbeta, pvfm = pvfm, dist = .pars$dist)
 
   zz <- estep_plusone[,1] /estep_again[,2]
   z <- e_step_val[,1] / e_step_val[,2]
