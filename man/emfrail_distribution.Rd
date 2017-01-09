@@ -4,7 +4,8 @@
 \alias{emfrail_distribution}
 \title{Distribution parameters for emfrail}
 \usage{
-emfrail_distribution(dist = "gamma", frailtypar = 2, pvfm = -1/2)
+emfrail_distribution(dist = "gamma", frailtypar = 2, pvfm = -1/2,
+  left_truncation = FALSE)
 }
 \arguments{
 \item{dist}{One of 'gamma', 'stable' or 'pvf'.}
@@ -12,6 +13,8 @@ emfrail_distribution(dist = "gamma", frailtypar = 2, pvfm = -1/2)
 \item{frailtypar}{A starting value for the 'outer' maximization with respect to the frailty parameter \eqn{\theta}. Must be positive.}
 
 \item{pvfm}{Only relevant if \code{dist = 'pvf'} is used. It determines which PVF distribution should be used. Must be  larger than -1 and not equal to 0.}
+
+\item{left_truncation}{Logical. Whether the data set represents left truncated survival times.}
 }
 \value{
 A list of arguments suitable for \code{emfrail()}!
