@@ -116,6 +116,36 @@
 #'   geom_step(aes(y = cumhaz)) +
 #'   ggtitle("Cumulative baseline hazard") +
 #'   ylab("H0")
+#'
+#'
+#'  # Left truncation
+#'  # simulate 300 clusters of size 5
+#' set.seed(17)
+#' x <- sample(c(0,1), 5 * 300, TRUE)
+#' u <- rep(rgamma(300,1,1), each = 5)
+#' stime <- rexp(5*300, rate = u * exp(x))
+#' ltime <- runif(5 * 300)
+#'
+#' library(tidyverse)
+#' d <- data.frame(id = rep(1:300, each = 5),
+#'                 x = x,
+#'                 stime = stime,
+#'                 u = u,
+#'                 ltime = ltime,
+#'                 status = 1)
+#'
+#'
+#' d1 <- d %>% filter(stime > ltime)
+#'  # this is the same as the cph (naive):
+#' mymod <- d1 %>%
+#'   emfrail(Surv(ltime, stime, status)~ x + cluster(id), .control = emfrail_control(verbose = TRUE))
+#'
+#'  # this is the correct way here:
+#' mymod <- d1 %>%
+#'   emfrail(Surv(ltime, stime, status)~ x + cluster(id), .control = emfrail_control(verbose = TRUE),
+#'           .distribution = emfrail_distribution(left_truncation = TRUE))
+
+
 emfrail <- function(.data, .formula,
                     .distribution = emfrail_distribution(),
                     .control = emfrail_control()) {
@@ -299,7 +329,7 @@ res <- list(outer_m = opt_object,
                                           #se = final_fit$se[(1 + length(final_fit$coef)):length(final_fit$se)]),
                          z = data.frame(id = names(final_fit$Cvec),
                                         Lambda = final_fit$Cvec,
-                                         z = final_fit$estep[,2] / final_fit$estep[,1]),
+                                         z = final_fit$estep[,1] / final_fit$estep[,2] ),
                                         coef = final_fit$coef,
                          se_coef = sqrt(diag(final_fit$Vcov)[seq_along(final_fit$coef)]),
                          se_coef_adj = sqrt(diag(vcov_adj)[seq_along(final_fit$coef)] )),

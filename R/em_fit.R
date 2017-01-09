@@ -172,6 +172,8 @@ em_fit <- function(logfrailtypar, dist, pvfm,
     xx_z_elp_H0 <- mapply(function(a,b, c) a * b * c, xx, z_elp, cumhaz_line, SIMPLIFY = FALSE)
     m_d2l_dgdg <- Reduce("+", xx_z_elp_H0)
 
+    if(any(m_d2l_dgdg<0)) warning("negative eigen in dgdg")
+
     m_d2l_dhdg <- hh$tev %>%
       lapply(function(tk) which(Y[,1] < tk & tk <= Y[,2])) %>%
       lapply(function(x) x_z_elp[x]) %>%
@@ -187,22 +189,40 @@ em_fit <- function(logfrailtypar, dist, pvfm,
 
 
   m_d2l_dhdh <- diag(nev_tp/hh$haz_tev^2)
-
+  if(any(m_d2l_dhdh<0)) warning("negative eigen in dhdh")
 
 #
 
+  Imat <- matrix(0, ncol(Xmat) + length(hh$tev), ncol(Xmat) + length(hh$tev))
+
+  Imat[1:length(mcox$coefficients), 1:length(mcox$coefficients)] <- m_d2l_dgdg
+
+  Imat[(length(mcox$coefficients)+1):nrow(Imat), (length(mcox$coefficients)+1):nrow(Imat)] <- m_d2l_dhdh
+
+  Imat[1:length(mcox$coefficients), (length(mcox$coefficients)+1):nrow(Imat) ] <- t(m_d2l_dhdg)
+  Imat[(length(mcox$coefficients)+1):nrow(Imat), 1:length(mcox$coefficients) ] <- m_d2l_dhdg
+
+
+  if(any(eigen(Imat)$values<0)) warning("Imat naive negative eigenvalues")
 
  #  sqrt(diag(solve(I_full))) # this are the SE's, before adjusting for the frailty
 
 
   # now for the hell of the second one.
 
-  estep_plusone <- Estep(Cvec, Cvec_lt, nev_id+1, alpha = .pars$alpha, bbeta = .pars$bbeta, pvfm = pvfm, dist = .pars$dist)
-  estep_again <- Estep(Cvec, Cvec_lt, nev_id, alpha = .pars$alpha, bbeta = .pars$bbeta, pvfm = pvfm, dist = .pars$dist)
+  # if(dist=="gamma" & isTRUE(.control$fast_fit)) {
+  #   estep_plusone <- fast_Estep(Cvec, Cvec_lt, nev_id+1, alpha = .pars$alpha, bbeta = .pars$bbeta, pvfm = pvfm, dist = .pars$dist)
+  #   estep_again <- fast_Estep(Cvec, Cvec_lt, nev_id, alpha = .pars$alpha, bbeta = .pars$bbeta, pvfm = pvfm, dist = .pars$dist)
+  # } else {
+
+
+    estep_plusone <- Estep(Cvec, Cvec_lt, nev_id+1, alpha = .pars$alpha, bbeta = .pars$bbeta, pvfm = pvfm, dist = .pars$dist)
+    estep_again <- Estep(Cvec, Cvec_lt, nev_id, alpha = .pars$alpha, bbeta = .pars$bbeta, pvfm = pvfm, dist = .pars$dist)
+  # }
+
 
   zz <- estep_plusone[,1] /estep_again[,2]
-  z <- e_step_val[,1] / e_step_val[,2]
-
+  z <- estep_again[,1] / estep_again[,2]
 
 
   dl1_dh <- nev_tp / hh$haz_tev
@@ -294,7 +314,7 @@ em_fit <- function(logfrailtypar, dist, pvfm,
                dist = dist,
                frailtypar = exp(logfrailtypar),
                haz = hh,
-               z = exp(logz),
+               logz = logz,
                Cvec = Cvec,
                estep = e_step_val,
                coef = mcox$coefficients,
