@@ -12,7 +12,7 @@
 
 <meta name="author" content="Theodor Adrian Balan" />
 
-<meta name="date" content="2017-01-04" />
+<meta name="date" content="2017-01-12" />
 
 <title>Shared frailty models</title>
 
@@ -70,7 +70,7 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 
 <h1 class="title toc-ignore">Shared frailty models</h1>
 <h4 class="author"><em>Theodor Adrian Balan</em></h4>
-<h4 class="date"><em>2017-01-04</em></h4>
+<h4 class="date"><em>2017-01-12</em></h4>
 
 
 
@@ -141,7 +141,7 @@ z_i = \frac{E[z ^ N_{i+1} \exp(-z \Lambda_i)]}{E[z ^ N_{i} \exp(-z \Lambda_i)]} 
 \mathcal{L}(c) = \beta^\alpha (\beta + c)^{-\alpha}
 \]</span> and then we can write all the derivatives like: <span class="math display">\[
 \mathcal{L}^{(k)}(c) = \beta^\alpha (\beta + c)^{-\alpha - k} \Gamma(\alpha + k) / \Gamma(\alpha)
-\]</span></p>
+\]</span> To obtain this with the frailty variance, we would take $=</p>
 </div>
 </div>
 <div id="stable" class="section level3">
@@ -181,12 +181,18 @@ H_0(t) = \Lambda_0(t)^\alpha
 \psi(c) = (1 - \beta^m (\beta + c)^{-m}) 
 \]</span> and <span class="math display">\[
 \psi'(c) = -\beta^m (\beta + c)^{-m-1} (-m)
-\]</span> and <span class="math display">\[
+\]</span> The mean of the distribution is minus the 1st derivative of the Laplace transform in 0, which is <span class="math display">\[
+\alpha \psi'(0) \mathcal{L}(0) = \frac{\alpha}{\beta} m.
+\]</span> Also <span class="math display">\[
 \psi''(c) = -\beta^m (\beta + c)^{-m-2} (-m-1) (-m)
-\]</span> so basically <span class="math display">\[
-\psi^{(k)}(c) = -\beta^m (\beta + c)^{-m-k} (-1)^{k+1} \frac{\Gamma(m + k)}{\Gamma(m)}
+\]</span> And we have the second moment of the distribution the second derivative in 0, <span class="math display">\[
+EZ^2 = \alpha^2 \psi'^2(0) -\alpha \psi''(0) = \frac{\alpha^2}{\beta^2}m^2 + \frac{\alpha}{\beta^2} m(m+1)= 1^2 + \frac{\alpha}{\beta^2}m(m+1).
+\]</span> We have <span class="math display">\[
+\psi^{(k)}(c) = -\beta^m (\beta + c)^{-m-k} (-1)^{k+1} \frac{\Gamma(m + k)}{\Gamma(m)}.
 \]</span></p>
-<p>Now for the parametrization we set the mean equal to 1, which is done by having a <span class="math inline">\(\theta &gt; 0\)</span> and <span class="math inline">\(\beta = (m + 1) \theta\)</span> and <span class="math inline">\(\alpha = \frac{m + 1}{m} \theta.\)</span> So how about when <span class="math inline">\(m&lt;0\)</span>? Well this implies that also <span class="math inline">\(\alpha &lt; 0\)</span>, and since the <span class="math inline">\(\mathrm{sign}(m) = -1\)</span>, we might as well take <span class="math inline">\(\alpha = \vert \frac{m + 1}{m} \theta \vert\)</span>. Then the only correction that is still needed is a <span class="math inline">\(-1\)</span> in the <span class="math inline">\(\mathcal{L}\)</span>.</p>
+<p>Now for the parametrization we set the mean equal to 1, which is done by having a <span class="math inline">\(\theta &gt; 0\)</span> and <span class="math inline">\(\beta = (m + 1) \theta\)</span> and <span class="math inline">\(\alpha = \frac{m + 1}{m} \theta.\)</span> With this, we have that the mean is 1 and the variance <span class="math display">\[
+VarZ = 1/\theta.
+\]</span> So how about when <span class="math inline">\(m&lt;0\)</span>? Well this implies that also <span class="math inline">\(\alpha &lt; 0\)</span>, and since the <span class="math inline">\(\mathrm{sign}(m) = -1\)</span>, we might as well take <span class="math inline">\(\alpha = \vert \frac{m + 1}{m} \theta \vert\)</span>. Then the only correction that is still needed is a <span class="math inline">\(-1\)</span> in the <span class="math inline">\(\mathcal{L}\)</span>.</p>
 </div>
 </div>
 <div id="ascertainment" class="section level2">

@@ -244,7 +244,7 @@ emfrail <- function(.data, .formula,
     return(em_fit(logfrailtypar = log(.distribution$frailtypar),
            dist = .distribution$dist, pvfm = .distribution$pvfm,
            Y = Y, Xmat = X, id = id, nev_id = nev_id, newrisk = newrisk, basehaz_line = basehaz_line,
-           mcox = list(coefficients = g), explp = explp, Cvec = Cvec, lt = .distribution$left_truncation,
+           mcox = list(coefficients = g, loglik = mcox$loglik), explp = explp, Cvec = Cvec, lt = .distribution$left_truncation,
            Cvec_lt = Cvec_lt,
            .control = .control))
   }
@@ -257,7 +257,7 @@ emfrail <- function(.data, .formula,
                method = .control$opt_control$method, #control = .control$opt_control$control,
                dist = .distribution$dist, pvfm = .distribution$pvfm,
                Y = Y, Xmat = X, id = id, nev_id = nev_id, newrisk = newrisk, basehaz_line = basehaz_line,
-               mcox = list(coefficients = g), explp = explp, Cvec = Cvec,
+               mcox = list(coefficients = g, loglik = mcox$loglik), explp = explp, Cvec = Cvec,
                lt = .distribution$left_truncation, Cvec_lt = Cvec_lt,
                .control = .control)
 
@@ -269,7 +269,8 @@ emfrail <- function(.data, .formula,
   final_fit <- em_fit(logfrailtypar = opt_object$p1,
                 dist = .distribution$dist, pvfm = .distribution$pvfm,
                 Y = Y, Xmat = X, id = id, nev_id = nev_id, newrisk = newrisk, basehaz_line = basehaz_line,
-                mcox = list(coefficients = mcox$coefficients), explp = explp, Cvec = Cvec,
+                mcox = list(coefficients = mcox$coefficients,
+                            loglik = mcox$loglik), explp = explp, Cvec = Cvec,
                 lt = .distribution$left_truncation, Cvec_lt = Cvec_lt,
                 .control = .control, return_loglik = FALSE)
 
@@ -280,14 +281,16 @@ emfrail <- function(.data, .formula,
   final_fit_minus <- em_fit(logfrailtypar = opt_object$p1 - h,
                       dist = .distribution$dist, pvfm = .distribution$pvfm,
                       Y = Y, Xmat = X, id = id, nev_id = nev_id, newrisk = newrisk, basehaz_line = basehaz_line,
-                      mcox = list(coefficients = mcox$coefficients), explp = explp, Cvec = Cvec,
+                      mcox = list(coefficients = mcox$coefficients,
+                                  loglik = mcox$loglik), explp = explp, Cvec = Cvec,
                       lt = .distribution$left_truncation, Cvec_lt = Cvec_lt,
                       .control = .control, return_loglik = FALSE)
 
   final_fit_plus <- em_fit(logfrailtypar = opt_object$p1 + h,
                             dist = .distribution$dist, pvfm = .distribution$pvfm,
                             Y = Y, Xmat = X, id = id, nev_id = nev_id, newrisk = newrisk, basehaz_line = basehaz_line,
-                            mcox = list(coefficients = mcox$coefficients), explp = explp, Cvec = Cvec,
+                            mcox = list(coefficients = mcox$coefficients,
+                                        loglik = mcox$loglik), explp = explp, Cvec = Cvec,
                             lt = .distribution$left_truncation, Cvec_lt = Cvec_lt,
                             .control = .control, return_loglik = FALSE)
 

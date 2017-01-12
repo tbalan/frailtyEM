@@ -39,6 +39,10 @@ The frailty distribution is determined by the \code{.distribution} argument. Thi
 \code{emfrail_distribution()}.
 
 The family of supported distributions can be one of gamma, positive stable or PVF (power-variance-family).
+
+Some possible problems may appear when the maximum likelihood estimate lies on the border of the parameter space. Usually, this will happen
+when the "outer" parameter MLE is infinity (i.e. variance 0 in case of gamma and PVF). For small enough values of \eqn{1/\theta} the log-likelihood
+of the Cox model will be returned. The tolerance of this option can be tweaked in \code{emfrail_control()}.
 }
 \examples{
 dat <- survival::rats
@@ -123,5 +127,33 @@ geom_ribbon(aes(ymin = cumhaz - 1.96*se_chz, ymax = cumhaz + 1.96*se_chz),  fill
   geom_step(aes(y = cumhaz)) +
   ggtitle("Cumulative baseline hazard") +
   ylab("H0")
+
+
+ # Left truncation
+ # simulate 300 clusters of size 5
+set.seed(17)
+x <- sample(c(0,1), 5 * 300, TRUE)
+u <- rep(rgamma(300,1,1), each = 5)
+stime <- rexp(5*300, rate = u * exp(x))
+ltime <- runif(5 * 300)
+
+library(tidyverse)
+d <- data.frame(id = rep(1:300, each = 5),
+                x = x,
+                stime = stime,
+                u = u,
+                ltime = ltime,
+                status = 1)
+
+
+d1 <- d \%>\% filter(stime > ltime)
+ # this is the same as the cph (naive):
+mymod <- d1 \%>\%
+  emfrail(Surv(ltime, stime, status)~ x + cluster(id), .control = emfrail_control(verbose = TRUE))
+
+ # this is the correct way here:
+mymod <- d1 \%>\%
+  emfrail(Surv(ltime, stime, status)~ x + cluster(id), .control = emfrail_control(verbose = TRUE),
+          .distribution = emfrail_distribution(left_truncation = TRUE))
 }
 
