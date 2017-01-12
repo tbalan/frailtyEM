@@ -112,6 +112,7 @@ and then we can write all the derivatives like:
 $$
 \mathcal{L}^{(k)}(c) = \beta^\alpha (\beta + c)^{-\alpha - k} \Gamma(\alpha + k) / \Gamma(\alpha)
 $$
+To obtain this with the frailty variance, we would take $\theta = 
 
 
 ### stable
@@ -168,18 +169,29 @@ and
 $$
 \psi'(c) = -\beta^m (\beta + c)^{-m-1} (-m)
 $$
-and
+The mean of the distribution is minus the 1st derivative of the Laplace transform in 0, which is
+$$
+\alpha \psi'(0) \mathcal{L}(0) = \frac{\alpha}{\beta} m.
+$$
+Also
 $$
 \psi''(c) = -\beta^m (\beta + c)^{-m-2} (-m-1) (-m)
 $$
-so basically
+And we have the second moment of the distribution the second derivative in 0, 
 $$
-\psi^{(k)}(c) = -\beta^m (\beta + c)^{-m-k} (-1)^{k+1} \frac{\Gamma(m + k)}{\Gamma(m)}
+EZ^2 = \alpha^2 \psi'^2(0) -\alpha \psi''(0) = \frac{\alpha^2}{\beta^2}m^2 + \frac{\alpha}{\beta^2} m(m+1)= 1^2 + \frac{\alpha}{\beta^2}m(m+1).
+$$
+We have
+$$
+\psi^{(k)}(c) = -\beta^m (\beta + c)^{-m-k} (-1)^{k+1} \frac{\Gamma(m + k)}{\Gamma(m)}.
 $$
 
 Now for the parametrization we set the mean equal to 1, which is done by having a $\theta > 0$ and
 $\beta = (m + 1) \theta$ and
-$\alpha = \frac{m + 1}{m} \theta.$
+$\alpha = \frac{m + 1}{m} \theta.$ With this, we have that the mean is 1 and the variance
+$$
+VarZ = 1/\theta.
+$$
 So how about when $m<0$? Well this implies that also $\alpha < 0$, and since the $\mathrm{sign}(m) = -1$, we might as well take $\alpha = \vert \frac{m + 1}{m} \theta \vert$. Then the only correction that is still needed is a $-1$ in the $\mathcal{L}$.
 
 
