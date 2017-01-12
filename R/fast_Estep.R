@@ -16,7 +16,7 @@
 #' @export
 fast_Estep <- function(c, c_lt = 0, delta, alpha, bbeta, pvfm, dist) {
 
-  if(dist != 0) stop("no fast option available here")
+  if(!(dist == 0 | (dist == 2 & all.equal(c_lt, 0)))) stop("no fast option available here")
   res <- matrix(0, length(delta), 3)
 
   if(dist==0) {
@@ -24,6 +24,22 @@ fast_Estep <- function(c, c_lt = 0, delta, alpha, bbeta, pvfm, dist) {
     res[,3] <- alpha * log(bbeta) - (alpha + delta)*log(bbeta + c) + lgamma(alpha + delta) - lgamma(alpha)
     res[,1] <- (alpha + delta)
     res[,2] <- (bbeta + c)
+  }
+
+  if(dist==2) {
+
+    cc <- sqrt(2 * alpha * (c + alpha / 2))
+
+    res[,1] <- besselK(cc, nu = delta + 0.5)
+
+
+    res[,2] <- sqrt(2 / alpha * c + 1) *
+      besselK(cc, nu = delta - 0.5)
+
+    res[,3] <- (-delta / 2) * log(2/alpha * c + 1)^(-delta / 2) *
+      besselK(cc, nu = delta + 0.5)  - 0.5 * log(pi  / (2 * cc)) + cc +
+      alpha * (1 - sqrt(1 + 2 / alpha * c))
+
   }
 
   res
