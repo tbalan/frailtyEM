@@ -4,7 +4,7 @@
 \alias{Estep}
 \title{Perform the E step calculations}
 \usage{
-Estep(c, delta, alpha, bbeta, pvfm, dist)
+Estep(c, c_lt, delta, alpha, bbeta, pvfm, dist)
 }
 \arguments{
 \item{c}{Vector of length \code{K} of cumulative hazards, i.e. total accumulated hazards within a cluster}

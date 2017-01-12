@@ -6,7 +6,7 @@ em_fit <- function(logfrailtypar, dist, pvfm,
                    nev_id, newrisk,
                    basehaz_line,
                    mcox = list(),
-                   explp, Cvec,
+                   explp, Cvec, lt = FALSE, Cvec_lt,
                    .control,
                    return_loglik = TRUE
 ) {
@@ -60,9 +60,9 @@ em_fit <- function(logfrailtypar, dist, pvfm,
   while(!isTRUE(convergence)) {
 
     if(dist=="gamma" & isTRUE(.control$fast_fit)) {
-      e_step_val <- fast_Estep(Cvec, nev_id, alpha = .pars$alpha, bbeta = .pars$bbeta, pvfm = pvfm, dist = .pars$dist)
+      e_step_val <- fast_Estep(Cvec, Cvec_lt, nev_id, alpha = .pars$alpha, bbeta = .pars$bbeta, pvfm = pvfm, dist = .pars$dist)
     } else {
-      e_step_val <- Estep(Cvec, nev_id, alpha = .pars$alpha, bbeta = .pars$bbeta, pvfm = pvfm, dist = .pars$dist)
+      e_step_val <- Estep(Cvec, Cvec_lt, nev_id, alpha = .pars$alpha, bbeta = .pars$bbeta, pvfm = pvfm, dist = .pars$dist)
     }
 
     logz <- log(rep(e_step_val[,1] / e_step_val[,2],   rle(id)$lengths))
@@ -136,6 +136,16 @@ em_fit <- function(logfrailtypar, dist, pvfm,
                    INDEX = id,
                    FUN = sum)
 
+    # .distribution does not carry around.
+    if(isTRUE(lt)) {
+      cumhaz_lt_line <- sapply(X = apply(as.matrix(Y[,c(1,2)]), 1, as.list),
+                               FUN = function(x) sum(hh$haz_tev[hh$tev <= x$start]))
+      Cvec_lt <- tapply(X = cumhaz_lt_line * exp(g_x),
+                        INDEX = id,
+                        FUN = sum)
+    } #else Cvec_lt <- 0 * Cvec
+
+
     ncycles <- ncycles + 1
     if(ncycles > .control$maxit) {
       warning(paste("did not converge in ", .control$maxit," iterations." ))
@@ -166,6 +176,8 @@ em_fit <- function(logfrailtypar, dist, pvfm,
     xx_z_elp_H0 <- mapply(function(a,b, c) a * b * c, xx, z_elp, cumhaz_line, SIMPLIFY = FALSE)
     m_d2l_dgdg <- Reduce("+", xx_z_elp_H0)
 
+    if(any(m_d2l_dgdg<0)) warning("negative eigen in dgdg")
+
     m_d2l_dhdg <- hh$tev %>%
       lapply(function(tk) which(Y[,1] < tk & tk <= Y[,2])) %>%
       lapply(function(x) x_z_elp[x]) %>%
@@ -181,22 +193,40 @@ em_fit <- function(logfrailtypar, dist, pvfm,
 
 
   m_d2l_dhdh <- diag(nev_tp/hh$haz_tev^2)
-
+  if(any(m_d2l_dhdh<0)) warning("negative eigen in dhdh")
 
 #
 
+  Imat <- matrix(0, ncol(Xmat) + length(hh$tev), ncol(Xmat) + length(hh$tev))
+
+  Imat[1:length(mcox$coefficients), 1:length(mcox$coefficients)] <- m_d2l_dgdg
+
+  Imat[(length(mcox$coefficients)+1):nrow(Imat), (length(mcox$coefficients)+1):nrow(Imat)] <- m_d2l_dhdh
+
+  Imat[1:length(mcox$coefficients), (length(mcox$coefficients)+1):nrow(Imat) ] <- t(m_d2l_dhdg)
+  Imat[(length(mcox$coefficients)+1):nrow(Imat), 1:length(mcox$coefficients) ] <- m_d2l_dhdg
+
+
+  if(any(eigen(Imat)$values<0)) warning("Imat naive negative eigenvalues")
 
  #  sqrt(diag(solve(I_full))) # this are the SE's, before adjusting for the frailty
 
 
   # now for the hell of the second one.
 
-  estep_plusone <- Estep(Cvec, nev_id+1, alpha = .pars$alpha, bbeta = .pars$bbeta, pvfm = pvfm, dist = .pars$dist)
-  estep_again <- Estep(Cvec, nev_id, alpha = .pars$alpha, bbeta = .pars$bbeta, pvfm = pvfm, dist = .pars$dist)
+  # if(dist=="gamma" & isTRUE(.control$fast_fit)) {
+  #   estep_plusone <- fast_Estep(Cvec, Cvec_lt, nev_id+1, alpha = .pars$alpha, bbeta = .pars$bbeta, pvfm = pvfm, dist = .pars$dist)
+  #   estep_again <- fast_Estep(Cvec, Cvec_lt, nev_id, alpha = .pars$alpha, bbeta = .pars$bbeta, pvfm = pvfm, dist = .pars$dist)
+  # } else {
+
+
+    estep_plusone <- Estep(Cvec, Cvec_lt, nev_id+1, alpha = .pars$alpha, bbeta = .pars$bbeta, pvfm = pvfm, dist = .pars$dist)
+    estep_again <- Estep(Cvec, Cvec_lt, nev_id, alpha = .pars$alpha, bbeta = .pars$bbeta, pvfm = pvfm, dist = .pars$dist)
+  # }
+
 
   zz <- estep_plusone[,1] /estep_again[,2]
-  z <- e_step_val[,1] / e_step_val[,2]
-
+  z <- estep_again[,1] / estep_again[,2]
 
 
   dl1_dh <- nev_tp / hh$haz_tev
@@ -288,7 +318,7 @@ em_fit <- function(logfrailtypar, dist, pvfm,
                dist = dist,
                frailtypar = exp(logfrailtypar),
                haz = hh,
-               z = exp(logz),
+               logz = logz,
                Cvec = Cvec,
                estep = e_step_val,
                coef = mcox$coefficients,

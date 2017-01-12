@@ -119,6 +119,36 @@
 #'   geom_step(aes(y = cumhaz)) +
 #'   ggtitle("Cumulative baseline hazard") +
 #'   ylab("H0")
+#'
+#'
+#'  # Left truncation
+#'  # simulate 300 clusters of size 5
+#' set.seed(17)
+#' x <- sample(c(0,1), 5 * 300, TRUE)
+#' u <- rep(rgamma(300,1,1), each = 5)
+#' stime <- rexp(5*300, rate = u * exp(x))
+#' ltime <- runif(5 * 300)
+#'
+#' library(tidyverse)
+#' d <- data.frame(id = rep(1:300, each = 5),
+#'                 x = x,
+#'                 stime = stime,
+#'                 u = u,
+#'                 ltime = ltime,
+#'                 status = 1)
+#'
+#'
+#' d1 <- d %>% filter(stime > ltime)
+#'  # this is the same as the cph (naive):
+#' mymod <- d1 %>%
+#'   emfrail(Surv(ltime, stime, status)~ x + cluster(id), .control = emfrail_control(verbose = TRUE))
+#'
+#'  # this is the correct way here:
+#' mymod <- d1 %>%
+#'   emfrail(Surv(ltime, stime, status)~ x + cluster(id), .control = emfrail_control(verbose = TRUE),
+#'           .distribution = emfrail_distribution(left_truncation = TRUE))
+
+
 emfrail <- function(.data, .formula,
                     .distribution = emfrail_distribution(),
                     .control = emfrail_control()) {
@@ -192,13 +222,21 @@ emfrail <- function(.data, .formula,
                         FUN = function(x)  sum(hh$haz_tev[x$start <= hh$tev & hh$tev <= x$stop])) *
     exp_g_x # this is supposed to be without centered covariates.
 
+
+
   basehaz_line <- hh$haz_tev[match(Y[,2], hh$tev)]
 
   Cvec <- tapply(X = cumhaz_line,
                  INDEX = id,
                  FUN = sum)
 
-
+  if(isTRUE(.distribution$left_truncation)) {
+    cumhaz_lt_line <- sapply(X = apply(as.matrix(Y[,c(1,2)]), 1, as.list),
+                             FUN = function(x) sum(hh$haz_tev[hh$tev <= x$start]))
+    Cvec_lt <- tapply(X = cumhaz_lt_line,
+                      INDEX = id,
+                      FUN = sum)
+  } else Cvec_lt <- 0 * Cvec
 
 
   # a fit just for the log-likelihood;
@@ -206,7 +244,8 @@ emfrail <- function(.data, .formula,
     return(em_fit(logfrailtypar = log(.distribution$frailtypar),
            dist = .distribution$dist, pvfm = .distribution$pvfm,
            Y = Y, Xmat = X, id = id, nev_id = nev_id, newrisk = newrisk, basehaz_line = basehaz_line,
-           mcox = list(coefficients = g, loglik = mcox$loglik), explp = explp, Cvec = Cvec,
+           mcox = list(coefficients = g), explp = explp, Cvec = Cvec, lt = .distribution$left_truncation,
+           Cvec_lt = Cvec_lt,
            .control = .control))
   }
 
@@ -218,7 +257,8 @@ emfrail <- function(.data, .formula,
                method = .control$opt_control$method, #control = .control$opt_control$control,
                dist = .distribution$dist, pvfm = .distribution$pvfm,
                Y = Y, Xmat = X, id = id, nev_id = nev_id, newrisk = newrisk, basehaz_line = basehaz_line,
-               mcox = list(coefficients = g, loglik = mcox$loglik), explp = explp, Cvec = Cvec,
+               mcox = list(coefficients = g), explp = explp, Cvec = Cvec,
+               lt = .distribution$left_truncation, Cvec_lt = Cvec_lt,
                .control = .control)
 
 
@@ -229,7 +269,8 @@ emfrail <- function(.data, .formula,
   final_fit <- em_fit(logfrailtypar = opt_object$p1,
                 dist = .distribution$dist, pvfm = .distribution$pvfm,
                 Y = Y, Xmat = X, id = id, nev_id = nev_id, newrisk = newrisk, basehaz_line = basehaz_line,
-                mcox = list(coefficients = mcox$coefficients, loglik = mcox$loglik), explp = explp, Cvec = Cvec,
+                mcox = list(coefficients = mcox$coefficients), explp = explp, Cvec = Cvec,
+                lt = .distribution$left_truncation, Cvec_lt = Cvec_lt,
                 .control = .control, return_loglik = FALSE)
 
   # that the hessian
@@ -240,12 +281,14 @@ emfrail <- function(.data, .formula,
                       dist = .distribution$dist, pvfm = .distribution$pvfm,
                       Y = Y, Xmat = X, id = id, nev_id = nev_id, newrisk = newrisk, basehaz_line = basehaz_line,
                       mcox = list(coefficients = mcox$coefficients), explp = explp, Cvec = Cvec,
+                      lt = .distribution$left_truncation, Cvec_lt = Cvec_lt,
                       .control = .control, return_loglik = FALSE)
 
   final_fit_plus <- em_fit(logfrailtypar = opt_object$p1 + h,
                             dist = .distribution$dist, pvfm = .distribution$pvfm,
                             Y = Y, Xmat = X, id = id, nev_id = nev_id, newrisk = newrisk, basehaz_line = basehaz_line,
                             mcox = list(coefficients = mcox$coefficients), explp = explp, Cvec = Cvec,
+                            lt = .distribution$left_truncation, Cvec_lt = Cvec_lt,
                             .control = .control, return_loglik = FALSE)
 
   # instructional: this should be more or less equal to the
@@ -289,7 +332,7 @@ res <- list(outer_m = opt_object,
                                           #se = final_fit$se[(1 + length(final_fit$coef)):length(final_fit$se)]),
                          z = data.frame(id = names(final_fit$Cvec),
                                         Lambda = final_fit$Cvec,
-                                         z = final_fit$estep[,2] / final_fit$estep[,1]),
+                                         z = final_fit$estep[,1] / final_fit$estep[,2] ),
                                         coef = final_fit$coef,
                          se_coef = sqrt(diag(final_fit$Vcov)[seq_along(final_fit$coef)]),
                          se_coef_adj = sqrt(diag(vcov_adj)[seq_along(final_fit$coef)] )),

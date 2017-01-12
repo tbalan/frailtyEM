@@ -4,7 +4,7 @@
 \alias{fast_Estep}
 \title{Fast fitting of the E step}
 \usage{
-fast_Estep(c, delta, alpha, bbeta, pvfm, dist)
+fast_Estep(c, c_lt = 0, delta, alpha, bbeta, pvfm, dist)
 }
 \arguments{
 \item{c}{Vector of length \code{K} of cumulative hazards, i.e. total accumulated hazards within a cluster}

@@ -3,6 +3,7 @@
 #' @param dist One of 'gamma', 'stable' or 'pvf'.
 #' @param frailtypar A starting value for the 'outer' maximization with respect to the frailty parameter \eqn{\theta}. Must be positive.
 #' @param pvfm Only relevant if \code{dist = 'pvf'} is used. It determines which PVF distribution should be used. Must be  larger than -1 and not equal to 0.
+#' @param left_truncation Logical. Whether the data set represents left truncated survival times.
 #'
 #' @return A list of arguments suitable for \code{emfrail()}!
 #' @export
@@ -12,7 +13,7 @@
 #' @examples
 #' emfrail_distribution()
 #' emfrail_distribution(dist = 'pvf', frailtypar = 1.5, pvfm = 0.5)
-emfrail_distribution <- function(dist = "gamma", frailtypar = 2, pvfm = -1/2) {
+emfrail_distribution <- function(dist = "gamma", frailtypar = 2, pvfm = -1/2, left_truncation = FALSE) {
 
     if (!(dist %in% c("gamma", "stable", "pvf")))
         stop("frailty distribution must be one of gamma, stable, pvf")
@@ -23,8 +24,8 @@ emfrail_distribution <- function(dist = "gamma", frailtypar = 2, pvfm = -1/2) {
     if (dist == "pvf" & (pvfm < -1 | pvfm == 0))
         stop("pvfm must be >-1 and not equal to 0")
 
-
-    res <- list(dist = dist, frailtypar = frailtypar, pvfm = pvfm)
+    if(!is.logical(left_truncation)) stop("left_truncation must be TRUE or FALSE")
+    res <- list(dist = dist, frailtypar = frailtypar, pvfm = pvfm, left_truncation = left_truncation)
     attr(res, "class") <- c("emfrail_distribution")
     return(res)
 }
