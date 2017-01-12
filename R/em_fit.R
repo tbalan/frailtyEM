@@ -15,6 +15,14 @@ em_fit <- function(logfrailtypar, dist, pvfm,
   nev_tp <- tapply(X = Y[,3], INDEX = Y[,2], sum)
   nev_tp <- nev_tp[nev_tp!=0]
 
+  .pars <- dist_to_pars(dist, logfrailtypar, pvfm)
+
+  if (isTRUE(.control$verbose)) {
+    print(paste0(#"dist=", .pars$dist,
+      "logfrailtypar= ", logfrailtypar,
+      " / alpha=", .pars$alpha,
+      " / bbeta=", .pars$bbeta))
+  }
   #print("hello im in em_fit")
 
   if(length(Xmat)==0) {
@@ -26,8 +34,9 @@ em_fit <- function(logfrailtypar, dist, pvfm,
   # if the logfrailtypar is large, i.e. frailtypar is large, i.e. fr. variance close to 0, then
   if(logfrailtypar > log(1/.control$zerotol)) {
     warning("Frailty parameter very large, frailty variance close to 0")
-    loglik <- sum((log(basehaz_line) + g_x)[Y[,3] == 1]) +
-       sum(Y[,3]) - sum(nev_tp * log(nev_tp))
+    loglik <- mcox$loglik[length(mcox$loglik)]
+    # loglik <- sum((log(basehaz_line) + g_x)[Y[,3] == 1]) +
+    #    sum(Y[,3]) - sum(nev_tp * log(nev_tp))
 
     if(isTRUE(return_loglik)) {
       if(isTRUE(.control$verbose)) print(paste("loglik = ",loglik))
@@ -36,15 +45,10 @@ em_fit <- function(logfrailtypar, dist, pvfm,
 
   }
 
-  .pars <- dist_to_pars(dist, logfrailtypar, pvfm)
 
 
-  if (isTRUE(.control$verbose)) {
-    print(paste0(#"dist=", .pars$dist,
-                 "logfrailtypar= ", logfrailtypar,
-                 " / alpha=", .pars$alpha,
-                 " / bbeta=", .pars$bbeta))
-  }
+
+
 
 
 

@@ -32,6 +32,9 @@
 #'
 #' The family of supported distributions can be one of gamma, positive stable or PVF (power-variance-family).
 #'
+#' Some possible problems may appear when the maximum likelihood estimate lies on the border of the parameter space. Usually, this will happen
+#' when the "outer" parameter MLE is infinity (i.e. variance 0 in case of gamma and PVF). For small enough values of \eqn{1/\theta} the log-likelihood
+#' of the Cox model will be returned. The tolerance of this option can be tweaked in \code{emfrail_control()}.
 #'
 #' @examples
 #' dat <- survival::rats
