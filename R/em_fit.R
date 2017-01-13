@@ -47,11 +47,6 @@ em_fit <- function(logfrailtypar, dist, pvfm,
 
 
 
-
-
-
-
-
   loglik_old = -Inf
   ncycles <- 0
 
@@ -60,7 +55,7 @@ em_fit <- function(logfrailtypar, dist, pvfm,
   convergence <- FALSE
   while(!isTRUE(convergence)) {
 
-    if(dist=="gamma" & isTRUE(.control$fast_fit)) {
+    if(isTRUE(.control$fast_fit)) {
       e_step_val <- fast_Estep(Cvec, Cvec_lt, nev_id, alpha = .pars$alpha, bbeta = .pars$bbeta, pvfm = pvfm, dist = .pars$dist)
     } else {
       e_step_val <- Estep(Cvec, Cvec_lt, nev_id, alpha = .pars$alpha, bbeta = .pars$bbeta, pvfm = pvfm, dist = .pars$dist)
@@ -222,13 +217,22 @@ em_fit <- function(logfrailtypar, dist, pvfm,
   # } else {
 
 
-    estep_plusone <- Estep(Cvec, Cvec_lt, nev_id+1, alpha = .pars$alpha, bbeta = .pars$bbeta, pvfm = pvfm, dist = .pars$dist)
-    estep_again <- Estep(Cvec, Cvec_lt, nev_id, alpha = .pars$alpha, bbeta = .pars$bbeta, pvfm = pvfm, dist = .pars$dist)
+
   # }
 
 
-  zz <- estep_plusone[,1] /estep_again[,2]
-  z <- estep_again[,1] / estep_again[,2]
+  if(isTRUE(.control$fast_fit)) {
+      estep_again <- fast_Estep(Cvec, Cvec_lt, nev_id, alpha = .pars$alpha, bbeta = .pars$bbeta, pvfm = pvfm, dist = .pars$dist)
+      z <- estep_again[,1] / estep_again[,2]
+      zz <- estep_again[,4]
+    } else {
+      estep_plusone <- Estep(Cvec, Cvec_lt, nev_id+1, alpha = .pars$alpha, bbeta = .pars$bbeta, pvfm = pvfm, dist = .pars$dist)
+      estep_again <- Estep(Cvec, Cvec_lt, nev_id, alpha = .pars$alpha, bbeta = .pars$bbeta, pvfm = pvfm, dist = .pars$dist)
+      zz <- estep_plusone[,1] /estep_again[,2]
+      z <- estep_again[,1] / estep_again[,2]
+    }
+
+
 
 
   dl1_dh <- nev_tp / hh$haz_tev
