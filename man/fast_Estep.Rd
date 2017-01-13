@@ -18,12 +18,14 @@ fast_Estep(c, c_lt = 0, delta, alpha, bbeta, pvfm, dist)
 \item{dist}{One of 0 (for gamma), 1 (for stable) or 2 (for PVF)}
 }
 \value{
-A \code{K x 3} matrix where the first column and the second column are the numerators
-and the denominators of the frailty fraction (without the Laplace transform) and the
-last column is the log(denominator) + log-Laplace transform, i.e. the log-likelihood contribution
+A \code{K x 4} matrix where the first column and the second column are the numerators
+and the denominators of the frailty fraction, the third is the log-likelihood contribution, and the
+last column is the expectation of the squared frailty (only used in calculating the information matrix)
 }
 \description{
-This function calculates the E step in a quicker way, without taking all the derivatives of the Laplace transform
+This function calculates the E step in a quicker way, without taking all the derivatives of the Laplace transform.
+Such closed form solutions are only available for the gamma distribution (with or without left truncation) and
+for the inverse Gaussian distribution (without left truncation).
 For a data set with \code{K} clusters,
 }
 

@@ -45,7 +45,7 @@ fast_Estep <- function(c, c_lt = 0, delta, alpha, bbeta, pvfm, dist) {
       alpha * (1 - sqrt(1 + 2 / alpha * c))
 
     res[,4] <- besselK(cc, nu = delta + 1.5) /
-      ((2 / alpha * c + 1) * bk05
+      ((2 / alpha * c + 1) * bk05)
 
   }
 
