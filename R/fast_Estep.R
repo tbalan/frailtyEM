@@ -37,8 +37,8 @@ fast_Estep <- function(c, c_lt = 0, delta, alpha, bbeta, pvfm, dist) {
     res[,2] <- sqrt(2 / alpha * c + 1) *
       besselK(cc, nu = delta - 0.5)
 
-    res[,3] <- (-delta / 2) * log(2/alpha * c + 1)^(-delta / 2) *
-      log(besselK(cc, nu = delta + 0.5))  - 0.5 * log(pi  / (2 * cc)) + cc +
+    res[,3] <- (-delta / 2) * log(2/alpha * c + 1) +
+      log(besselK(cc, nu = delta - 0.5))  - 0.5 * log(pi  / (2 * cc)) + cc +
       alpha * (1 - sqrt(1 + 2 / alpha * c))
 
   }
