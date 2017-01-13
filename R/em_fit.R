@@ -61,7 +61,7 @@ em_fit <- function(logfrailtypar, dist, pvfm,
   while(!isTRUE(convergence)) {
 
     if(dist=="gamma" & isTRUE(.control$fast_fit)) {
-      e_step_val2 <- fast_Estep(Cvec, Cvec_lt, nev_id, alpha = .pars$alpha, bbeta = .pars$bbeta, pvfm = pvfm, dist = .pars$dist)
+      e_step_val <- fast_Estep(Cvec, Cvec_lt, nev_id, alpha = .pars$alpha, bbeta = .pars$bbeta, pvfm = pvfm, dist = .pars$dist)
     } else {
       e_step_val <- Estep(Cvec, Cvec_lt, nev_id, alpha = .pars$alpha, bbeta = .pars$bbeta, pvfm = pvfm, dist = .pars$dist)
     }
