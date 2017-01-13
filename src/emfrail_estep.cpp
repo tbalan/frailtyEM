@@ -247,6 +247,7 @@ NumericMatrix Estep(NumericVector c, NumericVector c_lt, IntegerVector delta, do
    *
    * input: dist==0 is gamma
    * dist == 1 is stable
+   * dist == 2 is PVF
    */
 
   NumericVector z(c.size() * 3);
@@ -304,48 +305,6 @@ NumericMatrix Estep(NumericVector c, NumericVector c_lt, IntegerVector delta, do
 
 /*** R
 
-# for gamma alpha == beta for identifiability
-
-theta <- 0.5
-
-a1 <- Estep(rep(0.5, 5), 0:4, alpha = theta, bbeta = theta, pvfm =-0.5, dist = 0)
-plot(0:4, a1[,1]/a1[,2])
-
-(theta + 0:4) / (0.5 + theta)
-
-# for stable bbeta must be between 0 and 1.
-# with bbeta in (0,1), we have
-# alpha <- 1/bbeta
-
-theta <- 1.5
-
-
-a2 <- Estep(rep(0.5, 5), 0:4, alpha = 1/(1 - 1/theta ), bbeta =  (1 - 1/theta), -0.5, dist = 1)  # it's weird, shouldn't get negative shit
-
-
-a21 <- Estep(1:5 / 4, rep(0,5), alpha = 1/(1 - 1/theta ), bbeta =  (1 - 1/theta), -0.5, dist = 1)  # it's weird, shouldn't get negative shit
-
-a21
-
-
-# for this theta > 1
-# theta <- 1.5
-# a2 <- Estep(rep(0.5, 5), 0:4, alpha = 1/(1 - 1/theta ), bbeta =  (1 - 1/theta), -0.5, dist = 1)  # it's weird, shouldn't get negative shit
-# plot(0:4, a2[,1]/a2[,2])
-
-# if ((PVFm<=-1) | (PVFm==0)) stop("PVFm should be >-1 and not equal to 0")
-# bbeta <- (PVFm+1)*theta
-#   alpha <- bbeta/abs(PVFm)
-
-# m > -1, m != 0;
-# bbeta > 0
-# bbeta
-
-# pvfm = 0.5
-# # theta
-# #
-# a3 <- Estep(c = rep(0.5, 5), delta = 0:4, pvfm = pvfm, alpha = abs((pvfm + 1) / pvfm * theta), bbeta = (pvfm + 1)* theta, dist = 2)
-# plot(0:4, a3[,1] / a3[,2])
 
 
 */
