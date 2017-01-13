@@ -32,10 +32,14 @@ print.emfrail <- function(obj) {
         "\n\n")
 
 
-    cat("Frailty parameter:", inner_info$theta, "se: ", msm::deltamethod(~exp(x1), mean = outer_info$p1,
-        cov = 1/attr(outer_info, "details")[[3]]), "\n")
+    # we always estimate the log of the frailty parameter so we need the delta method for the SE
+
+
 
     if (inner_info$dist %in% c("gamma", "pvf")) {
+
+      cat("Frailty parameter:", inner_info$theta, "se: ", msm::deltamethod(~exp(x1), mean = outer_info$p1,
+                                                                           cov = 1/attr(outer_info, "details")[[3]]), "\n")
         low <- outer_info$p1 - 1.96 * sqrt(1/attr(outer_info, "details")[[3]])
         high <- outer_info$p1 + 1.96 * sqrt(1/attr(outer_info, "details")[[3]])
 
@@ -49,6 +53,20 @@ print.emfrail <- function(obj) {
         cat("\n")
     }
 
+    # for the stable; there are several parametrizations; here theta is a sort of thetatilde = theta + 1
+    if (inner_info$idst == "stable") {
+      cat("Frailty parameter (alpha*beta = 1):", inner_info$theta - 1, "se: ", msm::deltamethod(~exp(x1) - 1, mean = outer_info$p1,
+                                                                           cov = 1/attr(outer_info, "details")[[3]]), "\n")
+
+      # bbeta <- 1 - 1/inner_info$theta
+      # alphaprime <- bbeta - log(bbeta)
+      #
+      # cat("Frailty parameter (alpha = 1):", alphaprime,
+      #     "se: ", msm::deltamethod(~exp(x1), mean = alphaprime ,
+      #                              cov = 1/attr(outer_info, "details")[[3]]), "\n")
+      #
+      # cat("Kendall's tau")
+    }
 
 
     if(!is.null(inner_info$coef)) {

@@ -30,7 +30,7 @@ fast_Estep <- function(c, c_lt = 0, delta, alpha, bbeta, pvfm, dist) {
   }
 
   if(dist==2) {
-    warning("does not work with LT!")
+   # warning("does not work with LT!")
     cc <- sqrt(2 * alpha * (c + alpha / 2))
 
     bk05 <-  besselK(cc, nu = delta - 0.5)
