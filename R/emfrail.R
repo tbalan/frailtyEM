@@ -161,16 +161,16 @@ emfrail <- function(.data, .formula,
 
   if(isTRUE(.control$fast_fit)) {
     if(!(.distribution$dist %in% c("gamma", "pvf"))) {
-      warning("fast_fit option only available for gamma and pvf with m=-1/2 distributions")
+      message("fast_fit option only available for gamma and pvf with m=-1/2 distributions")
       .control$fast_fit <- FALSE
     }
     if(.distribution$dist == "pvf" & (.distribution$pvfm != -1/2)) {
-      warning("fast_fit option only available for gamma and pvf with m=-1/2 distributions")
+      message("fast_fit option only available for gamma and pvf with m=-1/2 distributions")
       .control$fast_fit <- FALSE
     }
 
     if(.distribution$dist == "pvf" & (.distribution$pvfm == -1/2) & .distribution$left_truncation ) {
-      warning("fast_fit option not available with left truncation for the Inverse Gaussian")
+      message("fast_fit option not available with left truncation for the Inverse Gaussian")
       .control$fast_fit <- FALSE
     }
   }

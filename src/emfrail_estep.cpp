@@ -103,12 +103,15 @@ double exponent_pvf(const double& alpha, const double& bbeta, const double &pvfm
   if(pvfm < 0) sign = -1.0;
 
   if(nderiv == 0) {
-    return alpha * (1 - std::pow( bbeta / (bbeta + c), pvfm)) * sign;
+    return alpha * (std::pow(bbeta / (bbeta + c_lt), pvfm) - std::pow(bbeta / (bbeta + c + c_lt), pvfm)) * sign;
+    //return alpha * (1 - std::pow( bbeta / (bbeta + c), pvfm)) * sign;
   } else  {
     // Rcout<<pow(bbeta, pvfm)<<" * "<<std::pow(bbeta + c, -pvfm - nderiv)<<" * "<<std::exp(lgamma(pvfm + nderiv) - lgamma(pvfm));
     // Rcout<<" = "<<alpha * std::pow(bbeta, pvfm) * std::pow(bbeta + c, -pvfm - nderiv) * std::exp(lgamma(pvfm + nderiv) - lgamma(pvfm))<<std::endl;
     // Rcout<<"sign = "<<pow(-1.0, nderiv) * sign;
-    return alpha * std::pow(bbeta, pvfm) * std::pow(bbeta + c, -pvfm - nderiv) * std::exp(lgamma(pvfm + nderiv) - lgamma(pvfm)) *  pow(-1.0, nderiv + 1);// * sign;
+    //return alpha * std::pow(bbeta, pvfm) * std::pow(bbeta + c, -pvfm - nderiv) * std::exp(lgamma(pvfm + nderiv) - lgamma(pvfm)) *  pow(-1.0, nderiv + 1);// * sign;
+    return alpha * std::pow(bbeta, pvfm) * std::pow(bbeta + c + c_lt, -pvfm - nderiv) *
+       std::exp(lgamma(pvfm + nderiv) - lgamma(pvfm)) *  pow(-1.0, nderiv + 1);
   }
 
 }

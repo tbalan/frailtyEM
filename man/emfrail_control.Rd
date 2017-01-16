@@ -13,14 +13,15 @@ emfrail_control(eps = 0.001, maxit = Inf, opt_fit = TRUE,
 
 \item{maxit}{Maximum number of iterations in the inner loops (the EM algorithm)}
 
-\item{opt_fit}{Logical. Whether the outer optimization should be carried out. If \code{FALSE}, then the frailty parameter is treated as fixed.}
+\item{opt_fit}{Logical. Whether the outer optimization should be carried out.
+If \code{FALSE}, then the frailty parameter is treated as fixed and the \code{emfrail} function returns only log-likelihood. See details.}
 
 \item{verbose}{Logical. Whether to print out information about what is going on during maximization.}
 
-\item{fast_fit}{Logical. Whether to go the faster route in the E step and calculate directly (when possible)}
+\item{fast_fit}{Logical. Whether to try to calculate the E step directly, when possible. See details.}
 
 \item{zerotol}{Lower limit for 1/frailtypar (variance in case of gamma / pvf). Below this value, the variance is taken to be 0 and the
-EM is not actually performed. The log-likelihood returned by em_fit is that for the Cox model.}
+EM is not actually performed. The log-likelihood returned to the maximizer is that for the Cox model.}
 
 \item{opt_control}{A list with arguments to be sent to the maximizer. Currently ignored, will be useful in the future.}
 }
@@ -29,6 +30,15 @@ A list of arguments suitable for \code{emfrail()}!
 }
 \description{
 Control parameters for emfrail
+}
+\details{
+The \code{fast_fit} option make a difference when the distribution is gamma (with or without left truncation) or
+inverse Gaussian, i.e. pvf with m = -1/2 (without left truncation). For all the other scenarios, the fast_fit option will
+automatically be changed to FALSE. When the number of events in a cluster / individual is not very small, the cases for which
+fast fitting is available will show an improvement in performance.
+
+The \code{zerotol} option defaults to \code{1e-04}, which in practical terms means, for example, that for
+the gamma / pvf distribution, a frailty variance below \code{1e-04} can not be detected.
 }
 \examples{
 emfrail_control()

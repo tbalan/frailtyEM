@@ -54,7 +54,7 @@ print.emfrail <- function(obj) {
     }
 
     # for the stable; there are several parametrizations; here theta is a sort of thetatilde = theta + 1
-    if (inner_info$idst == "stable") {
+    if (inner_info$dist == "stable") {
       cat("Frailty parameter (alpha*beta = 1):", inner_info$theta - 1, "se: ", msm::deltamethod(~exp(x1) - 1, mean = outer_info$p1,
                                                                            cov = 1/attr(outer_info, "details")[[3]]), "\n")
 

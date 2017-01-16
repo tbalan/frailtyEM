@@ -12,7 +12,7 @@
 
 <meta name="author" content="Theodor Adrian Balan" />
 
-<meta name="date" content="2017-01-13" />
+<meta name="date" content="2017-01-14" />
 
 <title>Shared frailty models</title>
 
@@ -32,7 +32,7 @@
 
 <h1 class="title toc-ignore">Shared frailty models</h1>
 <h4 class="author"><em>Theodor Adrian Balan</em></h4>
-<h4 class="date"><em>2017-01-13</em></h4>
+<h4 class="date"><em>2017-01-14</em></h4>
 
 
 
@@ -58,18 +58,20 @@
 <div id="the-inner-problem" class="section level3">
 <h3>The inner problem</h3>
 <p>The EM algorithm used to maximize <span class="math inline">\(\ell(\theta, \gamma, \lambda_0)\)</span> for a fixed <span class="math inline">\(\theta\)</span> takes place in <code>em_fit.R</code>. This function does not check any inputs and is not meant to be used outside its wrapper, <code>emfrail()</code>. Essentially, the function codes the distribution and the parameters in the variable <code>.pars</code> and then jumps straight to the EM algorithm. The convergence of this EM algorithm is set by the <code>.control</code> argument: namely, the <code>eps</code> determines when to actually detect convergence, and the <code>maxit</code> to stop the iterations after a given number of iterations.</p>
-<p>The E step is performed by calling the function <code>Estep</code> which resides in the C++ part of the package. The Laplace transform of <span class="math inline">\(Z_i\)</span> can be written as <span class="math display">\[
-\mathcal{L}(C_i) = \mathrm{E}\left[\exp(-z C_i)\right] = \exp(-\alpha \psi (C_i; \beta))
-\]</span> For the E step, what has to be calculated is <span class="math display">\[
-z_i = \frac{E[z ^ N_{i+1} \exp(-z \Lambda_i)]}{E[z ^ N_{i} \exp(-z \Lambda_i)]} = 
-\frac{(-1)^{N_{i} + 1} \mathcal{L}^{(N_i + 1)}(c) }{(-1)^{N_{i}} \mathcal{L}^{(N_i )}(c) }
+</div>
+<div id="e-step" class="section level3">
+<h3>E step</h3>
+<p>The purpose of the E step is to provide posterior estimates of the frailty <span class="math inline">\(\widehat{z}_i\)</span>, that are the expectation of <span class="math inline">\(z_i\)</span> given the data. Related quantities that should be calculated are the log-likelihood contribution for cluster <span class="math inline">\(i\)</span> and eventually <span class="math inline">\(\widehat{z^2}_i\)</span>, which is needed for the calculation of the information matrix.</p>
+<p>For the E step, what has to be calculated is <span class="math display">\[
+\widehat{z}_i = \frac{E[z ^ N_{i+1} \exp(-z \Lambda_i)]}{E[z ^ N_{i} \exp(-z \Lambda_i)]} = 
+\frac{(-1)^{N_{i} + 1} \mathcal{L}^{(N_i + 1)}(\Lambda_i) }{(-1)^{N_{i}} \mathcal{L}^{(N_i )}(\Lambda_i) }
 \]</span> and note that the denominator in this case determines the contribution to the likelihood from cluster <span class="math inline">\(i\)</span>.</p>
-<p>The derivatives of the Laplace transform can be written according to the derivatives of <span class="math inline">\(\psi\)</span> like this: <span class="math display">\[
-\mathcal{L}'(c; \alpha, \beta) = - \alpha \psi'(c; \beta) \mathcal{L}(c; \alpha, \beta)
-\]</span> <span class="math display">\[
-\mathcal{L}''(c; \alpha, \beta) = \left[(- \alpha \psi'(c; \beta)) (- \alpha \psi'(c; \beta)) + (- \alpha \psi''(c; \beta))\right] \mathcal{L}(c; \alpha, \beta)
+<p>The log-likelihood contribution is <span class="math display">\[
+l_i = (-1)^{N_{i}} \mathcal{L}^{(N_i )(\Lambda_i)
+\]</span> and finally <span class="math display">\[
+\widehat{z^2}_i  = 
+\frac{(-1)^{N_{i} + 2} \mathcal{L}^{(N_i + 2)}(\Lambda_i) }{(-1)^{N_{i}} \mathcal{L}^{(N_i )}(\Lambda_i) }
 \]</span></p>
-<p>To make the connection with the quantity that we are interested in, when we take odd derivatives, we need to multiply everything with a -1. That happens in the main <code>Estep()</code> function. The -1 that comes from every <span class="math inline">\(-\alpha\)</span> is done after the calculation of every element of the sum, in <code>findsums()</code>. The other bunch of <span class="math inline">\(-1\)</span> that may come from the derivatives of <span class="math inline">\(\psi\)</span>, those are added in the <code>exponent_()</code> functions.</p>
 </div>
 <div id="m-step" class="section level3">
 <h3>M step</h3>
@@ -77,26 +79,57 @@ z_i = \frac{E[z ^ N_{i+1} \exp(-z \Lambda_i)]}{E[z ^ N_{i} \exp(-z \Lambda_i)]} 
 <p>NOTE: When you ask for the linear predictors, <code>R</code> actually returns this: <code>lp  &lt;- as.vector(x %*% coef + offset - sum(coef * colMeans(x)))</code> In other words, the covariate vector is centered but not the offset.</p>
 <p>To extract the hazard estimates, an internal function <code>getchz</code> is used, which resides in <code>emfrail_aux.R</code>.</p>
 </div>
+</div>
+<div id="laplace-transforms" class="section level2">
+<h2>Laplace transforms</h2>
+<p>We assume that <span class="math inline">\(Z_i\)</span> is an infinitely divisible distribution, i.e. that the Laplace transform of <span class="math inline">\(Z_i\)</span> can be written as <span class="math display">\[
+\mathcal{L}(c) = \mathrm{E}\left[\exp(-z c)\right] = \exp(-\alpha \psi (c; \beta))
+\]</span> The derivatives of the Laplace transform can be written according to the derivatives of <span class="math inline">\(\psi\)</span> like this: <span class="math display">\[
+\mathcal{L}'(c; \alpha, \beta) = - \alpha \psi'(c; \beta) \mathcal{L}(c; \alpha, \beta)
+\]</span></p>
+<p><span class="math display">\[
+\mathcal{L}''(c; \alpha, \beta) = \left[(- \alpha \psi'(c; \beta)) (- \alpha \psi'(c; \beta)) + (- \alpha \psi''(c; \beta))\right] \mathcal{L}(c; \alpha, \beta)
+\]</span> and so on.</p>
+<p>Note: when we take odd derivatives, we need to multiply everything with a -1. That happens in the main <code>Estep()</code> function. The -1 that comes from every <span class="math inline">\(-\alpha\)</span> is done after the calculation of every element of the sum, in <code>findsums()</code>. The other bunch of <span class="math inline">\(-1\)</span> that may come from the derivatives of <span class="math inline">\(\psi\)</span>, those are added in the <code>exponent_()</code> functions.</p>
+<div id="ascertainment" class="section level3">
+<h3>Ascertainment</h3>
+<p>There is a situation when the data set migt come from some ascertainment scheme that prevents individuals from being observed from time 0. For this example, I supress the subscript <span class="math inline">\(i\)</span> for the cluster.</p>
+<p>Now assume that observation <span class="math inline">\(j\)</span> in the cluster is in the data set if <span class="math inline">\(A_j\)</span> happens, and we call <span class="math display">\[
+A = A_1 \cup A_2 ... \cup A_n
+\]</span> Then by Bayes’ theorem the distribution of the frailty is given by <span class="math display">\[
+f_{Z|A}(z) = \frac{P(A|z) f(z)}{\int_z P(A|z) f(z) dz} = \frac{P(A|z)f(z)}{E_Z[P(A|z)]}
+\]</span> Now this has Laplace transform <span class="math display">\[
+\mathcal{L}_{Z|A}(c) = \frac{E_Z[e^{-cz}P(A|z)]}{E_Z[P(A|z)]}
+\]</span> So basically it all boils down to writing <span class="math inline">\(P(A|z)\)</span>.</p>
+</div>
 <div id="left-truncation" class="section level3">
 <h3>Left truncation</h3>
+<p>In the left truncation scenario, i.e. where <span class="math display">\[
+P(A_j|z) = P(T_j &gt;t_j|z) = E[\exp(-z \Lambda_{Lj})]
+\]</span> and we have <span class="math inline">\(P(A|z) = \prod_j P(A_j|z)\)</span> with <span class="math inline">\(\Lambda_{Lj}\)</span> the risk accumulated until the entry time <span class="math inline">\(t_{Lj}\)</span>. Then denote <span class="math display">\[
+\Lambda_{L} = \sum_j \Lambda_{Lj}
+\]</span> which can be seen as a sort of missing risk.</p>
+<p>In that case we see that <span class="math display">\[
+\mathcal{L}_{Z|A}(c) = \frac{E_Z[e^{-z (c + \Lambda_{L})}]}{E_Z[e^{-z\Lambda_{L}}]}
+\]</span> which means that <span class="math display">\[
+\mathcal{L}_{Z|A}(c) = \frac{\mathcal{L}_Z(c + \Lambda_{L})}{\mathcal{L}_Z(\Lambda_L)}
+\]</span></p>
+<p>In the PVF framework, the E step must be replaced with a modified Laplace transform <span class="math display">\[
+\mathcal{L}_{Z|A}(c) = \frac{\exp(-\alpha \psi(c + \Lambda_L))}{\exp(-\alpha \psi(\Lambda_L))},
+\]</span> i.e. <span class="math display">\[
+\mathcal{L}_{Z|A}(c) = \exp(-\alpha [\psi(c + \Lambda_L) - \psi(\Lambda_L)])
+\]</span> which means that the conditional distribution is still part of the same (infinitely divisivle) family with <span class="math display">\[
+\tilde{\psi} = \psi(c + \Lambda_L) - \psi(\Lambda_L).
+\]</span></p>
 </div>
-</div>
-<div id="outer-problem" class="section level2">
-<h2>Outer problem</h2>
-</div>
-<div id="standard-errors" class="section level2">
-<h2>Standard errors</h2>
-</div>
-<div id="on-the-pvf-family-and-parametrizations" class="section level2">
-<h2>On the PVF family and parametrizations</h2>
-<div id="gamma" class="section level3">
-<h3>gamma</h3>
+<div id="gamma-frailty" class="section level3">
+<h3>Gamma frailty</h3>
 <p>For the gamma distribution, we have <span class="math inline">\(\psi(c) = \log(\beta + c) - \log(\beta)\)</span> and derivatives are: <span class="math display">\[
 \psi'(c) = (\beta + c)^{-1}
-\]</span> <span class="math display">\[
-\psi''(c) = (-1)(\beta +c)^{-2}
 \]</span></p>
-<p>and so on, until <span class="math display">\[
+<p><span class="math display">\[
+\psi''(c) = (-1)(\beta +c)^{-2}
+\]</span> and so on, until <span class="math display">\[
 \psi^{(k)} (c) = (-1)^{k-1} (k-1)! (\beta + c)^{-k}
 \]</span></p>
 <p>To parametrize it with one parameter <span class="math inline">\(\theta &gt; 0\)</span> (which is 1/variance) we have the restriction <span class="math inline">\(\beta = \alpha = \theta\)</span>, i.e. mean equals 1.</p>
@@ -106,11 +139,19 @@ z_i = \frac{E[z ^ N_{i+1} \exp(-z \Lambda_i)]}{E[z ^ N_{i} \exp(-z \Lambda_i)]} 
 \mathcal{L}(c) = \beta^\alpha (\beta + c)^{-\alpha}
 \]</span> and then we can write all the derivatives like: <span class="math display">\[
 \mathcal{L}^{(k)}(c) = \beta^\alpha (\beta + c)^{-\alpha - k} \Gamma(\alpha + k) / \Gamma(\alpha).
+\]</span> Under left truncation, the Laplace transform becomes <span class="math display">\[
+\mathcal{L}_{Z|A}(c) = \exp\left[-\alpha \left(\log(\beta + \Lambda_L + c) - \log(\beta + \Lambda_L)\right)\right]
+\]</span> which corresponds to a change in parameters with <span class="math inline">\(\beta \rightarrow \beta + \Lambda_L\)</span>.</p>
+<p>We have that <span class="math display">\[
+\mathcal{L}_{Z|A}(c) = (\beta + \Lambda_L)^\alpha (\beta + \Lambda_L + c)^{-\alpha}
+\]</span> so the <span class="math inline">\(k\)</span>-th derivative is <span class="math display">\[
+\mathcal{L}_{Z|A}^{(k)}(c) = \frac{(\beta + \Lambda_L)^\alpha}{(\beta + \Lambda_L + c)^{\alpha + k}} \frac{\Gamma(\alpha +k)}{\Gamma(\alpha)}.
 \]</span></p>
+<p>This is calculated directly in the <code>fast_Estep()</code> routine. If <code>left_truncation == FALSE</code>, then <span class="math inline">\(\Lambda_L\)</span> is taken to be 0.</p>
 </div>
 </div>
-<div id="stable" class="section level3">
-<h3>stable</h3>
+<div id="positive-stable-frailty" class="section level3">
+<h3>Positive stable frailty</h3>
 <p>For the positive stable distribution, we have <span class="math inline">\(\beta \in (0,1)\)</span> (if <span class="math inline">\(\beta = 1\)</span> then it means that the marginal hazards are equal to the conditional hazards; if we have conditional covariate effect <span class="math inline">\(\gamma\)</span> then the marginal effect is <span class="math inline">\(\beta \gamma\)</span> so it is attenuated; predictive hazard ratios decrease to 1 over time) <span class="math display">\[
 \psi(c) = c^\beta
 \]</span> and <span class="math display">\[
@@ -119,28 +160,16 @@ z_i = \frac{E[z ^ N_{i+1} \exp(-z \Lambda_i)]}{E[z ^ N_{i} \exp(-z \Lambda_i)]} 
 \psi''(c) = \beta (\beta - 1) c^{\beta - 1}
 \]</span> Now the problem is that <span class="math inline">\(\beta - 1 &lt; 0\)</span> and then we run into trouble with the gamma function that is not defined for negative values. Because of that, we write it like this: <span class="math display">\[
 \psi^{(k)}(c) = \frac{\Gamma(k - \beta)}{\Gamma(1 - \beta)} (-1)^{k - 1} c^{\beta - 1}
-\]</span> To parametrize it with one parameter <span class="math inline">\(\theta &gt; 1\)</span> (note: has to be larger than 1!) we have <span class="math inline">\(\beta = 1 - 1/\theta\)</span> and <span class="math inline">\(\alpha = \theta / ( \theta - 1)\)</span>. The idea is that we let the user give a <span class="math inline">\(\theta&gt;0\)</span>, and the program increments this by 1 anyway.</p>
-<div id="fine-fit" class="section level4">
-<h4>Fine fit</h4>
-<p>Fine Glidden and Lee proposed in a paper in JRSS B (2003) to use the fact that <span class="math inline">\(\beta\)</span> would be should be a weighed average between two hazard ratios: a <em>very</em> conditional one, obtained from stratifying for each cluster and a marginal one, obtained from a normal Cox model. However, this seems to work well in only a few scenarios.</p>
-<p>They also assume that covariates vary within clusters and that at the marginal and conditional level we have the same covariates.</p>
-</div>
-<div id="martinussen-fit" class="section level4">
-<h4>Martinussen fit</h4>
-<p>Martinussen and Pipper proposed in a paper in LiDA in 2005. A property of the stable model is that the marginal baseline hazard is <span class="math display">\[
-h_0(t) = \alpha \lambda_0(t) \Lambda_0(t)^{\alpha - 1}.
-\]</span> then we have that the baseline cumulative hazard is <span class="math display">\[
-H_0(t) = \Lambda_0(t)^\alpha
+\]</span> To parametrize it with one parameter <span class="math inline">\(\theta &gt; 0\)</span> we take a <span class="math inline">\(\tilde\theta = 1 + \theta\)</span> (note: has to be larger than 1!) and we have <span class="math inline">\(\beta = 1 - 1/\tilde\theta\)</span> and <span class="math inline">\(\alpha = \tilde\theta / ( \tilde\theta - 1)\)</span>. Another parametrization (Hougaard, <code>parfm</code>) is obtained when setting <span class="math inline">\(\alpha = 1\)</span> and <span class="math inline">\(\beta = 1 - 1/\tilde\theta\)</span>.</p>
+<p>Under left truncation we have <span class="math display">\[
+\tilde\psi(c) = (c +\Lambda_i)^\beta - \Lambda_i^\beta.
+\]</span> with <span class="math display">\[
+\tilde\psi^{(k)}(c) = \frac{\Gamma(k - \beta)}{\Gamma(1 - \beta)} (-1)^{k - 1} (c+\Lambda_i)^{\beta - 1}
 \]</span></p>
-<p>Then we can write the log-likelihood (conditional) with <span class="math display">\[
-\lambda_0(t) = d (H_0(t))^{1/\alpha}
-\]</span></p>
-<p>Then they say like that: the marginal hazard is the conditional times <span class="math inline">\(E(z_i|t)\)</span> with the estimate of <span class="math inline">\(z_i\)</span> at time <span class="math inline">\(t\)</span>. They construct a likelihood with this <span class="math inline">\(z_i|t\)</span> calculated with an estimator of <span class="math inline">\(H_0(t)\)</span> under independence. Then they profile out <span class="math inline">\(\lambda_0(t)\)</span> like in a Cox model.</p>
 </div>
-</div>
-<div id="pvf" class="section level3">
-<h3>pvf</h3>
-<p>For the pvf distribution with <span class="math inline">\(m &gt; -1\)</span> and <span class="math inline">\(m!=0\)</span>, we have the Laplace transform <span class="math display">\[
+<div id="pvf-frailty" class="section level3">
+<h3>PVF frailty</h3>
+<p>For the PVF distribution with <span class="math inline">\(m &gt; -1\)</span> and <span class="math inline">\(m!=0\)</span>, we have the Laplace transform <span class="math display">\[
 \mathcal{L}(c) = \exp \left[- \alpha \mathrm{sign}(m) (1 - \beta^m (\beta + c)^{-m}) \right]
 \]</span> with <span class="math inline">\(\alpha &gt; 0\)</span>, <span class="math inline">\(\beta &gt; 0\)</span>. For positive <span class="math inline">\(m\)</span>, that is: <span class="math display">\[
 \psi(c) = (1 - \beta^m (\beta + c)^{-m}) 
@@ -157,62 +186,51 @@ EZ^2 = \alpha^2 \psi'^2(0) -\alpha \psi''(0) = \frac{\alpha^2}{\beta^2}m^2 + \fr
 \]</span></p>
 <p>Now for the parametrization we set the mean equal to 1, which is done by having a <span class="math inline">\(\theta &gt; 0\)</span> and <span class="math inline">\(\beta = (m + 1) \theta\)</span> and <span class="math inline">\(\alpha = \frac{m + 1}{m} \theta.\)</span> With this, we have that the mean is 1 and the variance <span class="math display">\[
 VarZ = 1/\theta.
-\]</span> So how about when <span class="math inline">\(m&lt;0\)</span>? Well this implies that also <span class="math inline">\(\alpha &lt; 0\)</span>, and since the <span class="math inline">\(\mathrm{sign}(m) = -1\)</span>, we might as well take <span class="math inline">\(\alpha = \vert \frac{m + 1}{m} \theta \vert\)</span>. Then the only correction that is still needed is a <span class="math inline">\(-1\)</span> in the <span class="math inline">\(\mathcal{L}\)</span>.</p>
-<div id="inverse-gaussian" class="section level4">
-<h4>Inverse Gaussian</h4>
+\]</span> NOTE: For <span class="math inline">\(m&lt;0\)</span>, in practice, this would make <span class="math inline">\(\alpha &lt; 0\)</span>, and since the <span class="math inline">\(\mathrm{sign}(m) = -1\)</span>, we might as well take <span class="math inline">\(\alpha = \vert \frac{m + 1}{m} \theta \vert\)</span>. Then the only correction that is still needed is a <span class="math inline">\(-1\)</span> in the <span class="math inline">\(\mathcal{L}\)</span>.</p>
+<p>Under left truncation, we have <span class="math display">\[
+\tilde\psi(c) = \beta^m \left[(\beta + \Lambda_L)^{-m} - (\beta + c +\Lambda_L)^{-m} \right]
+\]</span> with the <span class="math inline">\(k\)</span>-th derivative <span class="math display">\[
+\tilde\psi^{(k)}(c) = -\beta^m (\beta + c + \Lambda_L)^{-m-k} (-1)^{k+1} \frac{\Gamma(m + k)}{\Gamma(m)}.
+\]</span></p>
+<p>With <span class="math inline">\(m &gt; 0\)</span>, this is a Compound Poisson distribution with mass at 0 <span class="math inline">\(e^{-m}\)</span>.</p>
+</div>
+<div id="inverse-gaussian" class="section level3">
+<h3>Inverse Gaussian</h3>
 <p>A particular case of the PVF distribution is the Inverse Gaussian, obtained when $ m = -1/2$, resulting in <span class="math inline">\(\beta = \theta / 2\)</span> and <span class="math inline">\(\alpha = \theta\)</span>. The resulting Laplace transform is <span class="math display">\[
 \mathcal{L}(c) = \exp \left\{\theta \left(1 - \sqrt{1 + 2c/\theta }\right) \right\}
 \]</span> The <span class="math inline">\(k\)</span>-th derivative of this can be written as <span class="math display">\[
 \mathcal{L}^{(k)}(c) = (-1)^k \left(\frac{2}{\theta} c + 1\right)^{-k/2} \frac{\mathcal{K}_{k - 1/2} \left(\sqrt{ 2\theta \left(c + \frac{\theta}{2}\right)}\right)}{\mathcal{K}_{1/2} \left( \sqrt{ 2\theta \left(c + \frac{\theta}{2}\right)}\right)}
 \]</span> where <span class="math inline">\(\mathcal{K}\)</span> is the modified Bessel function of the second kind.</p>
+<p>Under left truncation, the Inverse Gaussian is not Inverse Gaussian any more and then that situation is handled in the same way with the rest of the PVF distributions.</p>
 </div>
-</div>
-</div>
-<div id="ascertainment" class="section level2">
-<h2>Ascertainment</h2>
-<p>There is a situation when the data set migt come from some ascertainment scheme that prevents individuals from being observed from time 0. For this example, I supress the subscript <span class="math inline">\(i\)</span> for the cluster.</p>
-<p>Now assume that observation <span class="math inline">\(j\)</span> in the cluster is in the data set if <span class="math inline">\(A_j\)</span> happens, and we call <span class="math display">\[
-A = A_1 \cup A_2 ... \cup A_n
-\]</span> Then by Bayes’ theorem the distribution of the frailty is given by <span class="math display">\[
-f_{Z|A}(z) = \frac{P(A|z) f(z)}{\int_z P(A|z) f(z) dz} = \frac{P(A|z)f(z)}{E_Z[P(A|z)]}
-\]</span> Now this has Laplace transform <span class="math display">\[
-\mathcal{L}_{Z|A}(c) = \frac{E_Z[e^{-cz}P(A|z)]}{E_Z[P(A|z)]}
-\]</span> So basically it all boils down to writing <span class="math inline">\(P(A|z)\)</span>.</p>
-<div id="left-truncation-1" class="section level3">
-<h3>Left truncation</h3>
-<p>In the left truncation scenario, i.e. where <span class="math display">\[
-P(A_j|z) = P(T_j &gt;t_j|z) = E[\exp(-z \Lambda_{Lj})]
-\]</span> and we have <span class="math inline">\(P(A|z) = \prod_j P(A_j|z)\)</span> with <span class="math inline">\(\Lambda_{Lj}\)</span> the risk accumulated until the entry time <span class="math inline">\(t_{Lj}\)</span>. Then denote <span class="math display">\[
-\Lambda_{L} = \sum_j \Lambda_{Lj}
-\]</span> which can be seen as a sort of missing risk.</p>
-<p>In that case we see that <span class="math display">\[
-\mathcal{L}_{Z|A}(c) = \frac{E_Z[e^{-z (c + \Lambda_{L})}]}{E_Z[e^{-z\Lambda_{L}}]}
-\]</span> which means that <span class="math display">\[
-\mathcal{L}_{Z|A}(c) = \frac{\mathcal{L}_Z(c + \Lambda_{L})}{\mathcal{L}_Z(\Lambda_L)}
+<div id="implementation" class="section level3">
+<h3>Implementation</h3>
+<div id="fast-fit-1" class="section level4">
+<h4>Fast fit</h4>
+<p>Closed form expressions are available for the gamma distribution (with or without left truncation) and the Inverse Gaussian (without left truncation). In these cases, the E step is calculated by <code>fast_Estep()</code>. For the gamma, that returns 4 columns: one with <span class="math inline">\(\alpha + n_i\)</span>, one with <span class="math inline">\(\beta + Lambda_i\)</span>, one with the likelihood contribution <span class="math display">\[\alpha  log(\beta) - (\alpha + n_i)\log(\beta + \Lambda_i) + \log \Gamma(\alpha + n_i) - \log \Gamma(\alpha)\]</span> and one with <span class="math display">\[
+\widehat z_i^2 = (\alpha + n_i) (\alpha + n_i + 1) / (\beta + \Lambda_i)^2.
 \]</span></p>
-<p>In the PVF framework, the E step must be replaced with a modified Laplace transform <span class="math display">\[
-\mathcal{L}_{Z|A}(c) = \frac{\exp(-\alpha \psi(c + \Lambda_L))}{\exp(-\alpha \psi(\Lambda_L))},
-\]</span> i.e. <span class="math display">\[
-\mathcal{L}_{Z|A}(c) = \exp(-\alpha [\psi(c + \Lambda_L) - \psi(\Lambda_L)])
-\]</span> which means that the conditional distribution is still part of the PVF family with <span class="math display">\[
-\tilde{\psi} = \psi(c + \Lambda_L) - \psi(\Lambda_L).
-\]</span></p>
-<div id="gamma-frailty" class="section level4">
-<h4>gamma frailty</h4>
-<p>For the gamma distribution recall that <span class="math inline">\(\psi(x) = \log(\beta + c) - \log(\beta)\)</span> so then <span class="math display">\[
-\mathcal{L}_{Z|A}(c) = \exp\left[-\alpha \left(\log(\beta + \Lambda_L + c) - \log(\beta + \Lambda_L)\right)\right]
-\]</span> which corresponds to a change in parameters with <span class="math inline">\(\beta \rightarrow \beta + \Lambda_L\)</span>.</p>
-<p>We have that <span class="math display">\[
-\mathcal{L}_{Z|A}(c) = (\beta + \Lambda_L)^\alpha (\beta + \Lambda_L + c)^{-\alpha}
-\]</span> so the <span class="math inline">\(k\)</span>-th derivative is <span class="math display">\[
-\mathcal{L}_{Z|A}^{(k)}(c) = \frac{(\beta + \Lambda_L)^\alpha}{(\beta + \Lambda_L + c)^{\alpha + k}} \frac{\Gamma(\alpha +k)}{\Gamma(\alpha)}.
-\]</span></p>
+<p>For the Inverse Gaussian without left truncation, the four columns contain similar quantities as with the gamma. Let <span class="math inline">\(cc = \sqrt{2 * \alpha * (\Lambda_i + \alpha / 2)}\)</span>. Then the first column is <span class="math inline">\(\mathcal{K}_{n_i + 0.5}(cc)\)</span>, the second with <span class="math inline">\(\sqrt{2 / \alpha * \Lambda_i + 1} * \mathcal{K}_{n_i - 0.5}(cc)\)</span>, the third has <span class="math display">\[
+l_i =  (-n_i / 2) * \log(2/\alpha * \Lambda_i + 1) +
+      \log\mathcal{K}_{n_i - 0.5}(cc)  - 0.5 * \log(\pi  / (2  cc)) + cc +
+      \alpha * (1 - \sqrt{1 + 2 / \alpha * \Lambda_i})
+\]</span> and the fourth one $$ z_i^2 = _{n_i + 1.5}(cc)/ ((2 /  <em>i + 1) * </em>{n_i - 0.5}(cc))</p>
+<p>$$</p>
 </div>
-<div id="pvf-and-stable" class="section level4">
-<h4>pvf and stable</h4>
-<p>For the PVF and positive stable distributions, under left truncation, the resulting Laplace transform under left truncation is in the PVF family. For the positive stable and the Inverse Gaussian, the resulting distribution does not remain the same, but changes to something else in the PVF family as well.</p>
+<div id="general-fit" class="section level4">
+<h4>General fit</h4>
+<p>If the distribution is not one of the above ones, then the program resorts to the <code>E_step</code> function which is entirely written in C++. For gamma or inverse gaussian, the option <code>fast_fit == FALSE</code> forces the estimation with this recursive algorithm.</p>
+<p>Say we have a distribution with Laplace transform <span class="math inline">\(\psi(c)\)</span> and Laplace transform of the type <span class="math inline">\(\mathcal{L}(c) = \exp(-\alpha \psi(c))\)</span>. Then the <span class="math inline">\(k\)</span>-th derivative of <span class="math inline">\(\mathcal{L}\)</span> can be calculated recursively like this.</p>
+<p>For a certain individual or cluster with <span class="math inline">\(k\)</span> events and for given parameters and argument <span class="math inline">\(c_i\)</span>, we start with a result of 0. We create a vector <code>v</code> of length <span class="math inline">\(k\)</span>.</p>
 </div>
 </div>
+</div>
+<div id="outer-problem" class="section level2">
+<h2>Outer problem</h2>
+</div>
+<div id="standard-errors" class="section level2">
+<h2>Standard errors</h2>
+<p>The information matrix from the EM algorithm is obtained with Louis’ formula.</p>
 </div>
 
 
