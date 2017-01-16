@@ -55,7 +55,8 @@ print.emfrail <- function(obj) {
 
     # for the stable; there are several parametrizations; here theta is a sort of thetatilde = theta + 1
     if (inner_info$dist == "stable") {
-      cat("Frailty parameter (alpha*beta = 1):", inner_info$theta - 1, "se: ", msm::deltamethod(~exp(x1) - 1, mean = outer_info$p1,
+      cat("pvf bbeta =",  1 - 1/inner_info$theta, "pvf alpha = ", 1/(1 - 1/inner_info$theta), "\n")
+      cat("Frailty parameter where bbeta = 1 - (1 / (theta)), theta>1:", inner_info$theta, "se: ", msm::deltamethod(~exp(x1) , mean = outer_info$p1,
                                                                            cov = 1/attr(outer_info, "details")[[3]]), "\n")
 
       # bbeta <- 1 - 1/inner_info$theta
@@ -68,6 +69,12 @@ print.emfrail <- function(obj) {
       # cat("Kendall's tau")
     }
 
+    if (inner_info$dist == "stable2") {
+      cat("pvf bbeta =",  1 - 1/inner_info$theta, "pvf alpha = 1\n")
+      cat("Frailty parameter where bbeta = 1 - (1 / (theta)), theta>1:", inner_info$theta, "se: ", msm::deltamethod(~exp(x1) , mean = outer_info$p1,
+                                                                                                                    cov = 1/attr(outer_info, "details")[[3]]), "\n")
+      cat("Kendall's tau", 1/inner_info$theta,"\n")
+      }
 
     if(!is.null(inner_info$coef)) {
       cat("Regression coefficients:\n")

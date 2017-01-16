@@ -15,6 +15,13 @@ dist_to_pars <- function(dist, logfrailtypar, pvfm) {
         dist_id <- 1L
     }
 
+    if (dist == "stable2") {
+      theta <- exp(logfrailtypar) + 1 # so theta >1
+      bbeta <- 1 - 1/theta
+      alpha <- 1
+      dist_id <- 1L
+    }
+
     if (dist == "pvf") {
         alpha <- abs((pvfm + 1)/pvfm * exp(logfrailtypar))
         bbeta <- (pvfm + 1) * exp(logfrailtypar)

@@ -8,7 +8,7 @@ emfrail_distribution(dist = "gamma", frailtypar = 2, pvfm = -1/2,
   left_truncation = FALSE)
 }
 \arguments{
-\item{dist}{One of 'gamma', 'stable' or 'pvf'.}
+\item{dist}{One of 'gamma', 'stable', 'stable2' or 'pvf'.}
 
 \item{frailtypar}{A starting value for the 'outer' maximization with respect to the frailty parameter \eqn{\theta}. Must be positive.}
 

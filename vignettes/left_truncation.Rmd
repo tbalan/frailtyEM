@@ -1,0 +1,32 @@
+---
+title: "Left truncation"
+author: "Theodor Adrian Balan"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Left truncation}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## The issue with left truncation
+
+There are two equivalent ways to deal with left truncation. We assume that in `Surv(tstart, tstop, status)` each line corresponds to an individual whose entry time is `tstart`. For a cluster $i$, denote $\Lambda_i$ the hazard accumulated in the time when all the individuals are at risk, and $\Lambda_{Li}$ the hazard that would correspond to the intervals from 0 to the entry times. Now I will omit the subscript $i$. The Laplace transform is:
+$$
+\mathcal{L}_L(c) = \frac{\mathcal{L}(c + \Lambda_L)}{\mathcal{L}(\Lambda_L)} 
+$$
+This describes the distribution of the frailty in the cluster given the info that some people survived to `tstart`.
+
+The empirical Bayes estimates of the frailty if the cluster has $k$ events is then
+$$
+\frac{\mathcal{L}_L^{(k+1)}(\Lambda)}{\mathcal{L}_L^{(k)}(\Lambda)} = \frac{\mathcal{L}^{(k+1)}(\Lambda + \Lambda_L)}{\mathcal{L}^{(k)}(\Lambda + \Lambda_L)}
+$$
+The log-likelihood contribution is 
+$$
+\mathcal{L}^{(k)}_L(\Lambda) = \frac{\mathcal{L}^{(k)}(\Lambda + \Lambda_L)}{\mathcal{L}(\Lambda_L)} 
+$$
+

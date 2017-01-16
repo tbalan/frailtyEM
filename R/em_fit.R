@@ -32,7 +32,7 @@ em_fit <- function(logfrailtypar, dist, pvfm,
   }
 
   # if the logfrailtypar is large, i.e. frailtypar is large, i.e. fr. variance close to 0, then
-  if(logfrailtypar > log(1/.control$zerotol)) {
+  if(!(dist %in% c("stable", "stable2")) &logfrailtypar > log(1/.control$zerotol)) {
     message("Frailty parameter very large, frailty variance close to 0")
     loglik <- mcox$loglik[length(mcox$loglik)]
     # loglik <- sum((log(basehaz_line) + g_x)[Y[,3] == 1]) +
@@ -61,12 +61,12 @@ em_fit <- function(logfrailtypar, dist, pvfm,
       e_step_val <- Estep(Cvec, Cvec_lt, nev_id, alpha = .pars$alpha, bbeta = .pars$bbeta, pvfm = pvfm, dist = .pars$dist)
     }
 
-    a1 <- fast_Estep(Cvec + Cvec_lt, rep(0, length(Cvec)), nev_id, alpha = .pars$alpha, bbeta = .pars$bbeta, pvfm = pvfm, dist = .pars$dist)
-    a2 <- fast_Estep(Cvec_lt, rep(0, length(Cvec)), rep(0, length(Cvec)), alpha = .pars$alpha, bbeta = .pars$bbeta, pvfm = pvfm, dist = .pars$dist)
-
-    if(!isTRUE(all.equal(a1[,3] - a2[,3], e_step_val[,3]))) stop("sum ting wong")
-
-    if(!isTRUE(all.equal(e_step_val[,1] / e_step_val[,2], a1[,1] / a1[,2]))) stop("e step not the same")
+    # a1 <- fast_Estep(Cvec + Cvec_lt, rep(0, length(Cvec)), nev_id, alpha = .pars$alpha, bbeta = .pars$bbeta, pvfm = pvfm, dist = .pars$dist)
+    # a2 <- fast_Estep(Cvec_lt, rep(0, length(Cvec)), rep(0, length(Cvec)), alpha = .pars$alpha, bbeta = .pars$bbeta, pvfm = pvfm, dist = .pars$dist)
+    #
+    # if(!isTRUE(all.equal(a1[,3] - a2[,3], e_step_val[,3]))) stop("sum ting wong")
+    #
+    # if(!isTRUE(all.equal(e_step_val[,1] / e_step_val[,2], a1[,1] / a1[,2]))) stop("e step not the same")
 
 logz <- log(rep(e_step_val[,1] / e_step_val[,2],   rle(id)$lengths))
     # something only for the gamma:

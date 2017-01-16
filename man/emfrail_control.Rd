@@ -4,7 +4,7 @@
 \alias{emfrail_control}
 \title{Control parameters for emfrail}
 \usage{
-emfrail_control(eps = 0.001, maxit = Inf, opt_fit = TRUE,
+emfrail_control(eps = 1e-04, maxit = Inf, opt_fit = TRUE,
   verbose = FALSE, fast_fit = TRUE, zerotol = 1e-04,
   opt_control = list(method = "bobyqa", itnmax = NULL, control = list()))
 }

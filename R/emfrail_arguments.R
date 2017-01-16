@@ -1,6 +1,6 @@
 #' Distribution parameters for emfrail
 #'
-#' @param dist One of 'gamma', 'stable' or 'pvf'.
+#' @param dist One of 'gamma', 'stable', 'stable2' or 'pvf'.
 #' @param frailtypar A starting value for the 'outer' maximization with respect to the frailty parameter \eqn{\theta}. Must be positive.
 #' @param pvfm Only relevant if \code{dist = 'pvf'} is used. It determines which PVF distribution should be used. Must be  larger than -1 and not equal to 0.
 #' @param left_truncation Logical. Whether the data set represents left truncated survival times.
@@ -15,10 +15,10 @@
 #' emfrail_distribution(dist = 'pvf', frailtypar = 1.5, pvfm = 0.5)
 emfrail_distribution <- function(dist = "gamma", frailtypar = 2, pvfm = -1/2, left_truncation = FALSE) {
 
-    if (!(dist %in% c("gamma", "stable", "pvf")))
-        stop("frailty distribution must be one of gamma, stable, pvf")
+    if (!(dist %in% c("gamma", "stable", "stable2", "pvf")))
+        stop("frailty distribution must be one of gamma, stable, stable2, pvf")
     if (length(frailtypar) != 1)
-        stop("specify exactly 1 parameter (theta) for the frailty")
+        stop("specify exactly 1 parameter (theta>0) for the frailty")
     if (frailtypar <= 0)
         stop("frailty parameter (theta) must be positive")
     if (dist == "pvf" & (pvfm < -1 | pvfm == 0))
@@ -87,7 +87,7 @@ emfrail_distribution <- function(dist = "gamma", frailtypar = 2, pvfm = -1/2, le
 #'                    .control = emfrail_control(zerotol = 1e-8))
 #' # This gives a more precise estimate, 5845410 so frailty variance 1/5845410 = 1.71e-07
 #'
-emfrail_control <- function(eps = 0.001, maxit = Inf, opt_fit = TRUE, verbose = FALSE, fast_fit = TRUE,
+emfrail_control <- function(eps = 0.0001, maxit = Inf, opt_fit = TRUE, verbose = FALSE, fast_fit = TRUE,
                             zerotol = 1e-4,
                             opt_control = list(method = "bobyqa",
     itnmax = NULL, control = list())) {
