@@ -17,6 +17,8 @@ em_fit <- function(logfrailtypar, dist, pvfm,
 
   .pars <- dist_to_pars(dist, logfrailtypar, pvfm)
 
+  if(logfrailtypar < -100) stop("frailtypar virtually 0; try another starting value")
+
   if (isTRUE(.control$verbose)) {
     print(paste0(#"dist=", .pars$dist,
       "logfrailtypar= ", logfrailtypar,
@@ -68,7 +70,8 @@ em_fit <- function(logfrailtypar, dist, pvfm,
     #
     # if(!isTRUE(all.equal(e_step_val[,1] / e_step_val[,2], a1[,1] / a1[,2]))) stop("e step not the same")
 
-logz <- log(rep(e_step_val[,1] / e_step_val[,2],   rle(id)$lengths))
+
+     logz <- log(rep(e_step_val[,1] / e_step_val[,2],   rle(id)$lengths))
     # something only for the gamma:
     # logz <- log(rep((.pars$alpha + nev_id )/ (.pars$alpha + Cvec),   rle(id)$lengths))
 

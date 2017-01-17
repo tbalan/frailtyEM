@@ -272,15 +272,12 @@ emfrail <- function(.data, .formula,
                hessian = TRUE,
                #lower = -10000, upper = 10000,
                method = .control$opt_control$method, #control = .control$opt_control$control,
+               #control = list(trace = 10, save.failures = TRUE),
                dist = .distribution$dist, pvfm = .distribution$pvfm,
                Y = Y, Xmat = X, id = id, nev_id = nev_id, newrisk = newrisk, basehaz_line = basehaz_line,
                mcox = list(coefficients = g, loglik = mcox$loglik), explp = explp, Cvec = Cvec,
                lt = .distribution$left_truncation, Cvec_lt = Cvec_lt,
                .control = .control)
-
-
-
-
 
 
   final_fit <- em_fit(logfrailtypar = opt_object$p1,
@@ -293,9 +290,11 @@ emfrail <- function(.data, .formula,
 
   # that the hessian
   h <- as.numeric(sqrt(1/(attr(opt_object, "details")[[3]]))/2)
+  lfp_minus <- max(opt_object$p1 - h , opt_object$p1 - 5)
+  lfp_plus <- min(opt_object$p1 + h , opt_object$p1 + 5)
 
 
-  final_fit_minus <- em_fit(logfrailtypar = opt_object$p1 - h,
+  final_fit_minus <- em_fit(logfrailtypar = lfp_minus,
                       dist = .distribution$dist, pvfm = .distribution$pvfm,
                       Y = Y, Xmat = X, id = id, nev_id = nev_id, newrisk = newrisk, basehaz_line = basehaz_line,
                       mcox = list(coefficients = mcox$coefficients,
@@ -303,7 +302,7 @@ emfrail <- function(.data, .formula,
                       lt = .distribution$left_truncation, Cvec_lt = Cvec_lt,
                       .control = .control, return_loglik = FALSE)
 
-  final_fit_plus <- em_fit(logfrailtypar = opt_object$p1 + h,
+  final_fit_plus <- em_fit(logfrailtypar = lfp_plus,
                             dist = .distribution$dist, pvfm = .distribution$pvfm,
                             Y = Y, Xmat = X, id = id, nev_id = nev_id, newrisk = newrisk, basehaz_line = basehaz_line,
                             mcox = list(coefficients = mcox$coefficients,

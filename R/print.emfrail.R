@@ -54,10 +54,10 @@ print.emfrail <- function(obj) {
     }
 
     # for the stable; there are several parametrizations; here theta is a sort of thetatilde = theta + 1
-    if (inner_info$dist == "stable") {
-      cat("pvf bbeta =",  1 - 1/inner_info$theta, "pvf alpha = ", 1/(1 - 1/inner_info$theta), "\n")
-      cat("Frailty parameter where bbeta = 1 - (1 / (theta)), theta>1:", inner_info$theta, "se: ", msm::deltamethod(~exp(x1) , mean = outer_info$p1,
-                                                                           cov = 1/attr(outer_info, "details")[[3]]), "\n")
+    # if (inner_info$dist == "stable") {
+    #   cat("pvf bbeta =",  1 - 1/inner_info$theta, "pvf alpha = ", 1/(1 - 1/inner_info$theta), "\n")
+    #   cat("Frailty parameter where bbeta = 1 - (1 / (theta)), theta>1:", inner_info$theta, "se: ", msm::deltamethod(~exp(x1) , mean = outer_info$p1,
+    #                                                                        cov = 1/attr(outer_info, "details")[[3]]), "\n")
 
       # bbeta <- 1 - 1/inner_info$theta
       # alphaprime <- bbeta - log(bbeta)
@@ -67,13 +67,35 @@ print.emfrail <- function(obj) {
       #                              cov = 1/attr(outer_info, "details")[[3]]), "\n")
       #
       # cat("Kendall's tau")
-    }
+    # }
 
-    if (inner_info$dist == "stable2") {
-      cat("pvf bbeta =",  1 - 1/inner_info$theta, "pvf alpha = 1\n")
-      cat("Frailty parameter where bbeta = 1 - (1 / (theta)), theta>1:", inner_info$theta, "se: ", msm::deltamethod(~exp(x1) , mean = outer_info$p1,
-                                                                                                                    cov = 1/attr(outer_info, "details")[[3]]), "\n")
-      cat("Kendall's tau", 1/inner_info$theta,"\n")
+    if (inner_info$dist == "stable") {
+      theta <- exp(outer_info$p1) / (1 + exp(outer_info$p1))
+
+      cat("pvf bbeta =",  1 - theta , "/ pvf alpha = 1\n")
+
+
+      low <- outer_info$p1 - 1.96 * sqrt(1/attr(outer_info, "details")[[3]])
+      high <- outer_info$p1 + 1.96 * sqrt(1/attr(outer_info, "details")[[3]])
+
+      upper_bound <- exp(high) / (1 + exp(high))
+      lower_bound <- exp(low) / (1 + exp(low))
+
+
+      cat("theta = 1 - bbeta, 0<theta<1:",
+          theta %>% round(digits = 3) %>% format(nsmall = 2),
+          "se: ",
+          msm::deltamethod(~exp(x1) / (exp(x1) + 1),
+                           mean = outer_info$p1, # logfrailtypar
+                           cov = 1/attr(outer_info, "details")[[3]]) %>% round(digits = 3) %>% format(nsmall = 2),
+          "\n")
+
+      cat(" // 95% CI: [", lower_bound %>% round(digits = 3) %>% format(nsmall = 2), ",", upper_bound %>% round(digits = 3) %>%
+        format(nsmall = 2), "]")
+
+      cat("\n")
+      cat("Kendall's tau", (inner_info$theta / (1 + inner_info$theta)) %>% round(digits = 3) %>% format(nsmall = 2),"\n")
+
       }
 
     if(!is.null(inner_info$coef)) {
@@ -89,6 +111,7 @@ print.emfrail <- function(obj) {
       printCoefmat(tmp, signif.stars = TRUE, P.values = TRUE, has.Pvalue = TRUE)
     }
 
+    cat("\n\n")
     invisible(obj)
 
 }

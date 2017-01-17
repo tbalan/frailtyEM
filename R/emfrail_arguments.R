@@ -1,6 +1,6 @@
 #' Distribution parameters for emfrail
 #'
-#' @param dist One of 'gamma', 'stable', 'stable2' or 'pvf'.
+#' @param dist One of 'gamma', 'stable' or 'pvf'.
 #' @param frailtypar A starting value for the 'outer' maximization with respect to the frailty parameter \eqn{\theta}. Must be positive.
 #' @param pvfm Only relevant if \code{dist = 'pvf'} is used. It determines which PVF distribution should be used. Must be  larger than -1 and not equal to 0.
 #' @param left_truncation Logical. Whether the data set represents left truncated survival times.
@@ -13,10 +13,10 @@
 #' @examples
 #' emfrail_distribution()
 #' emfrail_distribution(dist = 'pvf', frailtypar = 1.5, pvfm = 0.5)
-emfrail_distribution <- function(dist = "gamma", frailtypar = 2, pvfm = -1/2, left_truncation = FALSE) {
+emfrail_distribution <- function(dist = "gamma", frailtypar = 0.5, pvfm = -1/2, left_truncation = FALSE) {
 
-    if (!(dist %in% c("gamma", "stable", "stable2", "pvf")))
-        stop("frailty distribution must be one of gamma, stable, stable2, pvf")
+    if (!(dist %in% c("gamma", "stable", "pvf")))
+        stop("frailty distribution must be one of gamma, stable, pvf")
     if (length(frailtypar) != 1)
         stop("specify exactly 1 parameter (theta>0) for the frailty")
     if (frailtypar <= 0)

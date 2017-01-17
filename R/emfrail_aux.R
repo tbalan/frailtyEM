@@ -8,17 +8,18 @@ dist_to_pars <- function(dist, logfrailtypar, pvfm) {
         dist_id <- 0L
     }
 
-    if (dist == "stable") {
-        theta <- exp(logfrailtypar) + 1  # so theta >1
-        bbeta <- 1 - 1/theta  # so bbeta in (0,1), that's what's important
-        alpha <- theta / (theta - 1)  # alpha = 1/beta for scaling
-        dist_id <- 1L
-    }
+    # if (dist == "stable") {
+    #     theta <- exp(logfrailtypar) + 1  # so theta >1
+    #     bbeta <- 1 - 1/theta  # so bbeta in (0,1), that's what's important
+    #     alpha <- theta / (theta - 1)  # alpha = 1/beta for scaling
+    #     dist_id <- 1L
+    # }
 
-    if (dist == "stable2") {
-      theta <- exp(logfrailtypar) + 1 # so theta >1
-      bbeta <- 1 - 1/theta
+    if (dist == "stable") {
+      # theta <- exp(logfrailtypar) + 1 # so theta >1
+      # bbeta <- 1 - 1/theta
       alpha <- 1
+      bbeta <- 1 - exp(logfrailtypar) / (exp(logfrailtypar) + 1)
       dist_id <- 1L
     }
 
