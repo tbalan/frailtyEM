@@ -94,7 +94,10 @@ plot(stabpar/(1 + stabpar), emfrail_pll(.data =  dat, .formula = Surv(rep(0, nro
      ylab = "log-likelihood",
      xlab = "kendall's tau (1-beta)",
      type = "l",
-     main = "stable2", col = 1)
+     main = "stable", col = 1)
+
+#library(parfm)
+#parfm(Surv(rep(0, nrow(dat)), time, status) ~  rx + sex, cluster = "litter", data = dat) ???
 ```
 
 ## kidney data
@@ -127,7 +130,7 @@ m3
 m4
 ```
 
-There are some warnings that appear from the `m4` model with the stable distribution, that is because the MLE there seems to be degenerate at the edge of the parameter space ($\beta = 1$).
+There are some warnings that appear from the `m4` model with the stable distribution, that is because the MLE there seems to be degenerate at the edge of the parameter space ($\beta = 1$). What happens there is that there is basically no association. The Laplace transform is $\mathcal{L}(c) = \exp(-c)$ 
 
 Profile log-likelihoods
 ```{r kidney3}
@@ -177,20 +180,7 @@ plot(frvar, emfrail_pll(.data =  kidney, .formula = Surv(rep(0, nrow(kidney)), t
 ```
 
 ```{r kidney4}
-#par(mfrow = c(1,1))
-# 
-# 
-# 
-# stabpar <- seq(from =1, to = 50, by = 1)
-# plot(stabpar, emfrail_pll(.data =  kidney, .formula = Surv(rep(0, nrow(kidney)), time, status) ~  sex + age + cluster(id),
-#                           .distribution = emfrail_distribution(dist = "stable"),
-#                           .values = stabpar),
-#      ylab = "log-likelihood",
-#      xlab = "1-beta",
-#      type = "l",
-#      main = "stable")
-# 
-stabpar <- seq(from =0.1, to = 3, length.out = 20)
+stabpar <- seq(from =0.01, to = 3, length.out = 20)
 
 plot(stabpar/(1 + stabpar), emfrail_pll(.data =  kidney, .formula = Surv(rep(0, nrow(kidney)), time, status) ~  sex + age + cluster(id),
                            .distribution = emfrail_distribution(dist = "stable"),
@@ -219,17 +209,18 @@ time0 <- rep(0, 300)
 
 dd <- data.frame(id = rep(1:100, each = 3), x = x, time0 = time0, time = time, status = status)
 
+coxph(Surv(time0, time, status) ~ x + frailty(id), ties = "breslow", data = dd)
 
-m1 <- emfrail(.data =  dd, .formula = Surv(rep(0, nrow(dd)), time, status) ~  x + cluster(id),
+m1 <- emfrail(.data =  dd, .formula = Surv(time0, time, status) ~  x + cluster(id),
               .distribution = emfrail_distribution(dist = "gamma"))
 
-m2 <- emfrail(.data =  dd, .formula = Surv(rep(0, nrow(dd)), time, status) ~  x + cluster(id),
+m2 <- emfrail(.data =  dd, .formula = Surv(time0, time, status) ~  x + cluster(id),
               .distribution = emfrail_distribution(dist = "pvf"))
 
-m3 <- emfrail(.data = dd, .formula = Surv(rep(0, nrow(dd)), time, status) ~  x + cluster(id),
+m3 <- emfrail(.data = dd, .formula = Surv(time0, time, status) ~  x + cluster(id),
               .distribution = emfrail_distribution(dist = "pvf", pvfm = 1/2))
 
-m4 <- emfrail(.data = dd, .formula = Surv(rep(0, nrow(dd)), time, status) ~  x + cluster(id),
+m4 <- emfrail(.data = dd, .formula = Surv(time0, time, status) ~  x + cluster(id),
               .distribution = emfrail_distribution(dist = "stable"))
 ```
 

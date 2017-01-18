@@ -72,7 +72,7 @@ print.emfrail <- function(obj) {
     if (inner_info$dist == "stable") {
       theta <- exp(outer_info$p1) / (1 + exp(outer_info$p1))
 
-      cat("pvf bbeta =",  1 - theta , "/ pvf alpha = 1\n")
+      cat("pvf bbeta (attenuation factor) =",  1 - theta , "/ pvf alpha = 1\n")
 
 
       low <- outer_info$p1 - 1.96 * sqrt(1/attr(outer_info, "details")[[3]])
@@ -81,7 +81,7 @@ print.emfrail <- function(obj) {
       upper_bound <- exp(high) / (1 + exp(high))
       lower_bound <- exp(low) / (1 + exp(low))
 
-
+      cat("E[logY] =", -1* (1 / (1-theta) - 1) * digamma(1),"\n")
       cat("theta = 1 - bbeta, 0<theta<1:",
           theta %>% round(digits = 3) %>% format(nsmall = 2),
           "se: ",

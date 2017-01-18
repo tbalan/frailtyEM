@@ -13,10 +13,13 @@
 #' @examples
 #' emfrail_distribution()
 #' emfrail_distribution(dist = 'pvf', frailtypar = 1.5, pvfm = 0.5)
-emfrail_distribution <- function(dist = "gamma", frailtypar = 0.5, pvfm = -1/2, left_truncation = FALSE) {
+emfrail_distribution <- function(dist = "gamma", frailtypar, pvfm = -1/2, left_truncation = FALSE) {
 
     if (!(dist %in% c("gamma", "stable", "pvf")))
         stop("frailty distribution must be one of gamma, stable, pvf")
+    if(missing(frailtypar)) {
+      if(dist == "stable") frailtypar <- 0.5 else frailtypar <- 2
+    }
     if (length(frailtypar) != 1)
         stop("specify exactly 1 parameter (theta>0) for the frailty")
     if (frailtypar <= 0)

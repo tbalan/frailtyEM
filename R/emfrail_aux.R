@@ -39,15 +39,19 @@ dist_to_pars <- function(dist, logfrailtypar, pvfm) {
 # this one gives the baseline cumulative hazard at all the time points;
 
 getchz <- function(Y, newrisk, explp) {
-    death <- (Y[, ncol(Y)] == 1)
-    dtime <- Y[, ncol(Y) - 1]
-    time <- sort(unique(dtime))
+    death <- (Y[, ncol(Y)] == 1) # this is a TRUE FALSE for the status column
+    dtime <- Y[, ncol(Y) - 1] # this is the tstop
+
+    time <- sort(unique(dtime)) # unique tstops
+
 
     # n events / tstop time point
     nevent <- as.vector(rowsum(1 * death, dtime))
 
     # sum of e^beta x per time point -- e de fapt risk?
-    nrisk <- rev(cumsum(rev(rowsum(explp, dtime))))
+    nrisk <- rev(cumsum(rev(rowsum(explp, dtime)))) # This gives the sum
+
+    #tapply(explp, dtime, sum) %>% rev cumsum
 
     # smaller than time intervals
     delta <- min(diff(time))/2

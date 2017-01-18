@@ -116,6 +116,7 @@ em_fit <- function(logfrailtypar, dist, pvfm,
       lp <- mcox$linear.predictors + t(mcox$coefficients) %*% mcox$means
     }
 
+
     hh <- getchz(Y = Y, newrisk = 1, explp = exp(lp) )
 
     # hh$tev

@@ -235,6 +235,8 @@ emfrail <- function(.data, .formula,
   explp <- exp(mcox$linear.predictors) # these are with centered covariates
 
   hh <- getchz(Y = Y, newrisk = newrisk, explp = explp)
+
+
   cumhaz_line <- sapply(X = apply(as.matrix(Y[,c(1,2)]), 1, as.list),
                         FUN = function(x)  sum(hh$haz_tev[x$start <= hh$tev & hh$tev <= x$stop])) *
     exp_g_x # this is supposed to be without centered covariates.

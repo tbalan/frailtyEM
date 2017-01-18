@@ -73,6 +73,13 @@ In other words, the covariate vector is centered but not the offset.
 
 To extract the hazard estimates, an internal function `getchz` is used, which resides in `emfrail_aux.R`. 
 
+#### getchz
+`getchz(Y, newrisk, elp)` does the following thing:
+
+  - from the `Y` (`Surv` object) it takes out the entry time and the leaving time
+  - 
+
+
 ## Laplace transforms
 We assume that $Z_i$ is an infinitely divisible distribution, i.e. that the Laplace transform of $Z_i$ can be written as
 $$
@@ -208,8 +215,7 @@ Now the problem is that $\beta - 1 < 0$ and then we run into trouble with the ga
 $$
 \psi^{(k)}(c) = \frac{\Gamma(k - \beta)}{\Gamma(1 - \beta)} (-1)^{k - 1} c^{\beta - 1}
 $$
-To parametrize it with one parameter $\theta > 0$ we take a $\tilde\theta = 1 + \theta$ (note: has to be larger than 1!) and we have $\beta = 1 - 1/\tilde\theta$ and $\alpha = \tilde\theta / ( \tilde\theta - 1)$. 
-Another parametrization (Hougaard, `parfm`) is obtained when setting $\alpha = 1$ and $\beta = 1 - 1/\tilde\theta$. 
+To parametrize it with one parameter $\theta > 0$ we take a $\beta = 1 - \theta$ with $\theta \in (0,1)$. For scaling, we choose $\alpha = 1$ (the same as in Hougaard / `parfm`). There is also support for the scaling with $\alpha = 1/\beta$ (as in Putter & van Houwelingen), but that option is not available for the user.
 
 Under left truncation we have
 $$
@@ -284,6 +290,18 @@ where $\mathcal{K}$ is the modified Bessel function of the second kind.
 Under left truncation, the Inverse Gaussian is not Inverse Gaussian any more and then that situation is handled in the same way with the rest of the PVF distributions. 
 
 ### Implementation
+The two main functions are: `emfrail()`, accessible to the user. This function calls repeatedly `emfrail_fit()`, an internal function that fits the EM algorithm for a certain value of $\log\theta$. 
+
+The optimization goes as follows:
+
+  - The `emfrail()` is given a value of $\log\theta$
+  - `emfrail()` decides, via the auxilliary function `dist_to_pars` to create the corresponding values of $(\alpha, \beta)$ that correspond to that. 
+  - For the gamma distribution, $\alpha = \beta = \exp(\log\theta)$
+  - For the stable distribution, $\alpha = 1$ and $\beta = 1 - \frac{\exp(\log\theta)}{(1 + \exp(\log\theta))}$.
+  - For the pvf distribution with a given $m$, $\alpha = \left|\frac{m+1}{m} \exp(\log\theta)\right|$ and $\beta = (m + 1) \exp(\log\theta)$
+  - The inverse gaussian is the particular case of the pvf distribution with $m = -0.5$, i.e. $\alpha = \exp(\log\theta)$ and $\beta = \exp(\log\theta) / 2$. 
+  
+
 #### Fast fit
 Closed form expressions are available for the gamma distribution (with or without left truncation) and the Inverse Gaussian (without left truncation). In these cases, the E step is calculated by `fast_Estep()`. 
 For the gamma, that returns 4 columns: one with $\alpha + n_i$, one with $\beta + Lambda_i$, one with the likelihood contribution
@@ -303,7 +321,6 @@ $$
 and the fourth one
 $$
 \widehat z_i^2 = \mathcal{K}_{n_i + 1.5}(cc)/ ((2 / \alpha * \Lambda_i + 1) *  \mathcal{K}_{n_i - 0.5}(cc))
-
 $$
 
 #### General fit

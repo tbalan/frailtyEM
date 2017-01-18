@@ -28,7 +28,6 @@ Collate:
     'emfrail_pll.R'
     'fast_Estep.R'
     'print.emfrail.R'
-    'tests.R'
 Suggests:
     knitr,
     rmarkdown
