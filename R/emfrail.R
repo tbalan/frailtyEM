@@ -236,7 +236,6 @@ emfrail <- function(.data, .formula,
 
   hh <- getchz(Y = Y, newrisk = newrisk, explp = explp)
 
-
   cumhaz_line <- sapply(X = apply(as.matrix(Y[,c(1,2)]), 1, as.list),
                         FUN = function(x)  sum(hh$haz_tev[x$start <= hh$tev & hh$tev <= x$stop])) *
     exp_g_x # this is supposed to be without centered covariates.
@@ -248,6 +247,17 @@ emfrail <- function(.data, .formula,
   Cvec <- tapply(X = cumhaz_line,
                  INDEX = id,
                  FUN = sum)
+
+  # the shorter way
+  # we need Cvec for the E step
+  # and we need the baseline hazard (basehaz_line) for the log-likelihood. (I THINK)
+  Cvec2 <- nev_id - as.vector(rowsum(mcox$residuals, id))
+
+  # Y[,3] - mcox$residuals is Lambda for each line (cumhaz_line)
+  #
+
+  # cumhaz_line <- (Y[,3] - mcox$residuals) / exp_g_x# this should be like a Lambda0 for each line
+
 
   if(isTRUE(.distribution$left_truncation)) {
     cumhaz_lt_line <- sapply(X = apply(as.matrix(Y[,c(1,2)]), 1, as.list),
