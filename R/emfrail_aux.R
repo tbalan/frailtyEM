@@ -44,20 +44,12 @@ getchz <- function(Y, newrisk, explp) {
 
     time <- sort(unique(dtime)) # unique tstops
 
-
-    # n events / tstop time point
     nevent <- as.vector(rowsum(1 * death, dtime))
 
-    # sum of e^beta x per time point -- e de fapt risk?
     nrisk <- rev(cumsum(rev(rowsum(explp, dtime)))) # This gives the sum
-
-    #tapply(explp, dtime, sum) %>% rev cumsum
-
-    # smaller than time intervals
     delta <- min(diff(time))/2
     etime <- c(sort(unique(Y[, 1])), max(Y[, 1]) + delta)  #unique entry times
 
-    # this is to interpolate at tstop unique points.
     indx <- approx(etime, 1:length(etime), time, method = "constant", rule = 2, f = 1)$y
 
     esum <- rev(cumsum(rev(rowsum(explp, Y[, 1]))))  #not yet entered

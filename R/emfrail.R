@@ -234,35 +234,78 @@ emfrail <- function(.data, .formula,
 
   explp <- exp(mcox$linear.predictors) # these are with centered covariates
 
-  hh <- getchz(Y = Y, newrisk = newrisk, explp = explp)
-
-  cumhaz_line <- sapply(X = apply(as.matrix(Y[,c(1,2)]), 1, as.list),
-                        FUN = function(x)  sum(hh$haz_tev[x$start <= hh$tev & hh$tev <= x$stop])) *
-    exp_g_x # this is supposed to be without centered covariates.
+  # hh <- getchz(Y = Y, newrisk = newrisk, explp = explp)
 
 
 
-  basehaz_line <- hh$haz_tev[match(Y[,2], hh$tev)]
+  # cumhaz_line <- sapply(X = apply(as.matrix(Y[,c(1,2)]), 1, as.list),
+  #                       FUN = function(x)  sum(hh$haz_tev[x$start <= hh$tev & hh$tev <= x$stop])) *
+  #   exp_g_x # this is supposed to be without centered covariates.
+  # #
+  # #
 
-  Cvec <- tapply(X = cumhaz_line,
-                 INDEX = id,
-                 FUN = sum)
+  # #
+  # basehaz_line <- hh$haz_tev[match(Y[,2], hh$tev)]
+
+  # Cvec <- tapply(X = cumhaz_line,
+  #                INDEX = id,
+  #                FUN = sum)
 
   # the shorter way
-  # we need Cvec for the E step
-  # and we need the baseline hazard (basehaz_line) for the log-likelihood. (I THINK)
-  Cvec2 <- nev_id - as.vector(rowsum(mcox$residuals, id))
 
-  # Y[,3] - mcox$residuals is Lambda for each line (cumhaz_line)
+  # new way of doing the things;
+
+  Cvec <- nev_id - as.vector(rowsum(mcox$residuals, id))
+
+  cumhaz_line <- (Y[,3] - mcox$residuals) # with covariates!
+
+
+
+  # for the baseline hazard how the fuck is that gonna happen?
+  # Idea: nrisk has the sum of elp who leave later at every tstop
+  # esum has the sum of elp who enter at every tstart
+  # indx groups which esum is right after each nrisk;
+  # the difference between the two is the sum of elp really at risk at that time point.
+
+
+  nrisk <- rev(cumsum(rev(rowsum(explp, Y[, ncol(Y) - 1]))))
+  esum <- rev(cumsum(rev(rowsum(explp, Y[, 1]))))
+
+  death <- (Y[, ncol(Y)] == 1)
+  nevent <- as.vector(rowsum(1 * death, Y[, ncol(Y) - 1]))
+  time <- sort(unique(Y[,2])) # unique tstops
+  delta <- min(diff(time))/2
+  etime <- c(sort(unique(Y[, 1])), max(Y[, 1]) + delta)
+  indx <- approx(etime, 1:length(etime), time, method = "constant", rule = 2, f = 1)$y
+
+
+  nrisk <- nrisk - c(esum, 0)[indx]
+  haz <- nevent/nrisk * newrisk
+
+  basehaz_line <- haz[match(Y[,2], time)]
+
+  #plot(haz[match(Y[,2], time)], basehaz_line)
+  # cumhaz_full is like follows (from 0 to t)
+
+  # cumhaz_tstop <- cumsum(haz)
   #
+  # cumhaz_0_line <- cumhaz_tstop[match(Y[,2], time)]
+  #
+  # plot(Y[,2], cumhaz_0_line) # this should be increasing
+  # # question is: for each tstart in the data we need to know which time point to fucking take for the cumulative hazard
 
-  # cumhaz_line <- (Y[,3] - mcox$residuals) / exp_g_x# this should be like a Lambda0 for each line
+  # cumhaz_line <- (cumhaz_0_line - cumhaz_tstart) * explp
 
+  # cumulative hazard?
+
+
+  #Cvec_from0 - Cvec
 
   if(isTRUE(.distribution$left_truncation)) {
-    cumhaz_lt_line <- sapply(X = apply(as.matrix(Y[,c(1,2)]), 1, as.list),
-                             FUN = function(x) sum(hh$haz_tev[hh$tev <= x$start]))
-    Cvec_lt <- tapply(X = cumhaz_lt_line,
+    indx2 <- findInterval(Y[,1], time, left.open = TRUE)
+    cumhaz_tstart <- c(0, cumhaz_tstop)[indx2 + 1]
+
+    Cvec_lt <- tapply(X = cumhaz_tstart,
                       INDEX = id,
                       FUN = sum)
   } else Cvec_lt <- 0 * Cvec
@@ -272,7 +315,7 @@ emfrail <- function(.data, .formula,
   if(!isTRUE(.control$opt_fit)) {
     return(em_fit(logfrailtypar = log(.distribution$frailtypar),
            dist = .distribution$dist, pvfm = .distribution$pvfm,
-           Y = Y, Xmat = X, id = id, nev_id = nev_id, newrisk = newrisk, basehaz_line = basehaz_line,
+           Y = Y, Xmat = X, id = id, nev_id = nev_id, basehaz_line = basehaz_line, newrisk  = newrisk,
            mcox = list(coefficients = g, loglik = mcox$loglik), explp = explp, Cvec = Cvec, lt = .distribution$left_truncation,
            Cvec_lt = Cvec_lt,
            .control = .control))
@@ -286,7 +329,7 @@ emfrail <- function(.data, .formula,
                method = .control$opt_control$method, #control = .control$opt_control$control,
                #control = list(trace = 10, save.failures = TRUE),
                dist = .distribution$dist, pvfm = .distribution$pvfm,
-               Y = Y, Xmat = X, id = id, nev_id = nev_id, newrisk = newrisk, basehaz_line = basehaz_line,
+               Y = Y, Xmat = X, id = id, nev_id = nev_id, basehaz_line = basehaz_line,
                mcox = list(coefficients = g, loglik = mcox$loglik), explp = explp, Cvec = Cvec,
                lt = .distribution$left_truncation, Cvec_lt = Cvec_lt,
                .control = .control)
@@ -294,7 +337,7 @@ emfrail <- function(.data, .formula,
 
   final_fit <- em_fit(logfrailtypar = opt_object$p1,
                 dist = .distribution$dist, pvfm = .distribution$pvfm,
-                Y = Y, Xmat = X, id = id, nev_id = nev_id, newrisk = newrisk, basehaz_line = basehaz_line,
+                Y = Y, Xmat = X, id = id, nev_id = nev_id, basehaz_line = basehaz_line,
                 mcox = list(coefficients = mcox$coefficients,
                             loglik = mcox$loglik), explp = explp, Cvec = Cvec,
                 lt = .distribution$left_truncation, Cvec_lt = Cvec_lt,
@@ -308,7 +351,7 @@ emfrail <- function(.data, .formula,
 
   final_fit_minus <- em_fit(logfrailtypar = lfp_minus,
                       dist = .distribution$dist, pvfm = .distribution$pvfm,
-                      Y = Y, Xmat = X, id = id, nev_id = nev_id, newrisk = newrisk, basehaz_line = basehaz_line,
+                      Y = Y, Xmat = X, id = id, nev_id = nev_id, basehaz_line = basehaz_line,
                       mcox = list(coefficients = mcox$coefficients,
                                   loglik = mcox$loglik), explp = explp, Cvec = Cvec,
                       lt = .distribution$left_truncation, Cvec_lt = Cvec_lt,
@@ -316,7 +359,7 @@ emfrail <- function(.data, .formula,
 
   final_fit_plus <- em_fit(logfrailtypar = lfp_plus,
                             dist = .distribution$dist, pvfm = .distribution$pvfm,
-                            Y = Y, Xmat = X, id = id, nev_id = nev_id, newrisk = newrisk, basehaz_line = basehaz_line,
+                            Y = Y, Xmat = X, id = id, nev_id = nev_id, basehaz_line = basehaz_line,
                             mcox = list(coefficients = mcox$coefficients,
                                         loglik = mcox$loglik), explp = explp, Cvec = Cvec,
                             lt = .distribution$left_truncation, Cvec_lt = Cvec_lt,

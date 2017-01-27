@@ -3,8 +3,8 @@
 
 em_fit <- function(logfrailtypar, dist, pvfm,
                    Y, Xmat, id,  # this is some data stuff
-                   nev_id, newrisk,
-                   basehaz_line,
+                   nev_id,
+                   basehaz_line, newrisk,
                    mcox = list(),
                    explp, Cvec, lt = FALSE, Cvec_lt,
                    .control,
@@ -47,6 +47,7 @@ em_fit <- function(logfrailtypar, dist, pvfm,
 
   }
 
+  # some things for the hazard calculation
 
 
   loglik_old = -Inf
@@ -116,21 +117,36 @@ em_fit <- function(logfrailtypar, dist, pvfm,
       lp <- mcox$linear.predictors + t(mcox$coefficients) %*% mcox$means
     }
 
+    explp <- exp(lp)
 
-    hh <- getchz(Y = Y, newrisk = 1, explp = exp(lp) )
+    Cvec <- nev_id - as.vector(rowsum(mcox$residuals, id))
 
-    # hh$tev
-    # hh$haz_tev
-    # plot(hh$time, hh$haz)
-    # points(Y[,2], basehaz_line1, col = 2)
+    cumhaz_line <- (Y[,3] - mcox$residuals) # with covariates!
 
-    # this is the baseline cumulative hazard for each line.
-    # the idea is that this is only changes within an individual at the end of the line, and not in between. That's why it's correct.
-    cumhaz_line <- sapply(X = apply(as.matrix(Y[,c(1,2)]), 1, as.list),
-                          FUN = function(x)  sum(hh$haz_tev[x$start < hh$tev & hh$tev <= x$stop]))
 
-    #
-    basehaz_line <- hh$haz_tev[match(Y[,2], hh$tev)]
+
+    # for the baseline hazard how the fuck is that gonna happen?
+    # Idea: nrisk has the sum of elp who leave later at every tstop
+    # esum has the sum of elp who enter at every tstart
+    # indx groups which esum is right after each nrisk;
+    # the difference between the two is the sum of elp really at risk at that time point.
+
+
+    nrisk <- rev(cumsum(rev(rowsum(explp, Y[, ncol(Y) - 1]))))
+    esum <- rev(cumsum(rev(rowsum(explp, Y[, 1]))))
+
+    death <- (Y[, ncol(Y)] == 1)
+    nevent <- as.vector(rowsum(1 * death, Y[, ncol(Y) - 1]))
+    time <- sort(unique(Y[,2])) # unique tstops
+    delta <- min(diff(time))/2
+    etime <- c(sort(unique(Y[, 1])), max(Y[, 1]) + delta)
+    indx <- approx(etime, 1:length(etime), time, method = "constant", rule = 2, f = 1)$y
+
+
+    nrisk <- nrisk - c(esum, 0)[indx]
+    haz <- nevent/nrisk # * newrisk
+
+    basehaz_line <- haz[match(Y[,2], time)]
 
     if(length(Xmat)==0) {
       g_x <- t(matrix(rep(0, length(mcox$linear.predictors)), nrow = 1))
@@ -139,18 +155,19 @@ em_fit <- function(logfrailtypar, dist, pvfm,
     }
 
 
-    Cvec <- tapply(X = cumhaz_line * exp(g_x),
-                   INDEX = id,
-                   FUN = sum)
+    # Cvec <- tapply(X = cumhaz_line * exp(g_x),
+    #                INDEX = id,
+    #                FUN = sum)
 
     # .distribution does not carry around.
     if(isTRUE(lt)) {
-      cumhaz_lt_line <- sapply(X = apply(as.matrix(Y[,c(1,2)]), 1, as.list),
-                               FUN = function(x) sum(hh$haz_tev[hh$tev <= x$start]))
-      Cvec_lt <- tapply(X = cumhaz_lt_line * exp(g_x),
+      indx2 <- findInterval(Y[,1], time, left.open = TRUE)
+      cumhaz_tstart <- c(0, cumhaz_tstop)[indx2 + 1]
+
+      Cvec_lt <- tapply(X = cumhaz_tstart,
                         INDEX = id,
                         FUN = sum)
-    } #else Cvec_lt <- 0 * Cvec
+    } else Cvec_lt <- 0 * Cvec
 
 
     ncycles <- ncycles + 1
