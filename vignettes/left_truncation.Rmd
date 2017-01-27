@@ -18,7 +18,8 @@ knitr::opts_chunk$set(echo = TRUE)
 library(frailtoys)
 dat <- survival::rats
 m1 <- emfrail(.data =  dat, .formula = Surv(rep(0, nrow(dat)), time, status) ~  rx + sex + cluster(litter),
-              .distribution = emfrail_distribution(dist = "gamma"))
+              .distribution = emfrail_distribution(dist = "gamma"),
+              .control = emfrail_control( opt_fit = FALSE, verbose = TRUE))
 
 m2 <- emfrail(.data =  dat, .formula = Surv(rep(0, nrow(dat)), time, status) ~  rx + sex + cluster(litter),
               .distribution = emfrail_distribution(dist = "pvf"))

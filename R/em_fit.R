@@ -71,7 +71,7 @@ em_fit <- function(logfrailtypar, dist, pvfm,
     #
     # if(!isTRUE(all.equal(e_step_val[,1] / e_step_val[,2], a1[,1] / a1[,2]))) stop("e step not the same")
 
-
+    # BAD idea:
      logz <- log(rep(e_step_val[,1] / e_step_val[,2],   rle(id)$lengths))
     # something only for the gamma:
     # logz <- log(rep((.pars$alpha + nev_id )/ (.pars$alpha + Cvec),   rle(id)$lengths))
@@ -113,15 +113,23 @@ em_fit <- function(logfrailtypar, dist, pvfm,
 
     if(length(Xmat)==0) {
       lp <- mcox$linear.predictors
+      g_x <- t(matrix(rep(0, length(mcox$linear.predictors)), nrow = 1))
+
     } else {
       lp <- mcox$linear.predictors + t(mcox$coefficients) %*% mcox$means
+      g_x <- t(mcox$coefficients %*% t(Xmat))
     }
 
     explp <- exp(lp)
 
-    Cvec <- nev_id - as.vector(rowsum(mcox$residuals, id))
 
-    cumhaz_line <- (Y[,3] - mcox$residuals) # with covariates!
+
+    # this is not really identical. Probably because shit is not scaled !
+    # Cvec <- (nev_id - as.vector(rowsum(mcox$residuals, id))) / (e_step_val[,1] / e_step_val[,2])
+# well funny enough this is fucking wrong
+
+    # this is really wrong for no real reason?
+    # cumhaz_line <- (Y[,3] - mcox$residuals) / exp(logz)# with covariates!
 
 
 
@@ -148,26 +156,37 @@ em_fit <- function(logfrailtypar, dist, pvfm,
 
     basehaz_line <- haz[match(Y[,2], time)]
 
-    if(length(Xmat)==0) {
-      g_x <- t(matrix(rep(0, length(mcox$linear.predictors)), nrow = 1))
-    } else {
-      g_x <- t(mcox$coefficients %*% t(Xmat))
-    }
+
+    cumhaz_tstop <- cumsum(haz)
+
+    cumhaz_0_line <- cumhaz_tstop[match(Y[,2], time)]
 
 
-    # Cvec <- tapply(X = cumhaz_line * exp(g_x),
-    #                INDEX = id,
-    #                FUN = sum)
 
-    # .distribution does not carry around.
     if(isTRUE(lt)) {
       indx2 <- findInterval(Y[,1], time, left.open = TRUE)
       cumhaz_tstart <- c(0, cumhaz_tstop)[indx2 + 1]
 
-      Cvec_lt <- tapply(X = cumhaz_tstart,
+      Cvec_lt <- tapply(X = cumhaz_tstart * exp(g_x),
                         INDEX = id,
                         FUN = sum)
-    } else Cvec_lt <- 0 * Cvec
+    } else {
+      cumhaz_tstart <- 0
+      Cvec_lt <- 0 * Cvec
+    }
+
+# this might haveto be exp_g_x
+    cumhaz_line <- (cumhaz_0_line - cumhaz_tstart) #* exp(g_x)
+
+    Cvec <- tapply(X = cumhaz_line * exp(g_x), # * exp(g_x),
+                   INDEX = id,
+                   FUN = sum)
+
+
+
+
+    # .distribution does not carry around.
+
 
 
     ncycles <- ncycles + 1
