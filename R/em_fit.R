@@ -2,18 +2,17 @@
 
 
 em_fit <- function(logfrailtypar, dist, pvfm,
-                   Y, Xmat, id,  # this is some data stuff
-                   nev_id,
-                   basehaz_line, newrisk,
+                   Y, Xmat, # id,  # this is some data stuff
+                   atrisk, # a list with a shit load of things that will not change with the EM
+                   basehaz_line,  # need for log-likelihood
                    mcox = list(),
-                   explp, Cvec, lt = FALSE, Cvec_lt,
+                   Cvec, lt = FALSE, Cvec_lt, # we need to start somewhere with the Cvec (E step comes first)
                    .control,
                    return_loglik = TRUE
 ) {
 
   # no events/time point, needed for the likelihood calculation
-  nev_tp <- tapply(X = Y[,3], INDEX = Y[,2], sum)
-  nev_tp <- nev_tp[nev_tp!=0]
+  #nev_tp <- tapply(X = Y[,3], INDEX = Y[,2], sum)
 
   .pars <- dist_to_pars(dist, logfrailtypar, pvfm)
 
@@ -59,9 +58,9 @@ em_fit <- function(logfrailtypar, dist, pvfm,
   while(!isTRUE(convergence)) {
 
     if(isTRUE(.control$fast_fit)) {
-      e_step_val <- fast_Estep(Cvec, Cvec_lt, nev_id, alpha = .pars$alpha, bbeta = .pars$bbeta, pvfm = pvfm, dist = .pars$dist)
+      e_step_val <- fast_Estep(Cvec, Cvec_lt, atrisk$nev_id, alpha = .pars$alpha, bbeta = .pars$bbeta, pvfm = pvfm, dist = .pars$dist)
     } else {
-      e_step_val <- Estep(Cvec, Cvec_lt, nev_id, alpha = .pars$alpha, bbeta = .pars$bbeta, pvfm = pvfm, dist = .pars$dist)
+      e_step_val <- Estep(Cvec, Cvec_lt, atrisk$nev_id, alpha = .pars$alpha, bbeta = .pars$bbeta, pvfm = pvfm, dist = .pars$dist)
     }
 
     # a1 <- fast_Estep(Cvec + Cvec_lt, rep(0, length(Cvec)), nev_id, alpha = .pars$alpha, bbeta = .pars$bbeta, pvfm = pvfm, dist = .pars$dist)
@@ -72,13 +71,20 @@ em_fit <- function(logfrailtypar, dist, pvfm,
     # if(!isTRUE(all.equal(e_step_val[,1] / e_step_val[,2], a1[,1] / a1[,2]))) stop("e step not the same")
 
     # BAD idea:
-     logz <- log(rep(e_step_val[,1] / e_step_val[,2],   rle(id)$lengths))
+    # rle(id)$lengths
+    #
+    # match(1:10, rep(1:10, each = 5))
+    #
+    # length(unique(id))
+    # rep(1:278, rle(id)$lengths)
+    #
+     logz <- log((e_step_val[,1] / e_step_val[,2])[atrisk$order_id])
     # something only for the gamma:
     # logz <- log(rep((.pars$alpha + nev_id )/ (.pars$alpha + Cvec),   rle(id)$lengths))
 
 
     loglik <- sum((log(basehaz_line) + g_x)[Y[,3] == 1]) +
-     sum(e_step_val[,3]) + sum(Y[,3]) - sum(nev_tp * log(nev_tp))# +  sum(nev_id * lp_individual)
+     sum(e_step_val[,3]) + sum(Y[,3]) - sum(atrisk$nevent * log(atrisk$nevent))# +  sum(nev_id * lp_individual)
 
     #
     # this is actually identical value:
@@ -143,44 +149,39 @@ em_fit <- function(logfrailtypar, dist, pvfm,
     nrisk <- rev(cumsum(rev(rowsum(explp, Y[, ncol(Y) - 1]))))
     esum <- rev(cumsum(rev(rowsum(explp, Y[, 1]))))
 
-    death <- (Y[, ncol(Y)] == 1)
-    nevent <- as.vector(rowsum(1 * death, Y[, ncol(Y) - 1]))
-    time <- sort(unique(Y[,2])) # unique tstops
-    delta <- min(diff(time))/2
-    etime <- c(sort(unique(Y[, 1])), max(Y[, 1]) + delta)
-    indx <- approx(etime, 1:length(etime), time, method = "constant", rule = 2, f = 1)$y
 
+    nrisk <- nrisk - c(esum, 0)[atrisk$indx]
+    haz <- atrisk$nevent/nrisk # * newrisk
+    cumhaz <- cumsum(haz)
 
-    nrisk <- nrisk - c(esum, 0)[indx]
-    haz <- nevent/nrisk # * newrisk
+    # baseline hazard for each tstop
+    basehaz_line <- haz[atrisk$time_to_stop]
+    cumhaz_0_line <- cumhaz[atrisk$time_to_stop]
 
-    basehaz_line <- haz[match(Y[,2], time)]
+    #cumhaz_tstop <- cumsum(haz)
 
+    # for every tstop, this is the cumulative hazard at the following entry time.
+    cumhaz_tstart <- c(0, cumhaz)[atrisk$indx2 + 1]
 
-    cumhaz_tstop <- cumsum(haz)
-
-    cumhaz_0_line <- cumhaz_tstop[match(Y[,2], time)]
-
-
+    # finally, the cumulative hazard on each line is the difference
+    # the trick used in emfrail() at the first place (with the residuals) does not work here
+    # because agreg does something strange about scaling with offset.
+    cumhaz_line <- cumhaz_0_line - cumhaz_tstart
 
     if(isTRUE(lt)) {
-      indx2 <- findInterval(Y[,1], time, left.open = TRUE)
-      cumhaz_tstart <- c(0, cumhaz_tstop)[indx2 + 1]
-
-      Cvec_lt <- tapply(X = cumhaz_tstart * exp(g_x),
-                        INDEX = id,
-                        FUN = sum)
+      Cvec_lt <- rowsum(x = cumhaz_tstart * exp(g_x), atrisk$order_id )
+      # Cvec_lt <- tapply(X = cumhaz_tstart * exp(g_x),
+      #                   INDEX = id,
+      #                   FUN = sum)
     } else {
-      cumhaz_tstart <- 0
       Cvec_lt <- 0 * Cvec
     }
 
-# this might haveto be exp_g_x
-    cumhaz_line <- (cumhaz_0_line - cumhaz_tstart) #* exp(g_x)
+    Cvec <- rowsum( cumhaz_line * exp(g_x), atrisk$order_id)
 
-    Cvec <- tapply(X = cumhaz_line * exp(g_x), # * exp(g_x),
-                   INDEX = id,
-                   FUN = sum)
+    # Cvec <- tapply(X = cumhaz_line * exp(g_x), # * exp(g_x),
+    #                INDEX = id,
+    #                FUN = sum)
 
 
 
@@ -204,6 +205,15 @@ em_fit <- function(logfrailtypar, dist, pvfm,
   # Standard error calculation
   # First part, second derivatives
 
+
+  # this is a residual thing from the old way of calculating cumulative hazards
+
+  tev <- atrisk$time[haz > 0]
+  haz_tev = haz[haz > 0]
+  #
+
+  nev_tp <- atrisk$nevent[atrisk$nevent!=0]
+
   z_elp = exp(lp)
   elp = exp(lp)  / exp(logz)
 
@@ -221,7 +231,7 @@ em_fit <- function(logfrailtypar, dist, pvfm,
 
     if(any(m_d2l_dgdg<0)) warning("negative eigen in dgdg")
 
-    m_d2l_dhdg <- hh$tev %>%
+    m_d2l_dhdg <- tev %>%
       lapply(function(tk) which(Y[,1] < tk & tk <= Y[,2])) %>%
       lapply(function(x) x_z_elp[x]) %>%
       lapply(function(...) Reduce("+", ...)) %>%
@@ -235,12 +245,12 @@ em_fit <- function(logfrailtypar, dist, pvfm,
 
 
 
-  m_d2l_dhdh <- diag(nev_tp/hh$haz_tev^2)
+  m_d2l_dhdh <- diag(nev_tp/haz_tev^2)
   if(any(m_d2l_dhdh<0)) warning("negative eigen in dhdh")
 
 #
 
-  Imat <- matrix(0, ncol(Xmat) + length(hh$tev), ncol(Xmat) + length(hh$tev))
+  Imat <- matrix(0, ncol(Xmat) + length(tev), ncol(Xmat) + length(tev))
 
   Imat[1:length(mcox$coefficients), 1:length(mcox$coefficients)] <- m_d2l_dgdg
 
@@ -255,12 +265,12 @@ em_fit <- function(logfrailtypar, dist, pvfm,
  #  sqrt(diag(solve(I_full))) # this are the SE's, before adjusting for the frailty
 
   if(isTRUE(.control$fast_fit)) {
-      estep_again <- fast_Estep(Cvec, Cvec_lt, nev_id, alpha = .pars$alpha, bbeta = .pars$bbeta, pvfm = pvfm, dist = .pars$dist)
+      estep_again <- fast_Estep(Cvec, Cvec_lt, atrisk$nev_id, alpha = .pars$alpha, bbeta = .pars$bbeta, pvfm = pvfm, dist = .pars$dist)
       z <- estep_again[,1] / estep_again[,2]
       zz <- estep_again[,4]
     } else {
-      estep_plusone <- Estep(Cvec, Cvec_lt, nev_id+1, alpha = .pars$alpha, bbeta = .pars$bbeta, pvfm = pvfm, dist = .pars$dist)
-      estep_again <- Estep(Cvec, Cvec_lt, nev_id, alpha = .pars$alpha, bbeta = .pars$bbeta, pvfm = pvfm, dist = .pars$dist)
+      estep_plusone <- Estep(Cvec, Cvec_lt, atrisk$nev_id+1, alpha = .pars$alpha, bbeta = .pars$bbeta, pvfm = pvfm, dist = .pars$dist)
+      estep_again <- Estep(Cvec, Cvec_lt, atrisk$nev_id, alpha = .pars$alpha, bbeta = .pars$bbeta, pvfm = pvfm, dist = .pars$dist)
       zz <- estep_plusone[,1] /estep_again[,2]
       z <- estep_again[,1] / estep_again[,2]
     }
@@ -268,9 +278,9 @@ em_fit <- function(logfrailtypar, dist, pvfm,
 
 
 
-  dl1_dh <- nev_tp / hh$haz_tev
+  dl1_dh <- nev_tp / haz_tev
 
-  dl2_dh <- hh$tev %>%
+  dl2_dh <- tev %>%
     lapply(function(tk) which(Y[,1] < tk & tk <= Y[,2])) %>%
     lapply(function(lin) sum(z_elp[lin])) %>%
     do.call(c, .)
@@ -287,17 +297,17 @@ em_fit <- function(logfrailtypar, dist, pvfm,
 
     # this one to add; removes the part with (EZ)^2 and adds part with E(Z^2)
     cor_dg <- x_elp_H0 %>%
-      tapply(id, function(...) Reduce("+", ...)) %>%
+      tapply(atrisk$order_id, function(...) Reduce("+", ...)) %>%
       lapply(function(x) x %*% t(x)) %>%
       mapply(function(a,b) a * b, ., zz - z^2, SIMPLIFY = FALSE) %>%
       Reduce("+", .)
 
     I_gg_loss <- (dl1_dg  - dl2_dg) %*% t(dl1_dg - dl2_dg) + cor_dg
 
-    cor_dg_dh <- split(data.frame(elp, y1 = Y[,1], y2 = Y[,2]), id) %>%
-      lapply(function(dat) lapply(hh$tev, function(tk) sum(dat$elp[dat$y1 < tk & tk <= dat$y2]))) %>%
+    cor_dg_dh <- split(data.frame(elp, y1 = Y[,1], y2 = Y[,2]), atrisk$order_id) %>%
+      lapply(function(dat) lapply(tev, function(tk) sum(dat$elp[dat$y1 < tk & tk <= dat$y2]))) %>%
       lapply(function(...) do.call(c, ...)) %>%
-      mapply(function(a, b) a %*% t(b), tapply(x_elp_H0, id, function(...) Reduce("+", ...))  ,. , SIMPLIFY = FALSE) %>%
+      mapply(function(a, b) a %*% t(b), tapply(x_elp_H0, atrisk$order_id, function(...) Reduce("+", ...))  ,. , SIMPLIFY = FALSE) %>%
       mapply(function(a,b) a * b, ., zz - z^2, SIMPLIFY = FALSE) %>%
       Reduce("+",.)
 
@@ -319,8 +329,8 @@ em_fit <- function(logfrailtypar, dist, pvfm,
   #   apply(2,sum)
 
   # correction
-  cor_dh <- split(data.frame(elp, y1 = Y[,1], y2 = Y[,2]), id) %>%
-    lapply(function(dat) lapply(hh$tev, function(tk) sum(dat$elp[dat$y1 < tk & tk <= dat$y2]))) %>%
+  cor_dh <- split(data.frame(elp, y1 = Y[,1], y2 = Y[,2]), atrisk$order_id) %>%
+    lapply(function(dat) lapply(tev, function(tk) sum(dat$elp[dat$y1 < tk & tk <= dat$y2]))) %>%
     lapply(function(...) do.call(c, ...)) %>%  # these are the c_ik without the z man.
     lapply(function(x) x %*% t(x)) %>%
     mapply(function(a,b) a * b, ., zz - z^2, SIMPLIFY = FALSE) %>%
@@ -334,7 +344,7 @@ em_fit <- function(logfrailtypar, dist, pvfm,
     I_gg <- m_d2l_dgdg - I_gg_loss
     I_hg <- m_d2l_dhdg - t(I_gh_loss)
 
-    Imat <- matrix(0, ncol(Xmat) + length(hh$tev), ncol(Xmat) + length(hh$tev))
+    Imat <- matrix(0, ncol(Xmat) + length(tev), ncol(Xmat) + length(tev))
 
     Imat[1:length(mcox$coefficients), 1:length(mcox$coefficients)] <- I_gg
 
@@ -356,7 +366,7 @@ em_fit <- function(logfrailtypar, dist, pvfm,
     res = list(loglik = loglik,
                dist = dist,
                frailtypar = exp(logfrailtypar),
-               haz = hh,
+               haz = list(tev = tev, haz_tev = haz_tev),
                logz = logz,
                Cvec = Cvec,
                estep = e_step_val,

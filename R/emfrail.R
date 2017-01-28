@@ -201,7 +201,6 @@ emfrail <- function(.data, .formula,
 
 
 
-  nev_id <- tapply(Y[,3], id, sum)
 
 
   # get the model matrix
@@ -255,6 +254,8 @@ emfrail <- function(.data, .formula,
 
   # new way of doing the things;
 
+  nev_id <- rowsum(Y[,3], id) # nevent per id or am I going crazy
+
   Cvec <- nev_id - as.vector(rowsum(mcox$residuals, id))
 
   cumhaz_line <- (Y[,3] - mcox$residuals) # with covariates!
@@ -271,13 +272,23 @@ emfrail <- function(.data, .formula,
   nrisk <- rev(cumsum(rev(rowsum(explp, Y[, ncol(Y) - 1]))))
   esum <- rev(cumsum(rev(rowsum(explp, Y[, 1]))))
 
+  # the stuff that won't change
   death <- (Y[, ncol(Y)] == 1)
-  nevent <- as.vector(rowsum(1 * death, Y[, ncol(Y) - 1]))
+  nevent <- as.vector(rowsum(1 * death, Y[, ncol(Y) - 1])) # per time point
   time <- sort(unique(Y[,2])) # unique tstops
-  delta <- min(diff(time))/2
-  etime <- c(sort(unique(Y[, 1])), max(Y[, 1]) + delta)
-  indx <- approx(etime, 1:length(etime), time, method = "constant", rule = 2, f = 1)$y
 
+  # this gives the next entry time for each unique tstop (not only event)
+  etime <- c(0, sort(unique(Y[, 1])))
+  indx <- findInterval(time, etime)
+
+  # this gives for every tstart (line variable) after which event time did it come
+  indx2 <- findInterval(Y[,1], time, left.open = TRUE)
+  time_to_stop <- match(Y[,2], time)
+  order_id <- findInterval(id, unique(id))
+
+  atrisk <- list(death = death, nevent = nevent, nev_id = nev_id,
+                 order_id = order_id, time = time, indx = indx, indx2 = indx2,
+                 time_to_stop = time_to_stop)
 
   nrisk <- nrisk - c(esum, 0)[indx]
   haz <- nevent/nrisk * newrisk
@@ -287,7 +298,7 @@ emfrail <- function(.data, .formula,
   #plot(haz[match(Y[,2], time)], basehaz_line)
   # cumhaz_full is like follows (from 0 to t)
 
-  # cumhaz_tstop <- cumsum(haz)
+
   #
   # cumhaz_0_line <- cumhaz_tstop[match(Y[,2], time)]
   #
@@ -302,12 +313,14 @@ emfrail <- function(.data, .formula,
   #Cvec_from0 - Cvec
 
   if(isTRUE(.distribution$left_truncation)) {
-    indx2 <- findInterval(Y[,1], time, left.open = TRUE)
+    #indx2 <- findInterval(Y[,1], time, left.open = TRUE)
+    cumhaz_tstop <- cumsum(haz)
     cumhaz_tstart <- c(0, cumhaz_tstop)[indx2 + 1]
 
-    Cvec_lt <- tapply(X = cumhaz_tstart,
-                      INDEX = id,
-                      FUN = sum)
+    Cvec_lt <- rowsum(cumhaz_tstart, order_id)
+    # Cvec_lt <- tapply(X = cumhaz_tstart,
+    #                   INDEX = id,
+    #                   FUN = sum)
   } else Cvec_lt <- 0 * Cvec
 
 
@@ -315,10 +328,11 @@ emfrail <- function(.data, .formula,
   if(!isTRUE(.control$opt_fit)) {
     return(em_fit(logfrailtypar = log(.distribution$frailtypar),
            dist = .distribution$dist, pvfm = .distribution$pvfm,
-           Y = Y, Xmat = X, id = id, nev_id = nev_id, basehaz_line = basehaz_line, newrisk  = newrisk,
-           mcox = list(coefficients = g, loglik = mcox$loglik), explp = explp, Cvec = Cvec, lt = .distribution$left_truncation,
+           Y = Y, Xmat = X, atrisk = atrisk, basehaz_line = basehaz_line,
+           mcox = list(coefficients = g, loglik = mcox$loglik),  # a "fake" cox model
+           Cvec = Cvec, lt = .distribution$left_truncation,
            Cvec_lt = Cvec_lt,
-           .control = .control))
+          .control = .control))
   }
 
 
@@ -329,41 +343,45 @@ emfrail <- function(.data, .formula,
                method = .control$opt_control$method, #control = .control$opt_control$control,
                #control = list(trace = 10, save.failures = TRUE),
                dist = .distribution$dist, pvfm = .distribution$pvfm,
-               Y = Y, Xmat = X, id = id, nev_id = nev_id, basehaz_line = basehaz_line,
-               mcox = list(coefficients = g, loglik = mcox$loglik), explp = explp, Cvec = Cvec,
-               lt = .distribution$left_truncation, Cvec_lt = Cvec_lt,
+               Y = Y, Xmat = X, atrisk = atrisk, basehaz_line = basehaz_line,
+               mcox = list(coefficients = g, loglik = mcox$loglik),  # a "fake" cox model
+               Cvec = Cvec, lt = .distribution$left_truncation,
+               Cvec_lt = Cvec_lt,
                .control = .control)
 
+  message("Calculating final fit with information matrix...")
 
   final_fit <- em_fit(logfrailtypar = opt_object$p1,
-                dist = .distribution$dist, pvfm = .distribution$pvfm,
-                Y = Y, Xmat = X, id = id, nev_id = nev_id, basehaz_line = basehaz_line,
-                mcox = list(coefficients = mcox$coefficients,
-                            loglik = mcox$loglik), explp = explp, Cvec = Cvec,
-                lt = .distribution$left_truncation, Cvec_lt = Cvec_lt,
-                .control = .control, return_loglik = FALSE)
+                      dist = .distribution$dist, pvfm = .distribution$pvfm,
+                      Y = Y, Xmat = X, atrisk = atrisk, basehaz_line = basehaz_line,
+                      mcox = list(coefficients = g, loglik = mcox$loglik),  # a "fake" cox model
+                      Cvec = Cvec, lt = .distribution$left_truncation,
+                      Cvec_lt = Cvec_lt,
+                      .control = .control, return_loglik = FALSE)
 
   # that the hessian
   h <- as.numeric(sqrt(1/(attr(opt_object, "details")[[3]]))/2)
   lfp_minus <- max(opt_object$p1 - h , opt_object$p1 - 5)
   lfp_plus <- min(opt_object$p1 + h , opt_object$p1 + 5)
 
+  message("Calculating adjustment for information matrix...")
+
 
   final_fit_minus <- em_fit(logfrailtypar = lfp_minus,
-                      dist = .distribution$dist, pvfm = .distribution$pvfm,
-                      Y = Y, Xmat = X, id = id, nev_id = nev_id, basehaz_line = basehaz_line,
-                      mcox = list(coefficients = mcox$coefficients,
-                                  loglik = mcox$loglik), explp = explp, Cvec = Cvec,
-                      lt = .distribution$left_truncation, Cvec_lt = Cvec_lt,
-                      .control = .control, return_loglik = FALSE)
+                            dist = .distribution$dist, pvfm = .distribution$pvfm,
+                            Y = Y, Xmat = X, atrisk = atrisk, basehaz_line = basehaz_line,
+                            mcox = list(coefficients = g, loglik = mcox$loglik),  # a "fake" cox model
+                            Cvec = Cvec, lt = .distribution$left_truncation,
+                            Cvec_lt = Cvec_lt,
+                            .control = .control, return_loglik = FALSE)
 
   final_fit_plus <- em_fit(logfrailtypar = lfp_plus,
-                            dist = .distribution$dist, pvfm = .distribution$pvfm,
-                            Y = Y, Xmat = X, id = id, nev_id = nev_id, basehaz_line = basehaz_line,
-                            mcox = list(coefficients = mcox$coefficients,
-                                        loglik = mcox$loglik), explp = explp, Cvec = Cvec,
-                            lt = .distribution$left_truncation, Cvec_lt = Cvec_lt,
-                            .control = .control, return_loglik = FALSE)
+                           dist = .distribution$dist, pvfm = .distribution$pvfm,
+                           Y = Y, Xmat = X, atrisk = atrisk, basehaz_line = basehaz_line,
+                           mcox = list(coefficients = g, loglik = mcox$loglik),  # a "fake" cox model
+                           Cvec = Cvec, lt = .distribution$left_truncation,
+                           Cvec_lt = Cvec_lt,
+                           .control = .control, return_loglik = FALSE)
 
   # instructional: this should be more or less equal to the
   # -(final_fit_plus$loglik + final_fit_minus$loglik - 2 * final_fit$loglik)/h^2
@@ -404,9 +422,9 @@ res <- list(outer_m = opt_object,
                                          se_chz = sqrt(varH_time),
                                          se_chz_adj = sqrt(varH_adj_time)),
                                           #se = final_fit$se[(1 + length(final_fit$coef)):length(final_fit$se)]),
-                         z = data.frame(id = names(final_fit$Cvec),
+                         z = data.frame(id = unique(id),
                                         Lambda = final_fit$Cvec,
-                                         z = final_fit$estep[,1] / final_fit$estep[,2] ),
+                                        z = final_fit$estep[,1] / final_fit$estep[,2] ),
                                         coef = final_fit$coef,
                          se_coef = sqrt(diag(final_fit$Vcov)[seq_along(final_fit$coef)]),
                          se_coef_adj = sqrt(diag(vcov_adj)[seq_along(final_fit$coef)] )),
