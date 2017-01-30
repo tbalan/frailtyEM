@@ -55,7 +55,7 @@ and note that the denominator in this case determines the contribution to the li
 
 The log-likelihood contribution is 
 $$
-l_i = (-1)^{N_{i}} \mathcal{L}^{(N_i )(\Lambda_i)
+l_i = (-1)^{N_{i}} \mathcal{L}^{(N_i )}(\Lambda_i)
 $$
 and finally
 $$
@@ -73,12 +73,11 @@ In other words, the covariate vector is centered but not the offset.
 
 To extract the hazard estimates, an internal function `getchz` is used, which resides in `emfrail_aux.R`. 
 
-#### getchz
-`getchz(Y, newrisk, elp)` does the following thing:
+Since version 0.2.3, the baseline hazard is calculated as follows. Two variables, `nrisk` and `esum` are the essential piece: `nrisk` has the sum of `exp(linear predictor)` of everybody who leaves the risk at every `tstop` and `esum` is the sum of `exp(linear predictor)` of everybody who enters the risk set at every `tstart`. If everybody started at time 0, then `esum` would just be 0. Then `nrisk` becomes a difference between all these things to determine exactly the sum of `exp(linear predictor)` at every time point.
 
-  - from the `Y` (`Surv` object) it takes out the entry time and the leaving time
-  - 
+Then `haz` is the Breslow estimator at every (event) time point, `basehaz_line` ande `cumhaz_0_line` are the baseline hazard and the cumulative hazard from 0 to  every `tstop`. The final cumulative hazard for each line is given by `cumhaz_0_line - cumhaz_tstart`, the latter being the cumulative hazard from 0 up to the `tstart` point. Then `Cvec` and `Cvec_lt` are the accumulated hazard for each cluster. Three operations that are potentailly expensive are cached: `indx`, which gives the `tstart` after each `tstop`, `indx2` that gives the tstop after each `tstart` (this one for all entry time points in the order from the data set) and `time_to_stop` (which tstop corresponds to which unique time point, in the order from the data set). Finally, `order_id` is used as a surrogate for the `id` variable, which should be useful in case the data is not ordered by `id`. 
 
+Technically, there is an option to use the martingale residuals from the Cox model, but there are two problems with that: one is that the Cox model does some strange behind-the-scenes scaling (esp. when the offset is involved) and the second is that there is no easy way to get the cumulative hazard for the period when individuals are not at risk (before entry time). 
 
 ## Laplace transforms
 We assume that $Z_i$ is an infinitely divisible distribution, i.e. that the Laplace transform of $Z_i$ can be written as
@@ -332,6 +331,7 @@ Then the $k$-th derivative of $\mathcal{L}$ can be calculated recursively like t
 For a certain individual or cluster with $k$ events and for given parameters and argument $c_i$, we start with a result of 0. We create a vector `v` of length $k$. 
 
 
+#### 
 ## Outer problem
 
 
@@ -339,5 +339,13 @@ For a certain individual or cluster with $k$ events and for given parameters and
 ## Standard errors
 The information matrix from the EM algorithm is obtained with Louis' formula. 
 
+
+
+## Useful quantities
+There is an idea to get some useful quantities out of these models.
+For one, the conditional ones: 
+
+
+## Comparison with other R packages
 
 

@@ -19,7 +19,7 @@ library(frailtoys)
 dat <- survival::rats
 m1 <- emfrail(.data =  dat, .formula = Surv(rep(0, nrow(dat)), time, status) ~  rx + sex + cluster(litter),
               .distribution = emfrail_distribution(dist = "gamma"),
-              .control = emfrail_control( opt_fit = FALSE, verbose = TRUE))
+              .control = emfrail_control( opt_fit = TRUE, verbose = FALSE))
 
 m2 <- emfrail(.data =  dat, .formula = Surv(rep(0, nrow(dat)), time, status) ~  rx + sex + cluster(litter),
               .distribution = emfrail_distribution(dist = "pvf"))
@@ -120,6 +120,36 @@ m3 <- emfrail(.data =  kidney, .formula = Surv(rep(0, nrow(kidney)), time, statu
 
 m4 <- emfrail(.data =  kidney, .formula = Surv(rep(0, nrow(kidney)), time, status) ~  sex + age + cluster(id),
               .distribution = emfrail_distribution(dist = "stable"))
+
+
+predict(m1, lp = c(0, 0.5)) %>% 
+  ggplot(aes(x = time, y = survival)) + geom_step(aes(color = lp))
+
+
+
+predict(m1, lp = c(0, 0.5)) %>% 
+  ggplot(aes(x = time, y = cumhaz)) + geom_step(aes(color = lp)) +
+  geom_step(aes(y = cumhaz_m, colour = lp), lty = "dotted") 
+
+
+
+predict(m2, lp = c(0, 0.5)) %>% 
+  ggplot(aes(x = time, y = cumhaz)) + geom_step(aes(color = lp)) +
+  geom_step(aes(y = cumhaz_m, colour = lp), lty = "dotted") 
+
+
+predict(m2, lp = c(0, 0.5)) %>% 
+  select(time, cumhaz, cumhaz_m, lp) %>% 
+  unite(cumhaz_c_m, cumhaz, cumhaz_m) %>% 
+  spread(lp, cumhaz_c_m) %>% 
+  separate(`0`, into = c("cumhaz_0", "cumhaz_m_0"), sep = "_", convert = TRUE) %>% 
+  separate(`0.5`, into = c("cumhaz_05", "cumhaz_m_05"), sep = "_", convert = TRUE) %>% 
+  mutate(hr_c = cumhaz_05 / cumhaz_0,
+         hr_m = cumhaz_m_05 / cumhaz_m_0) %>% 
+  ggplot(aes(x = time)) + 
+  geom_step(aes(y = hr_c)) + 
+  geom_step(aes(y = hr_m), colour = 2)
+
 
 ```
 
@@ -316,7 +346,8 @@ m1 <- emfrail(.data =  dd, .formula = Surv(rep(0, nrow(dd)), time, status) ~  x 
               .distribution = emfrail_distribution(dist = "gamma"))
 
 m2 <- emfrail(.data =  dd, .formula = Surv(rep(0, nrow(dd)), time, status) ~  x + cluster(id),
-              .distribution = emfrail_distribution(dist = "pvf"))
+              .distribution = emfrail_distribution(dist = "pvf"), 
+              .control = emfrail_control(opt_fit = TRUE))
 
 m3 <- emfrail(.data =  dd, .formula = Surv(rep(0, nrow(dd)), time, status) ~  x + cluster(id),
               .distribution = emfrail_distribution(dist = "pvf", pvfm = 1/2))
@@ -324,6 +355,7 @@ m3 <- emfrail(.data =  dd, .formula = Surv(rep(0, nrow(dd)), time, status) ~  x 
 m4 <- emfrail(.data = dd, .formula = Surv(rep(0, nrow(dd)), time, status) ~  x + cluster(id),
               .distribution = emfrail_distribution(dist = "stable"),
               .control =emfrail_control( verbose = FALSE))
+
 
 ```
 

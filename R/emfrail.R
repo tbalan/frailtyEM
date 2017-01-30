@@ -393,23 +393,13 @@ emfrail <- function(.data, .formula,
 
   #adj_se <- sqrt(diag(deta_dtheta %*% (1/(attr(opt_object, "details")[[3]])) %*% t(deta_dtheta)))
 
-
-  ncoef = length(final_fit$coef)
-
   vcov_adj = final_fit$Vcov + deta_dtheta %*% (1/(attr(opt_object, "details")[[3]])) %*% t(deta_dtheta)
 
-  varH <- final_fit$Vcov[(ncoef + 1): nrow(final_fit$Vcov), (ncoef+ 1): nrow(final_fit$Vcov)]
-  varH_adj <- vcov_adj[(ncoef + 1): nrow(final_fit$Vcov), (ncoef+ 1): nrow(final_fit$Vcov)]
+  est_dist <- emfrail_distribution(dist = .distribution$dist,
+                                   frailtypar = final_fit$frailtypar,
+                                   pvfm = .distribution$pvfm
+  )
 
-  varH_time <- numeric(nrow(varH))
-  for(i in 1:nrow(varH)) {
-    varH_time[i] = sum(varH[1:i, 1:i])
-  }
-
-  varH_adj_time <- numeric(nrow(varH))
-  for(i in 1:nrow(varH)) {
-    varH_adj_time[i] = sum(varH_adj[1:i, 1:i])
-  }
 
 
 res <- list(outer_m = opt_object,
@@ -417,10 +407,9 @@ res <- list(outer_m = opt_object,
                          dist = final_fit$dist,
                          pvfm = final_fit$pvfm,
                          theta = final_fit$frailtypar,
+
                          haz = data.frame(time = final_fit$haz$tev,
-                                         cumhaz = cumsum(final_fit$haz$haz_tev),
-                                         se_chz = sqrt(varH_time),
-                                         se_chz_adj = sqrt(varH_adj_time)),
+                                          cumhaz = cumsum(final_fit$haz$haz_tev)),
                                           #se = final_fit$se[(1 + length(final_fit$coef)):length(final_fit$se)]),
                          z = data.frame(id = unique(id),
                                         Lambda = final_fit$Cvec,
@@ -430,7 +419,8 @@ res <- list(outer_m = opt_object,
                          se_coef_adj = sqrt(diag(vcov_adj)[seq_along(final_fit$coef)] )),
                    mcox = mcox,
               vcov = final_fit$Vcov,
-              vcov_adj = vcov_adj
+              vcov_adj = vcov_adj,
+            est_dist = est_dist
                )
   attr(res, "class") <- "emfrail"
 

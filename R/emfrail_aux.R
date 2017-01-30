@@ -34,8 +34,6 @@ dist_to_pars <- function(dist, logfrailtypar, pvfm) {
 
 
 
-
-
 # this one gives the baseline cumulative hazard at all the time points;
 
 getchz <- function(Y, newrisk, explp) {

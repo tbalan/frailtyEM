@@ -27,6 +27,8 @@ Collate:
     'emfrail_arguments.R'
     'emfrail_pll.R'
     'fast_Estep.R'
+    'laplace_transform.R'
+    'predict.emfrail.R'
     'print.emfrail.R'
 Suggests:
     knitr,

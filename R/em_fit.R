@@ -84,7 +84,7 @@ em_fit <- function(logfrailtypar, dist, pvfm,
 
 
     loglik <- sum((log(basehaz_line) + g_x)[Y[,3] == 1]) +
-     sum(e_step_val[,3]) + sum(Y[,3]) - sum(atrisk$nevent * log(atrisk$nevent))# +  sum(nev_id * lp_individual)
+     sum(e_step_val[,3]) + sum(Y[,3]) - sum((atrisk$nevent * log(atrisk$nevent))[atrisk$nevent > 0])# +  sum(nev_id * lp_individual)
 
     #
     # this is actually identical value:
@@ -248,7 +248,7 @@ em_fit <- function(logfrailtypar, dist, pvfm,
   m_d2l_dhdh <- diag(nev_tp/haz_tev^2)
   if(any(m_d2l_dhdh<0)) warning("negative eigen in dhdh")
 
-#
+
 
   Imat <- matrix(0, ncol(Xmat) + length(tev), ncol(Xmat) + length(tev))
 
