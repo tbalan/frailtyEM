@@ -16,7 +16,7 @@ laplace_transform <- function(x, .distribution) {
   if(!inherits(.distribution, "emfrail_distribution"))
     stop(".distribution argument misspecified; see ?emfrail_distribution()")
 
-  getpars <- dist_to_pars(.distribution$dist, .distribution$frailtypar, .distribution$pvfm)
+  getpars <- dist_to_pars(.distribution$dist, log(.distribution$frailtypar), .distribution$pvfm)
 
   if(getpars$dist == 0L) {
     L <- with(getpars, (bbeta / (bbeta + x))^alpha)

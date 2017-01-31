@@ -103,7 +103,7 @@ in the main `Estep()` function. The -1 that comes from every $-\alpha$ is done a
 
 
 ### Ascertainment
-There is a situation when the data set migt come from some ascertainment scheme that prevents individuals from being observed from time 0. For this example, I supress the subscript $i$ for the cluster. 
+There is a situation when the data set might come from some ascertainment scheme that prevents individuals from being observed from time 0. For this example, I supress the subscript $i$ for the cluster. 
 
 Now assume that observation $j$ in the cluster is in the data set if $A_j$ happens, and we call 
 $$

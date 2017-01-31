@@ -64,6 +64,7 @@ predict.emfrail <- function(fit,
   survival_m <- function(chz) laplace_transform(chz, fit$est_dist)
   cumhaz_m <- function(chz) -1 * log(laplace_transform(chz, fit$est_dist))
 
+  # cumhaz_m(cumhaz)
   # first, add confidence bands for the cumulative hazard
   bounds <- "cumhaz"
 
@@ -82,8 +83,8 @@ predict.emfrail <- function(fit,
   }
 
 
-  survival_m(1.5)
-  fit$est_dist$dist == "gamma"
+  #survival_m(1.5)
+  #fit$est_dist$dist == "gamma"
   # bounds is the names of columns that we want to transform
   if("survival" %in% quantity & "conditional" %in% type) {
     ret <- cbind(ret, as.data.frame(lapply(ret[bounds], survival), col.names = sub("cumhaz", "survival", bounds)))
@@ -98,7 +99,8 @@ predict.emfrail <- function(fit,
   }
 
   if(!("cumhaz" %in% quantity & "conditional" %in% type)) {
-    ret <- ret[-bounds]
+    cols_to_keep <- which(!(names(ret) %in% c(bounds, "se_chz", "se_chz_adj")))
+    ret <- ret[,cols_to_keep]
   }
 
   ret

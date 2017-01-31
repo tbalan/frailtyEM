@@ -1,0 +1,204 @@
+---
+title: "Introduction to frailtoys"
+author: "Theodor Balan"
+date: "1/31/2017"
+output: ioslides_presentation
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+## 
+
+## The theory {.smaller}
+For cluster $i$, individual $j$, observation $k$ we have a corresponding intensity
+$$
+\lambda_{ij} = Y_{ij}(t) z_i\exp(\gamma'\mathbf{x}_{ij}(t)) \lambda_0(t)
+$$
+Each individual is a collection of observations of type `(tstart, tstop, status)`. From each of these lines, we have the cumulative intensity
+$$
+\Lambda_{ijk} = z_i\exp(\gamma'\mathbf{x}_{ijk}) \Lambda_{0, ijk}
+$$
+and for a cluster, we have the cumulative intensity in this cluster
+$$
+\Lambda_i=z_i \sum_{j,k}\exp(\gamma'\mathbf{x}_{ijk}) \Lambda_{0, ijk}
+$$
+
+## The theory
+The conditional likelihood (given $z_i$) is then
+$$
+l_i = \prod_i \prod_{j,k} \left(\lambda_0(t_k) \exp(\gamma'\mathbf{x}_{ijk})\right)^{\delta_{ijk}} z_i^{n_i} \exp(-z_i\Lambda_i)
+$$
+The marginal likelihood is
+$$
+\tilde L_i = \prod_i \prod_{j,k} \left(\lambda_0(t_k) \exp(\gamma'\mathbf{x}_{ijk})\right)^{\delta_{ijk}} \mathrm{E}\left[ z_i^{n_i} \exp(-z_i\Lambda_i)  \right]
+$$
+where the expectation is 
+$$
+\mathrm{E}\left[ z_i^{n_i} \exp(-z_i\Lambda_i) \right] \equiv(-1)^{n_i} \mathcal{L}^{(n_i)}(\Lambda_i) 
+$$
+
+## The theory
+Question is: what distribution should we take the expectation with regards to? 
+
+We consider infinitely divisible random variables, with the Laplace transform
+$$
+\mathcal{L}(c; \alpha, \beta) = \exp\left(-\alpha \psi(c;\beta)\right)
+$$
+
+This includes the following:
+
+  - gamma $\psi(c;\beta) = \log(c + \beta) - \log(\beta)$
+  - positive stable $\psi(c; \beta) = \exp(c^\beta)$
+  - PVF (Hougaard) with $\psi(c; \beta)$
+  - inverse Gaussian (particular case of PVF with $m = -0.5$)
+
+## Ascertainment
+Consider that we have a cluster with only one observation / individual. Therefore, if the cluster has $n$ individuals, consider the ascertainment event
+$$
+A_i = A_{i1} \cap A_{i2} \cap...\cap A_{in}
+$$
+The distribution of the frailty in this cluster is then given by
+
+$$
+f_{Z|A_i}(z) = \frac{P(A_i|z) f(z)}{\int_z P(A_i|z) f(z) dz} = \frac{P(A_i|z)f(z)}{E_Z[P(A_i|z)]}
+$$
+Now this has Laplace transform
+$$
+\mathcal{L}_{Z|A_i}(c) = \frac{E_Z[e^{-cz}P(A_i|z)]}{E_Z[P(A_i|z)]}
+$$
+
+## Left truncation
+With left truncation, with each individual truncated at $t_{L, ij}$ we have
+$$
+P(A_{ij}|z_i) = P(T_{ij}>t_{L,ij}|z_i) = \exp(-z_i \Lambda_{L,ij})]
+$$
+We then denote 
+$$
+\Lambda_{L,i} = \sum_j \Lambda_{L,ij}
+$$
+which would be the cumulative hazard from 0 to the entry time $t_{L,ij}$. 
+
+## Left truncation
+In that case we see that
+$$
+\mathcal{L}_{Z|A_i}(c) = \frac{E_Z[e^{-z (c + \Lambda_{L,i})}]}{E_Z[e^{-z\Lambda_{L,i}}]} = \frac{\mathcal{L}(c + \Lambda_{L,i})}{\mathcal{L}(\Lambda_{L,i})}
+$$
+In the infinite divisible framework we have
+$$
+\mathcal{L}_{Z|A_i}(c) = \frac{\exp(-\alpha \psi(c + \Lambda_{L,i}))}{\exp(-\alpha \psi(\Lambda_{L,i}))} = \exp(-\alpha \tilde \psi(c))
+$$
+with $\tilde \psi(c) = \psi(c + \Lambda_{L,i}) - \psi(\Lambda_{L,i})$.
+
+## Left truncation
+In the proportional intensity model, the hazard $\Lambda_L$ is not of interest, because it cancels out in the likelihood.
+
+Here, it is of interest! 
+
+Intuition: the frailty of an individual who survived until a certain time is not the same as the frailty of an individual at time 0. Survivors are more likely to be low-frailty individuals.
+
+## More complicated ascertainment
+In Mar's case, the ascertainment scheme was more complicated: at least two individuals must have survived until some time. Then $P(A_i)$ is not a simple function of the $P(A_{ij})$. 
+
+## What Laplace transform?
+It turns out that, under left truncation:
+
+  - the frailty of survivors is still gamma with a change of parameters
+  - stable and inverse gaussian become some distribution within the infinite divisible family
+  - the PVF (Hougaard) distribution becomes some distribution within the infinite divisible family
+  
+## Problem with this
+An observation line is usually `(tstart, tstop, status)` with an `id` specification for the cluster.
+
+  - If we have recurrent events, then `tstart` refers to the time of a previous event, not left truncation
+  - If we have time-dependent covariates, then `tstart` refers to a change in covariate values, not left truncation
+  - If we have clustered data, then `tstart` *does* refer to left truncation
+
+There is no way of distinguishing this automatically. 
+
+## Welcome to frailtoys!
+```{r}
+library(frailtoys)
+```
+
+```{r}
+# demo page
+
+library(frailtoys)
+library(tidyverse)
+data(kidney) 
+kidney$sex <- kidney$sex - 1
+
+kidney %>% View()
+
+# Options
+
+m1 <- emfrail(.data =  kidney, 
+              .formula = Surv(rep(0, nrow(kidney)), time, status) ~  sex + age + cluster(id),
+              .distribution = emfrail_distribution(dist = "gamma", pvfm = 1.5))
+
+m1 %>% 
+  predict(quantity = "cumhaz", type = "conditional", conf_int = NULL) %>% 
+  ggplot(aes(x = time, y = cumhaz)) + geom_step()
+
+m1 %>% 
+  predict(quantity = "cumhaz", type = "conditional", conf_int = "adjusted") %>% 
+  ggplot(aes(x = time, y = cumhaz)) +
+  geom_step() +
+  geom_ribbon(aes(ymin = cumhaz_l_a, ymax = cumhaz_r_a), alpha = 0.2)
+  
+
+m1 %>% 
+  predict(quantity = "cumhaz", type = "marginal", conf_int = "adjusted") %>% 
+  ggplot(aes(x = time, y = cumhaz_m)) +
+  geom_step() +
+  geom_ribbon(aes(ymin = cumhaz_m_l_a, ymax = cumhaz_m_r_a), alpha = 0.2)
+
+
+m1 %>% 
+  predict(quantity = "cumhaz", type = c("conditional", "marginal"), conf_int = "adjusted") %>% 
+  ggplot(aes(x = time)) +
+  geom_step(aes(y = cumhaz, color = "conditional")) +
+  geom_step(aes(y = cumhaz_m, color = "marginal")) +
+  geom_ribbon(aes(ymin = cumhaz_l_a, ymax = cumhaz_r_a, color = "conditional"), alpha = 0.2) + 
+  geom_ribbon(aes(ymin = cumhaz_m_l_a, ymax = cumhaz_m_r_a, color = "marginal"), alpha = 0.2)
+
+
+m1 %>% 
+  predict(lp = c(0, m1$res$coef[1]), quantity = "cumhaz", type = "conditional", conf_int = NULL) %>% 
+  ggplot(aes(x = time, y = cumhaz)) + geom_step(aes(color = lp))
+
+m1 %>% 
+  predict(lp = c(0, m1$res$coef[1]), quantity = c("cumhaz"), type = c("conditional", "marginal"), conf_int = NULL) %>% 
+  ggplot(aes(x = time, y = cumhaz)) + geom_step(aes(color = lp)) + geom_step(aes(y = cumhaz_m, color = lp), lty = "dashed")
+
+m1 %>% 
+  predict(lp = c(0, m1$res$coef[1]), quantity = c("cumhaz"), type = c("conditional", "marginal"), conf_int = NULL) %>% 
+  gather(type, value = cumhaz, cumhaz, cumhaz_m) %>% 
+  ggplot(aes(x = time, y = cumhaz, color = lp, lty = type)) + geom_step()
+
+pr_m <- m1 %>% 
+  predict(lp = c(0), quantity = c("cumhaz"), type = c("conditional", "marginal"), conf_int = NULL)
+
+pr_f <- m1 %>% 
+  predict(lp = m1$res$coef[1], quantity = c("cumhaz"), type = c("conditional", "marginal"), conf_int = NULL)
+  
+data.frame(time = pr_m$time,
+           hr_cond = pr_f$cumhaz / pr_m$cumhaz,
+           hr_mar = pr_f$cumhaz_m / pr_m$cumhaz_m) %>% 
+  gather(type, hr, hr_cond, hr_mar) %>% 
+  ggplot(aes(x = time, y = hr)) + geom_step(aes(color = type))
+
+
+coxph(Surv(time, status) ~ age + sex +cluster(id), data = kidney) %>% 
+  cox.zph()
+
+
+
+
+## Jeebus!
+
+
+
+```

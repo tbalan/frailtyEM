@@ -1,0 +1,141 @@
+---
+title: "Comparison with other packages"
+author: "Theodor Adrian Balan"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{tests on data sets}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Frailty fitting in R
+There are several packages that fit frailty models in R. 
+
+### Non-parametric
+With a non-parametric baseline, frailty models can be fit with:
+    - `survival::coxph()` supports gamma and log-normal frailties through a fast penalized likelihood method. It supports recurrent events (AG) but it does not calculate the correct likelihood with left truncation. The standard errors are calculated ignoring the uncertainty of the frailty variance parameter $\theta$. The machinery behind this package is described in Therneau & Grambsch.
+    - `coxme::coxme()` supports log-normal frailties also with correlated random effects. It is fit by a Laplace approximation on the penalized partial likelihood. (what happens with left truncation?)
+    - In `phmm` they use a normal random effects with semi-parametric baseline through an EM algorithm, with a gibbs sampler in the E step. A nice vignette which connects this with GLMM. 
+    
+### Parametric
+    - `parfm::parfm()` supports gamma, inverse gaussian, stable and log-normal frailties with parametric baseline hazards. 
+    - `frailtypack::frailtyPenal()` supports gamma and log-normal for a variety of scenarios. The package is verbose 
+    - In `mexhaz` (Charvat & Belot) they do log-normal frailty, parametric models. They allow for time-dependent effect of covariates but not for left truncation or recurrent events.
+    - In `PenCoxFrail` (Groll, also work with Hastie) they do penalized Cox models with splines for baseline, the penalization deals with the random effects and variable selection.
+
+### Ambiguous
+In `timereg` there is a function `two.step` which does some things. It does not support time dependent covariates, multiple events / individual, it assumes a common left truncation time for the whole cluster. 
+
+
+
+
+## Example 1: rats data
+
+### gamma frailty
+```{r rats_gamma}
+dat <- survival::rats
+
+# frailtoys
+m_ft <- emfrail(.data = dat, .formula = Surv(rep(0, nrow(dat)), time, status) ~ sex + rx + cluster(litter))
+
+# survival
+m_cph <- coxph(data = dat, 
+                 formula = Surv(rep(0, nrow(dat)), time, status) ~ sex + rx + frailty(litter),
+                 ties = "breslow")
+
+# frailtysurv
+m_ff <- fitfrail(Surv(rep(0, nrow(dat)), time, status) ~ sex + rx + cluster(litter), dat,  frailty = "gamma")
+m_ff_2 <- fitfrail(Surv(time, status) ~ sex + rx + cluster(litter), dat,  frailty = "gamma", se = TRUE)
+
+# parfm
+m_pf <- parfm(Surv(rep(0, nrow(dat)), time, status) ~ sex + rx, cluster = "litter", data = dat, frailty = "gamma", dist = "exponential")
+
+# frailtypack
+m_fp <- frailtyPenal(Surv(time, status) ~ sex + rx + cluster(litter), n.knots=12, kappa=10000, data = dat)
+```
+
+```{r rats_gamma_show}
+m_ft
+
+m_cph
+
+m_ff_2
+
+m_pf
+
+m_fp
+```
+
+
+```{r rats_gamma_plots}
+pl1 <- predict(m_ft, lp = 0, quantity = "cumhaz", type = c("conditional", "marginal")) %>% 
+  ggplot(aes(x = time, y = cumhaz)) + geom_step(aes(color = "conditional")) + geom_step(aes(y = cumhaz_m, color = "marginal")) +
+  labs(color = "type") 
+
+
+pl1 +
+  geom_ribbon(aes(ymin = cumhaz_l, ymax = cumhaz_r), alpha = 0.1) +
+  geom_ribbon(aes(ymin = cumhaz_l_a, ymax = cumhaz_r_a), alpha = 0.1, fill = "pink")
+
+pl1 +
+  geom_ribbon(aes(ymin = cumhaz_m_l, ymax = cumhaz_m_r), alpha = 0.1) +
+  geom_ribbon(aes(ymin = cumhaz_m_l_a, ymax = cumhaz_m_r_a), alpha = 0.1, fill = "pink")
+
+
+
+```
+
+
+# no newdata argument for this one
+try(m_cph %>% survfit(newdata = data.frame(sex = "f", rx = 0)))
+
+sf_cph <- m_cph %>% 
+  survfit() %>% 
+  with(data.frame(time = time, cumhaz = cumhaz))
+
+pl1 + geom_step(data = sf_cph, aes(x = time, y = cumhaz), colour = 3)
+
+pl1 + geom_step(data = sf_cph, aes(x = time, y = cumhaz), colour = 3)
+
+
+pl2 <- predict(m_ft, lp = t(m_ft$mcox$means) %*% m_ft$res$coef, quantity = "cumhaz", type = c("conditional", "marginal")) %>% 
+  ggplot(aes(x = time, y = cumhaz)) + 
+  geom_step() + 
+  geom_step(aes(y = cumhaz_m), color = 2) +
+  geom_step(data = sf_cph, aes(x = time, y = cumhaz), colour = 3)
+
+pl2
+
+
+
+library(frailtySurv)
+
+
+m_ff_2
+
+plot(m_ff_2)
+
+pl1 + geom_step(data = m_ff_2$Lambda.all, aes(x = time, y = Lambda), colour = 5)
+
+
+library(parfm)
+m_pf <- parfm(Surv(rep(0, nrow(dat)), time, status) ~ sex + rx, cluster = "litter", data = dat, frailty = "gamma", dist = "exponential")
+
+m_pf %>% str()
+
+m_ft %>% str()
+
+m_pf %>% str()
+attr(m_pf, "cumhazT")
+
+pl1 + geom_abline(intercept = 0, slope = m_pf[2,1])
+
+
+prediction(m_fp, data.frame(sex = "f", rx = 0), t = 70, window = seq(1, 80, 1))
+```
+
