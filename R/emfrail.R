@@ -223,17 +223,22 @@ emfrail <- function(.data, .formula,
     newrisk <- 1
     exp_g_x <- matrix(rep(1, length(mcox$linear.predictors)), nrow = 1)
     g <- 0
+    g_x <- t(matrix(rep(0, length(mcox$linear.predictors)), nrow = 1))
+
   } else {
     x2 <- matrix(rep(0, ncol(X)), nrow = 1, dimnames = list(123, dimnames(X)[[2]]))
     x2 <- (scale(x2, center = mcox$means, scale = FALSE))
     newrisk <- exp(c(x2 %*% mcox$coefficients) + 0)
     exp_g_x <- exp(mcox$coefficients %*% t(X))
     g <- mcox$coefficients
+    g_x <- t(mcox$coefficients %*% t(X))
+
   }
 
   explp <- exp(mcox$linear.predictors) # these are with centered covariates
 
   # hh <- getchz(Y = Y, newrisk = newrisk, explp = explp)
+
 
 
 
@@ -256,9 +261,9 @@ emfrail <- function(.data, .formula,
 
   nev_id <- rowsum(Y[,3], id) # nevent per id or am I going crazy
 
-  Cvec <- nev_id - as.vector(rowsum(mcox$residuals, id))
+   # Cvec <- nev_id - as.vector(rowsum(mcox$residuals, id)) #WONG?
 
-  cumhaz_line <- (Y[,3] - mcox$residuals) # with covariates!
+  #cumhaz_line_a <- (Y[,3] - mcox$residuals) # with covariates!
 
 
 
@@ -279,10 +284,12 @@ emfrail <- function(.data, .formula,
 
   # this gives the next entry time for each unique tstop (not only event)
   etime <- c(0, sort(unique(Y[, 1])),  max(Y[, 1]) + min(diff(time)))
-  indx <- findInterval(time, etime)
+  indx <- findInterval(time, etime, left.open = TRUE) # left.open  = TRUE is very important
 
   # this gives for every tstart (line variable) after which event time did it come
-  indx2 <- findInterval(Y[,1], time, left.open = TRUE)
+  # indx2 <- findInterval(Y[,1], time, left.open = FALSE, rightmost.closed = TRUE)
+  indx2 <- findInterval(Y[,1], time)
+
   time_to_stop <- match(Y[,2], time)
   order_id <- findInterval(id, unique(id))
 
@@ -290,25 +297,44 @@ emfrail <- function(.data, .formula,
                  order_id = order_id, time = time, indx = indx, indx2 = indx2,
                  time_to_stop = time_to_stop)
 
-  nrisk <- nrisk - c(esum, 0)[indx]
+  nrisk <- nrisk - c(esum, 0,0)[indx]
+
+  # esum %>% length
+  # indx %>% length
+  #
+  # esum
+  # indx
+  # # last indx is 548
+  # esum
+
   haz <- nevent/nrisk * newrisk
 
-  basehaz_line <- haz[match(Y[,2], time)]
 
-  #plot(haz[match(Y[,2], time)], basehaz_line)
-  # cumhaz_full is like follows (from 0 to t)
+  basehaz_line <- haz[atrisk$time_to_stop]
 
+  cumhaz <- cumsum(haz)
 
-  #
-  # cumhaz_0_line <- cumhaz_tstop[match(Y[,2], time)]
-  #
-  # plot(Y[,2], cumhaz_0_line) # this should be increasing
-  # # question is: for each tstart in the data we need to know which time point to fucking take for the cumulative hazard
+  cumhaz_0_line <- cumhaz[atrisk$time_to_stop]
+  cumhaz_tstart <- c(0, cumhaz)[atrisk$indx2 + 1]
+  cumhaz_line <- (cumhaz_0_line - cumhaz_tstart) # * explp
 
-  # cumhaz_line <- (cumhaz_0_line - cumhaz_tstart) * explp
+  Cvec <- rowsum(cumhaz_line, atrisk$order_id)
+
 
   # cumulative hazard?
 
+
+  # getChz style
+
+  # hh <- getchz(Y, newrisk, explp)
+  # cumhaz_line_2 <- sapply(X = apply(as.matrix(Y[,c(1,2)]), 1, as.list),
+  #                       FUN = function(x)  sum(hh$haz_tev[x$start <= hh$tev & hh$tev <= x$stop])) *
+  #   exp_g_x
+  #
+  # which(as.numeric(cumhaz_line_2)[1] != cumhaz_line[1])
+  # abline(0,1,col=2)
+
+  #all.equal(hh$haz, haz)
 
   #Cvec_from0 - Cvec
 
