@@ -177,8 +177,10 @@ em_fit <- function(logfrailtypar, dist, pvfm,
     # the trick used in emfrail() at the first place (with the residuals) does not work here
     # because agreg does something strange about scaling with offset.
 #
-#     hh <- getchz(Y, 1,  explp = exp(lp))
+    hh <- getchz(Y, 1,  explp = exp(lp))
 #
+    hh
+    haz
 #     cumhaz_line_b <- sapply(X = apply(as.matrix(Y[,c(1,2)]), 1, as.list),
 #                           FUN = function(x)  sum(hh$haz_tev[x$start < hh$tev & hh$tev <= x$stop]))
 #     #
