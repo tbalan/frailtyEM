@@ -177,41 +177,15 @@ em_fit <- function(logfrailtypar, dist, pvfm,
     # the trick used in emfrail() at the first place (with the residuals) does not work here
     # because agreg does something strange about scaling with offset.
 #
-    hh <- getchz(Y, 1,  explp = exp(lp))
-#
-    hh
-    haz
+#     hh <- getchz(Y, 1,  explp = exp(lp))
+# #
+#     hh
+#     haz
 #     cumhaz_line_b <- sapply(X = apply(as.matrix(Y[,c(1,2)]), 1, as.list),
 #                           FUN = function(x)  sum(hh$haz_tev[x$start < hh$tev & hh$tev <= x$stop]))
 #     #
 
 
-    # Y[4,] # we have here 96 to 325; left should be open.
-    #
-    # cumhaz_0_line[4] - c(0, cumhaz)[atrisk$indx2[4] + 2]
-    #
-    # the rightmost cumhaz will be that from time
-    # atrisk$time[atrisk$time_to_stop[4]]
-    #
-    # c(0, atrisk$time)[atrisk$indx2[4] + 1]
-    # # from which we should substract
-    # atrisk$time_to_stop[4] # this means that the rightmost will be at time point 300
-    # (atrisk$indx2 + 1)[3] # this means that the leftmost will be at position 90 from c(0, cumhaz).
-    #
-    # atrisk$time[300]
-    # atrisk$time[90]
-    #
-    # # cumhaz[300] - cumhaz[90] This is what it is supposed to be but it AINT
-    # cumhaz_line_b[3]
-    # Y[3,]
-    #
-    # cumhaz_tstart[1:3]
-    # cumhaz_0_line[1:3]
-    # #c(0, cumhaz)[atrisk$indx2 + 1][1:3]
-    #
-    # basehaz_line_b <- hh$haz_tev[match(Y[,2], hh$tev)]
-    # with(hh, plot(time, haz))
-    # points(atrisk$time, haz, col = 2)
 
 
     if(isTRUE(lt)) {
@@ -224,11 +198,11 @@ em_fit <- function(logfrailtypar, dist, pvfm,
     }
 
     Cvec <- rowsum( cumhaz_line * exp(g_x), atrisk$order_id)
-
-    # Cvec <- tapply(X = cumhaz_line * exp(g_x), # * exp(g_x),
-    #                INDEX = id,
-    #                FUN = sum)
-
+#
+#     Cvec_b <- tapply(X = cumhaz_line_b * exp(g_x), # * exp(g_x),
+#                    INDEX = atrisk$order_id,
+#                    FUN = sum)
+#
 
 
 
