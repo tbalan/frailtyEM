@@ -278,7 +278,7 @@ emfrail <- function(.data, .formula,
   time <- sort(unique(Y[,2])) # unique tstops
 
   # this gives the next entry time for each unique tstop (not only event)
-  etime <- c(0, sort(unique(Y[, 1])))
+  etime <- c(0, sort(unique(Y[, 1])),  max(Y[, 1]) + min(diff(time)))
   indx <- findInterval(time, etime)
 
   # this gives for every tstart (line variable) after which event time did it come
