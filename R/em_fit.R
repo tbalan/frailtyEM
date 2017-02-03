@@ -167,7 +167,7 @@ em_fit <- function(logfrailtypar, dist, pvfm,
     # c(0, atrisk$time)[indx2[1:4]+1]
 
     cumhaz_tstart <- c(0, cumhaz)[atrisk$indx2 + 1]
-    cumhaz_line <- cumhaz_0_line - cumhaz_tstart
+    cumhaz_line <- (cumhaz_0_line - cumhaz_tstart)  #* explp #/ newrisk
 
 # cumhaz_line[1:4]
 # cumhaz_line_b[1:4]
@@ -178,13 +178,13 @@ em_fit <- function(logfrailtypar, dist, pvfm,
     # because agreg does something strange about scaling with offset.
 #
 #     hh <- getchz(Y, 1,  explp = exp(lp))
-# #
-#     hh
-#     haz
+# # #
+# #     hh
+# #     haz
 #     cumhaz_line_b <- sapply(X = apply(as.matrix(Y[,c(1,2)]), 1, as.list),
 #                           FUN = function(x)  sum(hh$haz_tev[x$start < hh$tev & hh$tev <= x$stop]))
-#     #
-
+# #     #
+#
 
 
 

@@ -316,7 +316,7 @@ emfrail <- function(.data, .formula,
 
   cumhaz_0_line <- cumhaz[atrisk$time_to_stop]
   cumhaz_tstart <- c(0, cumhaz)[atrisk$indx2 + 1]
-  cumhaz_line <- (cumhaz_0_line - cumhaz_tstart) # * explp
+  cumhaz_line <- (cumhaz_0_line - cumhaz_tstart)  * explp / newrisk
 
   Cvec <- rowsum(cumhaz_line, atrisk$order_id)
 

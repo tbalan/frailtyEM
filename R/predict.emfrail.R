@@ -1,12 +1,16 @@
-#' Predictions from emfrail objects
+#' Predicted hazard and survival curves from an \code{emfrail} object
 #'
 #' @param fit An \code{emfrail} fit object
-#' @param lp A vector of linear predictor values at which to calculate the curves
-#' @param quantity
-#' @param type
-#' @param conf_int
+#' @param lp A vector of linear predictor values at which to calculate the curves.
+#' @param quantity The quantity to be calculated for the values of \code{lp}
+#' @param type The type of the quantity (conditional  / marginal)
+#' @param conf_int The type of the confidence interval (adjusted / regular)
 #'
-#' @return
+#' @return A data frame with the column \code{time} and several other columns according to the input.
+#' By default, for each \code{lp} it will give the following columns: \code{cumhaz}, \code{survival},
+#' \code{cumhaz_m}, \code{survival_m} for the cumulative hazard and survival, conditional and marginal.
+#'
+#'
 #' @export
 #'
 #' @examples

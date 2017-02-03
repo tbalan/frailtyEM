@@ -10,14 +10,17 @@ vignette: >
 ---
 
 ## The likelihood
-The type of data that these models can be applied on is usually consisting of either clustered failures or recurrent events. In both cases we will refer to a unit which has the same value of the frailty as a cluster. The process intensity can be written as
+The type of data that these models can be applied on is usually consisting of either clustered failures or recurrent events. In both cases we will refer to a unit which has the same value of the frailty as a cluster. The process intensity of subject $j$ in cluster $i$ can be written as
 
 $$
-\lambda_i(t) = z_i\exp(\gamma'\mathbf{x}_i(t))\lambda_0(t)
+\lambda_{ij}(t) = z_i \exp(\gamma'\mathbf{x}_{ij}(t))\lambda_0(t)
 $$
-Because the Andersen-Gill format is required for the input of the data, also left truncated data and time-dependent covariates are supported.
 
 The likelihood for cluster $i$ can be written as
+$$
+L_i(\theta,\gamma,\lambda_0) = \prod_j \prod_{k} z_i \exp()
+$$
+
 $$
 \ell_i(\theta, \gamma, \lambda_0) = \prod_j \left(\exp(\gamma'\mathbf{x}_i(t_{ij}))\lambda_0(t_{ij})\right)^{\delta_{ij}} \mathrm{E} \left[z_i^{n_i} \exp(-z_i \Lambda_i)\right]
 $$
@@ -113,6 +116,7 @@ Then by Bayes' theorem the distribution of the frailty is given by
 $$
 f_{Z|A}(z) = \frac{P(A|z) f(z)}{\int_z P(A|z) f(z) dz} = \frac{P(A|z)f(z)}{E_Z[P(A|z)]}
 $$
+
 Now this has Laplace transform
 $$
 \mathcal{L}_{Z|A}(c) = \frac{E_Z[e^{-cz}P(A|z)]}{E_Z[P(A|z)]}

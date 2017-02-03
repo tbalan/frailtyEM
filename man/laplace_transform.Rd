@@ -2,7 +2,7 @@
 % Please edit documentation in R/laplace_transform.R
 \name{laplace_transform}
 \alias{laplace_transform}
-\title{Laplace transform}
+\title{Laplace transform calculation}
 \usage{
 laplace_transform(x, .distribution)
 }
@@ -12,13 +12,20 @@ laplace_transform(x, .distribution)
 \item{.distribution}{An \code{emfrail_distribution} object. See \code{?emfrail_distribution}.}
 }
 \value{
-Returns a vector of the same length as \code{x} with the Laplace transform.
+A vector of the same length as \code{x} with the Laplace transform of \code{x}
 }
 \description{
-Laplace transform
+Laplace transform calculation
 }
 \details{
 This is a simple function which calculates the Laplace transform for the gamma, positive stable and PVF distribution.
 It is intended to be used to calculate marginal quantities from an \code{emfrail} object.
+Note that the \code{left_truncation} argument is ignored here;
+the marginal survival or hazard are given for the Laplace transform of a baseline subject entered at time 0.
+}
+\examples{
+dist <- emfrial_distribution()
+laplace_transform(rexp(10), dist)
+
 }
 
