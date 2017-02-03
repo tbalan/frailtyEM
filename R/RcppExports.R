@@ -21,3 +21,7 @@ Estep <- function(c, c_lt, delta, alpha, bbeta, pvfm, dist) {
     .Call('frailtoys_Estep', PACKAGE = 'frailtoys', c, c_lt, delta, alpha, bbeta, pvfm, dist)
 }
 
+inf_mat_match <- function(left, right, elp, maxlength) {
+    .Call('frailtoys_inf_mat_match', PACKAGE = 'frailtoys', left, right, elp, maxlength)
+}
+

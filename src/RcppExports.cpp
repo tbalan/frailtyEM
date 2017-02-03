@@ -22,3 +22,17 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// inf_mat_match
+NumericVector inf_mat_match(NumericVector left, NumericVector right, NumericVector elp, int maxlength);
+RcppExport SEXP frailtoys_inf_mat_match(SEXP leftSEXP, SEXP rightSEXP, SEXP elpSEXP, SEXP maxlengthSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericVector >::type left(leftSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type right(rightSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type elp(elpSEXP);
+    Rcpp::traits::input_parameter< int >::type maxlength(maxlengthSEXP);
+    rcpp_result_gen = Rcpp::wrap(inf_mat_match(left, right, elp, maxlength));
+    return rcpp_result_gen;
+END_RCPP
+}

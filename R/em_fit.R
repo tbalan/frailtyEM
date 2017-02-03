@@ -306,6 +306,12 @@ em_fit <- function(logfrailtypar, dist, pvfm,
     do.call(c, .)
 
 
+  elp_to_tev <-  split(data.frame(elp,
+                                  y1 = findInterval(Y[,1], tev),
+                                  y2 = findInterval(Y[,2], tev, left.open = TRUE, rightmost.closed = TRUE)),
+                       atrisk$order_id) %>%
+    lapply(function(dat) inf_mat_match(dat$y1, dat$y2, dat$elp, length(tev)))
+
   if(length(Xmat) > 0) {
 
 
@@ -324,9 +330,7 @@ em_fit <- function(logfrailtypar, dist, pvfm,
 
     I_gg_loss <- (dl1_dg  - dl2_dg) %*% t(dl1_dg - dl2_dg) + cor_dg
 
-    cor_dg_dh <- split(data.frame(elp, y1 = Y[,1], y2 = Y[,2]), atrisk$order_id) %>%
-      lapply(function(dat) lapply(tev, function(tk) sum(dat$elp[dat$y1 < tk & tk <= dat$y2]))) %>%
-      lapply(function(...) do.call(c, ...)) %>%
+    cor_dg_dh <- elp_to_tev %>%
       mapply(function(a, b) a %*% t(b), tapply(x_elp_H0, atrisk$order_id, function(...) Reduce("+", ...))  ,. , SIMPLIFY = FALSE) %>%
       mapply(function(a,b) a * b, ., zz - z^2, SIMPLIFY = FALSE) %>%
       Reduce("+",.)
@@ -349,9 +353,67 @@ em_fit <- function(logfrailtypar, dist, pvfm,
   #   apply(2,sum)
 
   # correction
-  cor_dh <- split(data.frame(elp, y1 = Y[,1], y2 = Y[,2]), atrisk$order_id) %>%
-    lapply(function(dat) lapply(tev, function(tk) sum(dat$elp[dat$y1 < tk & tk <= dat$y2]))) %>%
-    lapply(function(...) do.call(c, ...)) %>%  # these are the c_ik without the z man.
+
+  # elephant_in_the_room <-  split(data.frame(elp, y1 = Y[,1], y2 = Y[,2]), atrisk$order_id) %>%
+  #   lapply(function(dat) lapply(tev, function(tk) sum(dat$elp[dat$y1 < tk & tk <= dat$y2]))) %>%
+  #   lapply(function(...) do.call(c, ...))
+
+  # elephant_in_the_room
+  # a1 <- split(data.frame(elp, y1 = Y[,1], y2 = Y[,2]), atrisk$order_id)[[1]]
+
+  #
+
+
+  # length(tev)
+  #
+  # library(microbenchmark)
+
+#
+#     elephant_in_the_room <-  split(data.frame(elp, y1 = Y[,1], y2 = Y[,2]), atrisk$order_id) %>%
+#                    lapply(function(dat) lapply(tev, function(tk) sum(dat$elp[dat$y1 < tk & tk <= dat$y2]))) %>%
+#                    lapply(function(...) do.call(c, ...))
+
+    # findInterval(Y[,2], tev, left.open = TRUE, rightmost.closed = TRUE)[1]
+    #
+    # # first event is the 172nd event, but this says its' in the 171th gap.
+    # findInterval(min(tev), tev, left.open = TRUE, rightmost.closed = FALSE)
+    # findInterval(tev[70], tev, left.open = TRUE, rightmost.closed = FALSE)
+    #
+    #   sort(unique(tev))
+    # tev
+
+
+    #all.equal(elephant_in_the_room, elephant_in_the_room_2)
+    # split(data.frame(elp,
+    #                  y1 = findInterval(Y[,1], tev),
+    #                  y2 = findInterval(Y[,2], tev, left.open = TRUE, rightmost.closed = TRUE)), atrisk$order_id)[[82]]
+    #
+    # y2 = findInterval(Y[atrisk$order_id == 82,2], tev, left.open = TRUE, rightmost.closed = TRUE)
+    #
+    # tev
+    # cbind(elephant_in_the_room[[82]], elephant_in_the_room_2[[82]])[1:35,]
+    #
+  #   inf_mat_match(left_long[1:3], right_long[1:3], elp[1:3], length(tev)))
+  # microbenchmark(do.call(c, lapply(tev, function(tk) sum(a1$elp[a1$y1 < tk & tk <= a1$y2]))))
+  # do.call(c, b1)
+  #
+  # rep(elp, findInterval(Y[,2], tev)  )
+
+  # ?rep
+  # elp
+  #
+  # atrisk$order_id
+  #
+  #
+  # findInterval(a1$y1, tev)
+  #
+  #
+  #  do.call(c, b1)
+  # a1
+  # tev
+  # length(tev)
+
+  cor_dh <- elp_to_tev %>%  # these are the c_ik without the z man.
     lapply(function(x) x %*% t(x)) %>%
     mapply(function(a,b) a * b, ., zz - z^2, SIMPLIFY = FALSE) %>%
     Reduce("+",.)
