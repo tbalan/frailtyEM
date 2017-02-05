@@ -60,6 +60,30 @@ m_pf <- parfm(Surv(rep(0, nrow(dat)), time, status) ~ sex + rx, cluster = "litte
 m_fp <- frailtyPenal(Surv(time, status) ~ sex + rx + cluster(litter), n.knots=12, kappa=10000, data = dat)
 ```
 
+
+```{r rats_pvf}
+dat <- survival::rats
+
+# frailtoys
+m_ft <- emfrail(.data = dat, .formula = Surv(rep(0, nrow(dat)), time, status) ~ sex + rx + cluster(litter),
+                .control = emfrail_control(opt_fit = TRUE))
+
+# survival
+m_cph <- coxph(data = dat, 
+                 formula = Surv(rep(0, nrow(dat)), time, status) ~ sex + rx + frailty(litter),
+                 ties = "breslow")
+
+# frailtysurv
+m_ff <- fitfrail(Surv(rep(0, nrow(dat)), time, status) ~ sex + rx + cluster(litter), dat,  frailty = "gamma")
+m_ff_2 <- fitfrail(Surv(time, status) ~ sex + rx + cluster(litter), dat,  frailty = "gamma", se = TRUE)
+
+# parfm
+m_pf <- parfm(Surv(rep(0, nrow(dat)), time, status) ~ sex + rx, cluster = "litter", data = dat, frailty = "gamma", dist = "exponential")
+
+# frailtypack
+m_fp <- frailtyPenal(Surv(time, status) ~ sex + rx + cluster(litter), n.knots=12, kappa=10000, data = dat)
+```
+
 ```{r rats_gamma_show}
 m_ft
 

@@ -306,7 +306,7 @@ em_fit <- function(logfrailtypar, dist, pvfm,
     do.call(c, .)
 
 
-  elp_to_tev <-  split(data.frame(elp,
+  elp_to_tev <-  split.data.frame(data.frame(elp,
                                   y1 = findInterval(Y[,1], tev),
                                   y2 = findInterval(Y[,2], tev, left.open = TRUE, rightmost.closed = TRUE)),
                        atrisk$order_id) %>%
