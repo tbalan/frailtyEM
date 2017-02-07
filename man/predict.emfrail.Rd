@@ -33,4 +33,3 @@ Predicted hazard and survival curves from an \code{emfrail} object
 predict.emfrail(m1)
 
 }
-

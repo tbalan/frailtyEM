@@ -18,8 +18,8 @@ Imports:
     msm,
     optimx
 LinkingTo: Rcpp
-RoxygenNote: 5.0.1
-Collate:
+RoxygenNote: 6.0.1
+Collate: 
     'RcppExports.R'
     'dist_to_pars.R'
     'em_fit.R'
@@ -31,6 +31,7 @@ Collate:
     'laplace_transform.R'
     'predict.emfrail.R'
     'print.emfrail.R'
+    'summary.emfrail.R'
 Suggests:
     knitr,
     rmarkdown,

@@ -74,4 +74,3 @@ m_ft_08 <- emfrail(dat, Surv(tstart, tstop, status) ~ x + cluster(id),
 \seealso{
 \code{\link{emfrail}, \link{emfrail_distributon}, \link{emfrail_pll}}
 }
-

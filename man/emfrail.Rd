@@ -158,4 +158,3 @@ mymod <- d1 \%>\%
   emfrail(Surv(ltime, stime, status)~ x + cluster(id), .control = emfrail_control(verbose = TRUE),
           .distribution = emfrail_distribution(left_truncation = TRUE))
 }
-

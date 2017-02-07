@@ -201,7 +201,7 @@ This is calculated directly in the `fast_Estep()` routine. If `left_truncation =
 
 
 
-### Positive stable frailty
+) = ### Positive stable frailty
 For the positive stable distribution, we have $\beta \in (0,1)$ (if $\beta = 1$ then it means that the marginal hazards are equal to the conditional hazards; if we have conditional covariate effect $\gamma$ then the marginal effect is $\beta \gamma$ so it is attenuated; predictive hazard ratios decrease to 1 over time)
 $$
 \psi(c) = c^\beta

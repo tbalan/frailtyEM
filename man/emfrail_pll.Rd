@@ -46,4 +46,3 @@ profloglik_cph<- sapply(fr_var, function(th)
 lines(fr_var, profloglik_cph, col = 2)
 
 }
-

@@ -16,4 +16,3 @@ Nothing
 This function is included in case someone wants to access this output quickly,
 and can look into the code.
 }
-
