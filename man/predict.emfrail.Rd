@@ -27,4 +27,10 @@ By default, for each \code{lp} it will give the following columns: \code{cumhaz}
 \description{
 Predicted hazard and survival curves from an \code{emfrail} object
 }
+\examples{
+#' m1 <- emfrail(.data =  dat, .formula = Surv(rep(0, nrow(dat)), time, status) ~  rx + sex + cluster(litter),
+.distribution = emfrail_distribution(dist = "gamma"))
+predict.emfrail(m1)
+
+}
 

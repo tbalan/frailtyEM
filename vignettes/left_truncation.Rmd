@@ -485,6 +485,13 @@ d1 <- d %>% filter(stime > ltime)
 m1 <- d1 %>%
   emfrail(Surv(ltime, stime, status)~ x + cluster(id), .control = emfrail_control(verbose = TRUE))
 
+m1
+
+
+m1 <- d1 %>%
+  fitfrail(Surv(ltime, stime, status)~ x + cluster(id), ., frailty = "gamma", se = TRUE)
+m1
+
 
 m2 <- d1 %>%
   emfrail(Surv(ltime, stime, status)~ x + cluster(id),

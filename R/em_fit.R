@@ -87,7 +87,7 @@ em_fit <- function(logfrailtypar, dist, pvfm,
      sum(e_step_val[,3]) + sum(Y[,3]) - sum((atrisk$nevent * log(atrisk$nevent))[atrisk$nevent > 0])# +  sum(nev_id * lp_individual)
 
     #
-    # this is actually identical value:
+    # this is actually identical value, for the gamma
     # loglik <- sum((log(basehaz_line) + t(mcox$coefficients %*% t(Xmat)))[Y[,3] == 1]) +
     #   sum(.pars$alpha * log(.pars$alpha) + lgamma(.pars$alpha + nev_id) - lgamma(.pars$alpha) -
     #         (.pars$alpha + nev_id) * log(.pars$alpha + Cvec)) +

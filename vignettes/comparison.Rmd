@@ -38,6 +38,7 @@ In `timereg` there is a function `two.step` which does some things. It does not 
 
 ### gamma frailty
 ```{r rats_gamma}
+library(frailtoys)
 dat <- survival::rats
 
 # frailtoys
@@ -50,33 +51,54 @@ m_cph <- coxph(data = dat,
                  ties = "breslow")
 
 # frailtysurv
+
+library(frailtySurv)
 m_ff <- fitfrail(Surv(rep(0, nrow(dat)), time, status) ~ sex + rx + cluster(litter), dat,  frailty = "gamma")
 m_ff_2 <- fitfrail(Surv(time, status) ~ sex + rx + cluster(litter), dat,  frailty = "gamma", se = TRUE)
 
 # parfm
+library(parfm)
 m_pf <- parfm(Surv(rep(0, nrow(dat)), time, status) ~ sex + rx, cluster = "litter", data = dat, frailty = "gamma", dist = "exponential")
 
 # frailtypack
+library(frailtypack)
 m_fp <- frailtyPenal(Surv(time, status) ~ sex + rx + cluster(litter), n.knots=12, kappa=10000, data = dat)
 ```
 
 
 ```{r rats_pvf}
-dat <- survival::rats
-
+data("kidney")
+kidney$sex <- kidney$sex - 1
 # frailtoys
-m_ft <- emfrail(.data = dat, .formula = Surv(rep(0, nrow(dat)), time, status) ~ sex + rx + cluster(litter),
-                .control = emfrail_control(opt_fit = TRUE))
+names(kidney)
+m_ft <- emfrail(.data = kidney, .formula = Surv(rep(0, nrow(kidney)), time, status) ~ sex + age + cluster(id),
+                .control = emfrail_control(opt_fit = TRUE),
+                .distribution = emfrail_distribution(dist = "pvf", 
+                                                     pvfm = -1/2))
 
+
+  a1 <- predict(m_ft, quantity = "cumhaz", type = "conditional")
+  a1
 # survival
-m_cph <- coxph(data = dat, 
-                 formula = Surv(rep(0, nrow(dat)), time, status) ~ sex + rx + frailty(litter),
-                 ties = "breslow")
+# m_cph <- coxph(data = dat, 
+#                  formula = Surv(rep(0, nrow(dat)), time, status) ~ sex + rx + frailty(litter),
+#                  ties = "breslow")
 
 # frailtysurv
+library(frailtySurv)
+
+m_ff_2 <- fitfrail(Surv(time, status) ~ sex + age + cluster(id), kidney,  frailty = "pvf", se = TRUE)
+
+plot(m_ff_2, type = "cumhaz")
+str(m_ff_2)
+plot(m_ff_2$Lambda)
+
+m_ff
+?fitfrail
 m_ff <- fitfrail(Surv(rep(0, nrow(dat)), time, status) ~ sex + rx + cluster(litter), dat,  frailty = "gamma")
 m_ff_2 <- fitfrail(Surv(time, status) ~ sex + rx + cluster(litter), dat,  frailty = "gamma", se = TRUE)
 
+fitfrail
 # parfm
 m_pf <- parfm(Surv(rep(0, nrow(dat)), time, status) ~ sex + rx, cluster = "litter", data = dat, frailty = "gamma", dist = "exponential")
 
@@ -98,69 +120,76 @@ m_fp
 
 
 ```{r rats_gamma_plots}
-pl1 <- predict(m_ft, lp = 0, quantity = "cumhaz", type = c("conditional", "marginal")) %>% 
-  ggplot(aes(x = time, y = cumhaz)) + geom_step(aes(color = "conditional")) + geom_step(aes(y = cumhaz_m, color = "marginal")) +
-  labs(color = "type") 
+library(magrittr)
+library(ggplot2)
 
 
-pl1 +
-  geom_ribbon(aes(ymin = cumhaz_l, ymax = cumhaz_r), alpha = 0.1) +
-  geom_ribbon(aes(ymin = cumhaz_l_a, ymax = cumhaz_r_a), alpha = 0.1, fill = "pink")
-
-pl1 +
-  geom_ribbon(aes(ymin = cumhaz_m_l, ymax = cumhaz_m_r), alpha = 0.1) +
-  geom_ribbon(aes(ymin = cumhaz_m_l_a, ymax = cumhaz_m_r_a), alpha = 0.1, fill = "pink")
+# pl1 <- predict(m_ft, 
+#                lp = 0, 
+#                quantity = "cumhaz", 
+#                type = c("conditional", "marginal")) %>% 
+#   ggplot(aes(x = time, y = cumhaz)) + geom_step(aes(color = "conditional")) + geom_step(aes(y = cumhaz_m, color = "marginal")) +
+#   labs(color = "type") 
+# 
+# 
+# pl1 +
+#   geom_ribbon(aes(ymin = cumhaz_l, ymax = cumhaz_r), alpha = 0.1) +
+#   geom_ribbon(aes(ymin = cumhaz_l_a, ymax = cumhaz_r_a), alpha = 0.1, fill = "pink")
+# 
+# pl1 +
+#   geom_ribbon(aes(ymin = cumhaz_m_l, ymax = cumhaz_m_r), alpha = 0.1) +
+#   geom_ribbon(aes(ymin = cumhaz_m_l_a, ymax = cumhaz_m_r_a), alpha = 0.1, fill = "pink")
 
 
 
 ```
 
 
-# no newdata argument for this one
-try(m_cph %>% survfit(newdata = data.frame(sex = "f", rx = 0)))
+<!-- # no newdata argument for this one -->
+<!-- try(m_cph %>% survfit(newdata = data.frame(sex = "f", rx = 0))) -->
 
-sf_cph <- m_cph %>% 
-  survfit() %>% 
-  with(data.frame(time = time, cumhaz = cumhaz))
+<!-- sf_cph <- m_cph %>%  -->
+<!--   survfit() %>%  -->
+<!--   with(data.frame(time = time, cumhaz = cumhaz)) -->
 
-pl1 + geom_step(data = sf_cph, aes(x = time, y = cumhaz), colour = 3)
+<!-- pl1 + geom_step(data = sf_cph, aes(x = time, y = cumhaz), colour = 3) -->
 
-pl1 + geom_step(data = sf_cph, aes(x = time, y = cumhaz), colour = 3)
-
-
-pl2 <- predict(m_ft, lp = t(m_ft$mcox$means) %*% m_ft$res$coef, quantity = "cumhaz", type = c("conditional", "marginal")) %>% 
-  ggplot(aes(x = time, y = cumhaz)) + 
-  geom_step() + 
-  geom_step(aes(y = cumhaz_m), color = 2) +
-  geom_step(data = sf_cph, aes(x = time, y = cumhaz), colour = 3)
-
-pl2
+<!-- pl1 + geom_step(data = sf_cph, aes(x = time, y = cumhaz), colour = 3) -->
 
 
+<!-- pl2 <- predict(m_ft, lp = t(m_ft$mcox$means) %*% m_ft$res$coef, quantity = "cumhaz", type = c("conditional", "marginal")) %>%  -->
+<!--   ggplot(aes(x = time, y = cumhaz)) +  -->
+<!--   geom_step() +  -->
+<!--   geom_step(aes(y = cumhaz_m), color = 2) + -->
+<!--   geom_step(data = sf_cph, aes(x = time, y = cumhaz), colour = 3) -->
 
-library(frailtySurv)
-
-
-m_ff_2
-
-plot(m_ff_2)
-
-pl1 + geom_step(data = m_ff_2$Lambda.all, aes(x = time, y = Lambda), colour = 5)
+<!-- pl2 -->
 
 
-library(parfm)
-m_pf <- parfm(Surv(rep(0, nrow(dat)), time, status) ~ sex + rx, cluster = "litter", data = dat, frailty = "gamma", dist = "exponential")
 
-m_pf %>% str()
-
-m_ft %>% str()
-
-m_pf %>% str()
-attr(m_pf, "cumhazT")
-
-pl1 + geom_abline(intercept = 0, slope = m_pf[2,1])
+<!-- library(frailtySurv) -->
 
 
-prediction(m_fp, data.frame(sex = "f", rx = 0), t = 70, window = seq(1, 80, 1))
-```
+<!-- m_ff_2 -->
+
+<!-- plot(m_ff_2) -->
+
+<!-- pl1 + geom_step(data = m_ff_2$Lambda.all, aes(x = time, y = Lambda), colour = 5) -->
+
+
+<!-- library(parfm) -->
+<!-- m_pf <- parfm(Surv(rep(0, nrow(dat)), time, status) ~ sex + rx, cluster = "litter", data = dat, frailty = "gamma", dist = "exponential") -->
+
+<!-- m_pf %>% str() -->
+
+<!-- m_ft %>% str() -->
+
+<!-- m_pf %>% str() -->
+<!-- attr(m_pf, "cumhazT") -->
+
+<!-- pl1 + geom_abline(intercept = 0, slope = m_pf[2,1]) -->
+
+
+<!-- prediction(m_fp, data.frame(sex = "f", rx = 0), t = 70, window = seq(1, 80, 1)) -->
+<!-- ``` -->
 

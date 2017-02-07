@@ -1,6 +1,4 @@
-
-
-# Auxiliary functions which create the parameters
+# This function governs the parameter scaling for distributions.
 dist_to_pars <- function(dist, logfrailtypar, pvfm) {
 
     if (dist == "gamma") {

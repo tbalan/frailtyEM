@@ -26,7 +26,7 @@ EM is not actually performed. The log-likelihood returned to the maximizer is th
 \item{opt_control}{A list with arguments to be sent to the maximizer. Currently ignored, will be useful in the future.}
 }
 \value{
-A list of arguments suitable for \code{emfrail()}!
+An object of the type \code{emfrail_control}.
 }
 \description{
 Control parameters for emfrail
@@ -72,6 +72,6 @@ m_ft_08 <- emfrail(dat, Surv(tstart, tstop, status) ~ x + cluster(id),
 
 }
 \seealso{
-\code{\link{emfrail}, \link{emfrail_distributon}}
+\code{\link{emfrail}, \link{emfrail_distributon}, \link{emfrail_pll}}
 }
 

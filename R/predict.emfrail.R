@@ -13,15 +13,18 @@
 #'
 #' @export
 #'
+#' @include laplace_transform.R
+#'
 #' @examples
+#' #' m1 <- emfrail(.data =  dat, .formula = Surv(rep(0, nrow(dat)), time, status) ~  rx + sex + cluster(litter),
+#' .distribution = emfrail_distribution(dist = "gamma"))
+#' predict.emfrail(m1)
+#'
 predict.emfrail <- function(fit,
                             lp = c(0),
                             quantity = c("cumhaz", "survival"),
                             type = c("conditional", "marginal"),
                             conf_int = c("regular", "adjusted")) {
-
-  # from this point on, it is about calculating other things.
-  # this should be in another function
 
   ncoef <- length(fit$res$coef)
 

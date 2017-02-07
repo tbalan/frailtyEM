@@ -17,17 +17,24 @@ emfrail_distribution(dist = "gamma", frailtypar, pvfm = -1/2,
 \item{left_truncation}{Logical. Whether the data set represents left truncated survival times.}
 }
 \value{
-A list of arguments suitable for \code{emfrail()}!
+An object of the type \code{emfrail_distribution}, which is mostly used to denote the
+supported frailty distributions in a consistent way.
 }
 \description{
 Distribution parameters for emfrail
 }
-\note{
-The \code{frailtypar} argument must be positive.
+\details{
+The \code{frailtypar} argument must be positive. In the case of gamma or PVF, this is \eqn{1/\theta}
+ where \eqn{\theta} is the frailty variance, i.e. the larger the \code{frailtypar} is,
+ the closer the model is to a Cox model. For the positive stable distribution, the parameter is
+ \eqn{\theta / (1 - \theta)}, where \eqn{0 < \theta < 1}.
 }
 \examples{
 emfrail_distribution()
+# Compound Poisson distribution:
 emfrail_distribution(dist = 'pvf', frailtypar = 1.5, pvfm = 0.5)
+# Inverse Gaussian distribution:
+emfrail_distribution(dist = 'pvf')
 }
 \seealso{
 \code{\link{emfrail}, \link{emfrail_control}}

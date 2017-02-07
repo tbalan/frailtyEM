@@ -5,14 +5,22 @@
 #' @param pvfm Only relevant if \code{dist = 'pvf'} is used. It determines which PVF distribution should be used. Must be  larger than -1 and not equal to 0.
 #' @param left_truncation Logical. Whether the data set represents left truncated survival times.
 #'
-#' @return A list of arguments suitable for \code{emfrail()}!
+#' @return An object of the type \code{emfrail_distribution}, which is mostly used to denote the
+#' supported frailty distributions in a consistent way.
 #' @export
 #'
-#' @note The \code{frailtypar} argument must be positive.
+#' @details The \code{frailtypar} argument must be positive. In the case of gamma or PVF, this is \eqn{1/\theta}
+#'  where \eqn{\theta} is the frailty variance, i.e. the larger the \code{frailtypar} is,
+#'  the closer the model is to a Cox model. For the positive stable distribution, the parameter is
+#'  \eqn{\theta / (1 - \theta)}, where \eqn{0 < \theta < 1}.
+#'
 #' @seealso \code{\link{emfrail}, \link{emfrail_control}}
 #' @examples
 #' emfrail_distribution()
+#' # Compound Poisson distribution:
 #' emfrail_distribution(dist = 'pvf', frailtypar = 1.5, pvfm = 0.5)
+#' # Inverse Gaussian distribution:
+#' emfrail_distribution(dist = 'pvf')
 emfrail_distribution <- function(dist = "gamma", frailtypar, pvfm = -1/2, left_truncation = FALSE) {
 
     if (!(dist %in% c("gamma", "stable", "pvf")))
@@ -48,7 +56,7 @@ emfrail_distribution <- function(dist = "gamma", frailtypar, pvfm = -1/2, left_t
 #' EM is not actually performed. The log-likelihood returned to the maximizer is that for the Cox model.
 #' @param opt_control A list with arguments to be sent to the maximizer. Currently ignored, will be useful in the future.
 #'
-#' @return A list of arguments suitable for \code{emfrail()}!
+#' @return An object of the type \code{emfrail_control}.
 #' @export
 #'
 #' @details The \code{fast_fit} option make a difference when the distribution is gamma (with or without left truncation) or
@@ -59,7 +67,7 @@ emfrail_distribution <- function(dist = "gamma", frailtypar, pvfm = -1/2, left_t
 #' The \code{zerotol} option defaults to \code{1e-04}, which in practical terms means, for example, that for
 #' the gamma / pvf distribution, a frailty variance below \code{1e-04} can not be detected.
 #'
-#' @seealso \code{\link{emfrail}, \link{emfrail_distributon}}
+#' @seealso \code{\link{emfrail}, \link{emfrail_distributon}, \link{emfrail_pll}}
 #' @examples
 #' emfrail_control()
 #' emfrail_control(eps = 10e-7)
