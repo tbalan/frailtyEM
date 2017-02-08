@@ -445,16 +445,19 @@ em_fit <- function(logfrailtypar, dist, pvfm,
 
   # with this one we will also need SE estimates and all the stuff
   if(!isTRUE(return_loglik)) {
-    res = list(loglik = loglik,
-               dist = dist,
-               frailtypar = exp(logfrailtypar),
-               haz = list(tev = tev, haz_tev = haz_tev),
-               logz = logz,
-               Cvec = Cvec,
-               estep = e_step_val,
-               coef = mcox$coefficients,
-               Vcov = Vcov,
-               pvfm = pvfm)
+    res = list(loglik = loglik, # this we need
+               # dist = dist, # do we need this?
+               # frailtypar = exp(logfrailtypar),
+               tev = tev, # event time points
+               haz = haz_tev, # the Breslow estimator for ech tev
+               # haz = list(tev = tev,
+               #            haz_tev = haz_tev),
+               # logz = logz, estimated log frailties, we do not need
+               Cvec = Cvec, #the Lambdatildei, I don't think I need that. But maybe I do?
+               estep = e_step_val, # the E step oibject, just keep it like that.
+               coef = mcox$coefficients, # the maximized coefficients. I need this.
+               Vcov = Vcov) # the Vcov matrix, yes I want it!
+               #pvfm = pvfm)
 
     res
   }

@@ -131,10 +131,10 @@ double exponent_pvf(const double& alpha, const double& bbeta, const double &pvfm
 void findsums(int rest, int last, int pos, std::vector<int> combs, //int &ncalls,
               const double& alpha, const double& bbeta, const double& c, const double &c_lt, double& res,
               const double& pvfm, const int& dist) {
-
+  //printvec(combs);
   if(rest == 0) {
 
-    //printvec(combs);
+    // printvec(combs);
 
     //calculate coefficient
 
@@ -143,17 +143,17 @@ void findsums(int rest, int last, int pos, std::vector<int> combs, //int &ncalls
     // coefficient
 
 
-    /*
-    Rcout<<std::endl<<"unadjusted coefficient: "<<combs.size()<<"! / ";
-    Rcout<<"(repeats : ";
-    double adjust = repeats2(combs, combs.size());
-    Rcout<<")";
 
-    Rcout<<"factorial numerator is "<<std::exp(logfactorial(combs.size()))<<std::endl;
-    Rcout<<"log of denominator is "<<repeats2(combs, combs.size())<<std::endl;
-    Rcout<<"factorial denominator is "<<std::exp(repeats2(combs, combs.size()));
+    // Rcout<<std::endl<<"unadjusted coefficient: "<<combs.size()<<"! / ";
+    // Rcout<<"(repeats : ";
+    // double adjust = repeats2(combs, combs.size());
+    // Rcout<<")";
+    //
+    // Rcout<<"factorial numerator is "<<std::exp(logfactorial(combs.size()))<<std::endl;
+    // Rcout<<"log of denominator is "<<repeats2(combs, combs.size())<<std::endl;
+    // Rcout<<"factorial denominator is "<<std::exp(repeats2(combs, combs.size()));
 
-    */
+
     double element = std::exp(logfactorial(combs.size()) - repeats2(combs, combs.size()));
 
     //Rcout<<std::endl<<"res = "<<element;
@@ -174,11 +174,11 @@ void findsums(int rest, int last, int pos, std::vector<int> combs, //int &ncalls
 
       }
     }
-    //Rcout<<" = "<<element;
+    // Rcout<<" = "<<element;
     // Rcout<<"repeats is..."<<repeats(combs, combs.size());
     // Rcout<<"coef is..." <<std::exp(coef);
     //
-    //Rcout<<std::endl<<"contributing with..."<<element;
+    // Rcout<<std::endl<<"contributing with..."<<element;
 
     res += element;
 
@@ -307,8 +307,7 @@ NumericMatrix Estep(NumericVector c, NumericVector c_lt, IntegerVector delta, do
 }
 
 /*** R
-
-
+# Estep(c = rexp(1), c_lt = 0, delta = 2, alpha = 1, bbeta = 1, pvfm = -0.5, dist = 2)
 
 */
 

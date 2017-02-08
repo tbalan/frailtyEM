@@ -31,6 +31,7 @@ Collate:
     'laplace_transform.R'
     'predict.emfrail.R'
     'print.emfrail.R'
+    'summary.emfrail.R'
 Suggests:
     knitr,
     rmarkdown,

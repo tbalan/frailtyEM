@@ -12,7 +12,10 @@
 #' @param .distribution An object as created by \code{\link{emfrail_distribution}} which defines the frailty distribution. See Details.
 #' @param .control An object as created by \code{\link{emfrail_control}}
 #'
-#' @return An emfrail-type object, containing a lot of interesting information.
+#' @return An object of the class \code{emfrail}, that is in fact a list which contains (1) the object returned by the
+#' "outer maximization" from \code{optimx}, (2) the object with all the estimates returned by the "inner maximization",
+#' (3) the log-likelihood of the Cox model without frailty, (4) the variance-covariance matrix adjusted for the uncertainty in the
+#' outer maximization, and (5,6,7) are copies of the original input arguments: .formula, .distribution and .control.
 #' @export
 #'
 #' @details The \code{emfrail} function fits shared frailty models for processes which have intensity
@@ -147,6 +150,7 @@
 #' mymod <- d1 %>%
 #'   emfrail(Surv(ltime, stime, status)~ x + cluster(id), .control = emfrail_control(verbose = TRUE),
 #'           .distribution = emfrail_distribution(left_truncation = TRUE))
+#'@seealso \code{\link{summary.emfrail}, \link{predict.emfrail}, \link{emfrail_distribution}, \link{emfrail_control}}
 
 
 emfrail <- function(.data,
@@ -364,7 +368,7 @@ emfrail <- function(.data,
 
 
   # otherwise, the maximizer
-  opt_object <- optimx::optimx(par = log(.distribution$frailtypar), fn = em_fit,
+  outer_m <- optimx::optimx(par = log(.distribution$frailtypar), fn = em_fit,
                hessian = TRUE,
                #lower = -10000, upper = 10000,
                method = .control$opt_control$method, #control = .control$opt_control$control,
@@ -378,7 +382,7 @@ emfrail <- function(.data,
 
   message("Calculating final fit with information matrix...")
 
-  final_fit <- em_fit(logfrailtypar = opt_object$p1,
+  inner_m <- em_fit(logfrailtypar = outer_m$p1,
                       dist = .distribution$dist, pvfm = .distribution$pvfm,
                       Y = Y, Xmat = X, atrisk = atrisk, basehaz_line = basehaz_line,
                       mcox = list(coefficients = g, loglik = mcox$loglik),  # a "fake" cox model
@@ -387,9 +391,9 @@ emfrail <- function(.data,
                       .control = .control, return_loglik = FALSE)
 
   # that the hessian
-  h <- as.numeric(sqrt(1/(attr(opt_object, "details")[[3]]))/2)
-  lfp_minus <- max(opt_object$p1 - h , opt_object$p1 - 5)
-  lfp_plus <- min(opt_object$p1 + h , opt_object$p1 + 5)
+  h <- as.numeric(sqrt(1/(attr(outer_m, "details")[[3]]))/2)
+  lfp_minus <- max(outer_m$p1 - h , outer_m$p1 - 5)
+  lfp_plus <- min(outer_m$p1 + h , outer_m$p1 + 5)
 
   message("Calculating adjustment for information matrix...")
 
@@ -411,53 +415,68 @@ emfrail <- function(.data,
                            .control = .control, return_loglik = FALSE)
 
   # instructional: this should be more or less equal to the
-  # -(final_fit_plus$loglik + final_fit_minus$loglik - 2 * final_fit$loglik)/h^2
+  -(final_fit_plus$loglik + final_fit_minus$loglik - 2 * inner_m$loglik)/h^2
 
   # se_logtheta^2 / (2 * (final_fit$loglik -final_fit_plus$loglik ))
 
-  deta_dtheta <- (c(final_fit_plus$coef, final_fit_plus$haz$haz_tev) -
-    c(final_fit_minus$coef, final_fit_minus$haz$haz_tev)) / (2*h)
+  deta_dtheta <- (c(final_fit_plus$coef, final_fit_plus$haz) -
+    c(final_fit_minus$coef, final_fit_minus$haz)) / (2*h)
 
   #adj_se <- sqrt(diag(deta_dtheta %*% (1/(attr(opt_object, "details")[[3]])) %*% t(deta_dtheta)))
 
-  vcov_adj = final_fit$Vcov + deta_dtheta %*% (1/(attr(opt_object, "details")[[3]])) %*% t(deta_dtheta)
+  vcov_adj = inner_m$Vcov + deta_dtheta %*% (1/(attr(outer_m, "details")[[3]])) %*% t(deta_dtheta)
+  #
 
-  est_dist <- emfrail_distribution(dist = .distribution$dist,
-                                   frailtypar = final_fit$frailtypar,
-                                   pvfm = .distribution$pvfm
-  )
+  # est_dist <- emfrail_distribution(dist = .distribution$dist,
+  #                                  frailtypar = final_fit$frailtypar,
+  #                                  pvfm = .distribution$pvfm
+  # )
 
 
+  res <- list(outer_m = outer_m,
+              inner_m = inner_m,
+              loglik_null = mcox$loglik[length(mcox$loglik)],
+              # mcox = mcox,
+              vcov_adj = vcov_adj,
+              .formula,
+              .distribution,
+              .control
+              )
 
-res <- list(outer_m = opt_object,
-            est_dis = est_dist,
-              res = list(loglik = final_fit$loglik, # obsolete ?
-                         dist = final_fit$dist, # in est_dist
-                         pvfm = final_fit$pvfm, # in est_dist
-                         theta = final_fit$frailtypar, # in est_dist
-
-                         # this should be here (the baseline at least).
-                         haz = data.frame(time = final_fit$haz$tev,
-                                          cumhaz = cumsum(final_fit$haz$haz_tev)),
-                                          #se = final_fit$se[(1 + length(final_fit$coef)):length(final_fit$se)]),
-
-                         # this should be here as well.
-                         z = data.frame(id = unique(id),
-                                        nev = atrisk$nev_id,
-                                        Lambda = final_fit$Cvec,
-                                        z = final_fit$estep[,1] / final_fit$estep[,2] ),
-                         # this SHOULD be here, really.
-                                        coef = final_fit$coef,
-
-                         # these things happen later anyway. Maybe that should be part of a summary object.
-                         se_coef = sqrt(diag(final_fit$Vcov)[seq_along(final_fit$coef)]),
-                         se_coef_adj = sqrt(diag(vcov_adj)[seq_along(final_fit$coef)] )),
-
-            # the initial Cox model is only good to have for the loglikelihood
-            mcox = mcox,
-            vcov = final_fit$Vcov,
-            vcov_adj = vcov_adj
-               )
+# res <- list(outer_m = opt_object, # contains the maximization
+#             inner_m = final_fit, # the inner object
+#             mcox = mcox, # initial cox model
+#             id = unique(id),
+#             .distribution = .distribution, # the initial distribution call
+#
+#             #est_dis = est_dist,
+#               res = list(loglik = final_fit$loglik, # obsolete ?
+#                          dist = final_fit$dist, # in est_dist
+#                          pvfm = final_fit$pvfm, # in est_dist
+#                          theta = final_fit$frailtypar, # in est_dist
+#
+#                          # this should be here (the baseline at least).
+#                          haz = data.frame(time = final_fit$haz$tev,
+#                                           cumhaz = cumsum(final_fit$haz$haz_tev)),
+#                                           #se = final_fit$se[(1 + length(final_fit$coef)):length(final_fit$se)]),
+#
+#                          # this should be here as well.
+#                          z = data.frame(id = unique(id),
+#                                         nev = atrisk$nev_id,
+#                                         Lambda = final_fit$Cvec,
+#                                         z = final_fit$estep[,1] / final_fit$estep[,2] ),
+#                          # this SHOULD be here, really.
+#                                         coef = final_fit$coef,
+#
+#                          # these things happen later anyway. Maybe that should be part of a summary object.
+#                          se_coef = sqrt(diag(final_fit$Vcov)[seq_along(final_fit$coef)]),
+#                          se_coef_adj = sqrt(diag(vcov_adj)[seq_along(final_fit$coef)] )),
+#
+#             # the initial Cox model is only good to have for the loglikelihood
+#             mcox = mcox,
+#             vcov = final_fit$Vcov,
+#             vcov_adj = vcov_adj
+#                )
   attr(res, "class") <- "emfrail"
 
   res

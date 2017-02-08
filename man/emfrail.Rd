@@ -17,7 +17,10 @@ emfrail(.data, .formula, .distribution = emfrail_distribution(),
 \item{.control}{An object as created by \code{\link{emfrail_control}}}
 }
 \value{
-An emfrail-type object, containing a lot of interesting information.
+An object of the class \code{emfrail}, that is in fact a list which contains (1) the object returned by the
+"outer maximization" from \code{optimx}, (2) the object with all the estimates returned by the "inner maximization",
+(3) the log-likelihood of the Cox model without frailty, (4) the variance-covariance matrix adjusted for the uncertainty in the
+outer maximization, and (5,6,7) are copies of the original input arguments: .formula, .distribution and .control.
 }
 \description{
 Fitting shared frailty models wiht the EM algorithm
@@ -157,5 +160,8 @@ mymod <- d1 \%>\%
 mymod <- d1 \%>\%
   emfrail(Surv(ltime, stime, status)~ x + cluster(id), .control = emfrail_control(verbose = TRUE),
           .distribution = emfrail_distribution(left_truncation = TRUE))
+}
+\seealso{
+\code{\link{summary.emfrail}, \link{predict.emfrail}, \link{emfrail_distribution}, \link{emfrail_control}}
 }
 
