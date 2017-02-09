@@ -28,4 +28,3 @@ Such closed form solutions are only available for the gamma distribution (with o
 for the inverse Gaussian distribution (without left truncation).
 For a data set with \code{K} clusters,
 }
-

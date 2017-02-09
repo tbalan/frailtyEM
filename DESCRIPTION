@@ -18,8 +18,8 @@ Imports:
     msm,
     optimx
 LinkingTo: Rcpp
-RoxygenNote: 5.0.1
-Collate:
+RoxygenNote: 6.0.1
+Collate: 
     'RcppExports.R'
     'dist_to_pars.R'
     'em_fit.R'

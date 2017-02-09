@@ -1,0 +1,355 @@
+---
+title: "Shared frailty models"
+author: "Theodor Adrian Balan"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Vignette Title}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+## The likelihood
+The type of data that these models can be applied on is usually consisting of either clustered failures or recurrent events. In both cases we will refer to a unit which has the same value of the frailty as a cluster. The process intensity of subject $j$ in cluster $i$ can be written as
+
+$$
+\lambda_{ij}(t) = z_i \exp(\gamma'\mathbf{x}_{ij}(t))\lambda_0(t)
+$$
+
+The likelihood for cluster $i$ can be written as
+$$
+L_i(\theta,\gamma,\lambda_0) = \prod_j \prod_{k} z_i \exp()
+$$
+
+$$
+\ell_i(\theta, \gamma, \lambda_0) = \prod_j \left(\exp(\gamma'\mathbf{x}_i(t_{ij}))\lambda_0(t_{ij})\right)^{\delta_{ij}} \mathrm{E} \left[z_i^{n_i} \exp(-z_i \Lambda_i)\right]
+$$
+where $\delta_{ij}$ is the event indicator, $n_i$ is the number of events in cluster $i$ and $\Lambda_i$ is the total hazard accumulated in cluster $i$. For example, for recurrent events, that is 
+$$
+\Lambda_i = \int_0^\infty Y_i(t) \exp(\gamma'\mathbf{x}_i(t))\lambda_0(t) dt
+$$
+and for clustered failures it is 
+$$
+\Lambda_i = \sum_k\int_0^\infty Y_{ik}(t) \exp(\gamma'\mathbf{x}_{ik}(t))\lambda_0(t) dt
+$$
+where the summing is over the individuals in cluster $i$. 
+
+## Estimation
+
+We define the profile likelihood as 
+$$
+\ell(\theta) = \mathrm{argmax}_{\gamma, \lambda_0} \ell(\theta, \gamma, \lambda_0)
+$$
+The maximization is a two-step procedure. The "inner" problem is to maximize $\ell(\theta, \gamma, \lambda_0)$ for a fixed $\theta$ with respect to $\gamma, \lambda_0$. The "outer" problem is to maximize $\ell(\theta)$. 
+
+### The inner problem
+The EM algorithm used to maximize $\ell(\theta, \gamma, \lambda_0)$ for a fixed $\theta$ takes place in `em_fit.R`. This function does not check any inputs and is not meant to be used outside its wrapper, `emfrail()`. 
+Essentially, the function codes the distribution and the parameters in the variable `.pars` and then jumps straight to the EM algorithm. The convergence of this EM algorithm is set by the `.control` argument: namely, the `eps` determines when to actually detect convergence, and the `maxit` to stop the iterations after a given number of iterations. 
+
+### E step
+The purpose of the E step is to provide posterior estimates of the frailty $\widehat{z}_i$, that are the expectation of $z_i$ given the data. Related quantities that should be calculated are the log-likelihood contribution for cluster $i$ and eventually $\widehat{z^2}_i$, which is needed for the calculation of the information matrix. 
+
+For the E step, what has to be calculated is
+$$
+\widehat{z}_i = \frac{E[z ^ N_{i+1} \exp(-z \Lambda_i)]}{E[z ^ N_{i} \exp(-z \Lambda_i)]} = 
+\frac{(-1)^{N_{i} + 1} \mathcal{L}^{(N_i + 1)}(\Lambda_i) }{(-1)^{N_{i}} \mathcal{L}^{(N_i )}(\Lambda_i) }
+$$
+and note that the denominator in this case determines the contribution to the likelihood from cluster $i$.
+
+The log-likelihood contribution is 
+$$
+l_i = (-1)^{N_{i}} \mathcal{L}^{(N_i )}(\Lambda_i)
+$$
+and finally
+$$
+\widehat{z^2}_i  = 
+\frac{(-1)^{N_{i} + 2} \mathcal{L}^{(N_i + 2)}(\Lambda_i) }{(-1)^{N_{i}} \mathcal{L}^{(N_i )}(\Lambda_i) }
+$$
+
+### M step
+The M step uses the maximizer for Cox models available in the `survival` package, `agreg.fit`. 
+In the default `agreg.fit`, for the Andersen - Gill regression, if there is no offset specified, this is the same as taking `offset = 0`. 
+
+NOTE: When you ask for the linear predictors, `R` actually returns this:
+`lp  <- as.vector(x %*% coef + offset - sum(coef * colMeans(x)))`
+In other words, the covariate vector is centered but not the offset.
+
+To extract the hazard estimates, an internal function `getchz` is used, which resides in `emfrail_aux.R`. 
+
+Since version 0.2.3, the baseline hazard is calculated as follows. Two variables, `nrisk` and `esum` are the essential piece: `nrisk` has the sum of `exp(linear predictor)` of everybody who leaves the risk at every `tstop` and `esum` is the sum of `exp(linear predictor)` of everybody who enters the risk set at every `tstart`. If everybody started at time 0, then `esum` would just be 0. Then `nrisk` becomes a difference between all these things to determine exactly the sum of `exp(linear predictor)` at every time point.
+
+Then `haz` is the Breslow estimator at every (event) time point, `basehaz_line` ande `cumhaz_0_line` are the baseline hazard and the cumulative hazard from 0 to  every `tstop`. The final cumulative hazard for each line is given by `cumhaz_0_line - cumhaz_tstart`, the latter being the cumulative hazard from 0 up to the `tstart` point. Then `Cvec` and `Cvec_lt` are the accumulated hazard for each cluster. Three operations that are potentailly expensive are cached: `indx`, which gives the `tstart` after each `tstop`, `indx2` that gives the tstop after each `tstart` (this one for all entry time points in the order from the data set) and `time_to_stop` (which tstop corresponds to which unique time point, in the order from the data set). Finally, `order_id` is used as a surrogate for the `id` variable, which should be useful in case the data is not ordered by `id`. 
+
+Technically, there is an option to use the martingale residuals from the Cox model, but there are two problems with that: one is that the Cox model does some strange behind-the-scenes scaling (esp. when the offset is involved) and the second is that there is no easy way to get the cumulative hazard for the period when individuals are not at risk (before entry time). 
+
+## Laplace transforms
+We assume that $Z_i$ is an infinitely divisible distribution, i.e. that the Laplace transform of $Z_i$ can be written as
+$$
+\mathcal{L}(c) = \mathrm{E}\left[\exp(-z c)\right] = \exp(-\alpha \psi (c; \beta))
+$$
+The derivatives of the Laplace transform can be written according to the derivatives of $\psi$ like this:
+$$
+\mathcal{L}'(c; \alpha, \beta) = - \alpha \psi'(c; \beta) \mathcal{L}(c; \alpha, \beta)
+$$
+
+$$
+\mathcal{L}''(c; \alpha, \beta) = \left[(- \alpha \psi'(c; \beta)) (- \alpha \psi'(c; \beta)) + (- \alpha \psi''(c; \beta))\right] \mathcal{L}(c; \alpha, \beta)
+$$
+and so on. 
+
+
+
+Note: when we take odd derivatives, we need to multiply everything with a -1. That happens 
+in the main `Estep()` function. The -1 that comes from every $-\alpha$ is done after the calculation of every element of the sum, in `findsums()`. The other bunch of $-1$ that may come from the derivatives of $\psi$, those are added in the `exponent_()` functions. 
+
+
+
+
+### Ascertainment
+There is a situation when the data set might come from some ascertainment scheme that prevents individuals from being observed from time 0. For this example, I supress the subscript $i$ for the cluster. 
+
+Now assume that observation $j$ in the cluster is in the data set if $A_j$ happens, and we call 
+$$
+A = A_1 \cup A_2 ... \cup A_n
+$$
+Then by Bayes' theorem the distribution of the frailty is given by 
+$$
+f_{Z|A}(z) = \frac{P(A|z) f(z)}{\int_z P(A|z) f(z) dz} = \frac{P(A|z)f(z)}{E_Z[P(A|z)]}
+$$
+
+Now this has Laplace transform
+$$
+\mathcal{L}_{Z|A}(c) = \frac{E_Z[e^{-cz}P(A|z)]}{E_Z[P(A|z)]}
+$$
+So basically it all boils down to writing $P(A|z)$. 
+
+### Left truncation
+In the left truncation scenario, i.e. where 
+$$
+P(A_j|z) = P(T_j >t_j|z) = E[\exp(-z \Lambda_{Lj})]
+$$
+and we have
+$P(A|z) = \prod_j P(A_j|z)$ with $\Lambda_{Lj}$ the risk accumulated until the entry time $t_{Lj}$. Then denote 
+$$
+\Lambda_{L} = \sum_j \Lambda_{Lj}
+$$
+which can be seen as a sort of missing risk. 
+
+In that case we see that
+$$
+\mathcal{L}_{Z|A}(c) = \frac{E_Z[e^{-z (c + \Lambda_{L})}]}{E_Z[e^{-z\Lambda_{L}}]}
+$$
+which means that
+$$
+\mathcal{L}_{Z|A}(c) = \frac{\mathcal{L}_Z(c + \Lambda_{L})}{\mathcal{L}_Z(\Lambda_L)}
+$$
+
+In the PVF framework, the E step must be replaced with a modified Laplace transform
+$$
+\mathcal{L}_{Z|A}(c) = \frac{\exp(-\alpha \psi(c + \Lambda_L))}{\exp(-\alpha \psi(\Lambda_L))},
+$$
+i.e.
+$$
+\mathcal{L}_{Z|A}(c) = \exp(-\alpha [\psi(c + \Lambda_L) - \psi(\Lambda_L)])
+$$
+which means that the conditional distribution is still part of the same (infinitely divisivle) family with
+$$
+\tilde{\psi} = \psi(c + \Lambda_L) - \psi(\Lambda_L).
+$$
+
+### Gamma frailty
+For the gamma distribution, we have $\psi(c) = \log(\beta + c) - \log(\beta)$ and derivatives are:
+$$
+\psi'(c) = (\beta + c)^{-1}
+$$
+
+$$
+\psi''(c) = (-1)(\beta +c)^{-2}
+$$
+and so on, until
+$$
+\psi^{(k)} (c) = (-1)^{k-1} (k-1)! (\beta + c)^{-k}
+$$
+
+To parametrize it with one parameter $\theta > 0$ (which is 1/variance) we have the restriction $\beta = \alpha = \theta$, i.e. mean equals 1.
+
+#### Fast fit
+For fast fitting, we see that
+$$
+\mathcal{L}(c) = \beta^\alpha (\beta + c)^{-\alpha}
+$$
+and then we can write all the derivatives like:
+$$
+\mathcal{L}^{(k)}(c) = \beta^\alpha (\beta + c)^{-\alpha - k} \Gamma(\alpha + k) / \Gamma(\alpha).
+$$
+Under left truncation, the Laplace transform becomes
+$$
+\mathcal{L}_{Z|A}(c) = \exp\left[-\alpha \left(\log(\beta + \Lambda_L + c) - \log(\beta + \Lambda_L)\right)\right]
+$$
+which corresponds to a change in parameters with $\beta \rightarrow \beta + \Lambda_L$. 
+
+We have that 
+$$
+\mathcal{L}_{Z|A}(c) = (\beta + \Lambda_L)^\alpha (\beta + \Lambda_L + c)^{-\alpha}
+$$
+so the $k$-th derivative is
+$$
+\mathcal{L}_{Z|A}^{(k)}(c) = \frac{(\beta + \Lambda_L)^\alpha}{(\beta + \Lambda_L + c)^{\alpha + k}} \frac{\Gamma(\alpha +k)}{\Gamma(\alpha)}.
+$$
+
+This is calculated directly in the `fast_Estep()` routine. If `left_truncation == FALSE`, then $\Lambda_L$ is taken to be 0.
+
+
+
+) = ### Positive stable frailty
+For the positive stable distribution, we have $\beta \in (0,1)$ (if $\beta = 1$ then it means that the marginal hazards are equal to the conditional hazards; if we have conditional covariate effect $\gamma$ then the marginal effect is $\beta \gamma$ so it is attenuated; predictive hazard ratios decrease to 1 over time)
+$$
+\psi(c) = c^\beta
+$$
+and
+$$
+\psi'(c) = \beta c^{\beta - 1}
+$$
+and
+$$
+\psi''(c) = \beta (\beta - 1) c^{\beta - 1}
+$$
+Now the problem is that $\beta - 1 < 0$ and then we run into trouble with the gamma function that is not defined for negative values. Because of that, we write it like this:
+$$
+\psi^{(k)}(c) = \frac{\Gamma(k - \beta)}{\Gamma(1 - \beta)} (-1)^{k - 1} c^{\beta - 1}
+$$
+To parametrize it with one parameter $\theta > 0$ we take a $\beta = 1 - \theta$ with $\theta \in (0,1)$. For scaling, we choose $\alpha = 1$ (the same as in Hougaard / `parfm`). There is also support for the scaling with $\alpha = 1/\beta$ (as in Putter & van Houwelingen), but that option is not available for the user.
+
+Under left truncation we have
+$$
+\tilde\psi(c) = (c +\Lambda_i)^\beta - \Lambda_i^\beta.
+$$
+with
+$$
+\tilde\psi^{(k)}(c) = \frac{\Gamma(k - \beta)}{\Gamma(1 - \beta)} (-1)^{k - 1} (c+\Lambda_i)^{\beta - 1}
+$$
+
+
+### PVF frailty
+For the PVF distribution with $m > -1$ and $m!=0$, we have the Laplace transform
+$$
+\mathcal{L}(c) = \exp \left[- \alpha \mathrm{sign}(m) (1 - \beta^m (\beta + c)^{-m}) \right]
+$$
+with $\alpha > 0$, $\beta > 0$. For positive $m$, that is:
+$$
+\psi(c) = (1 - \beta^m (\beta + c)^{-m}) 
+$$
+and
+$$
+\psi'(c) = -\beta^m (\beta + c)^{-m-1} (-m)
+$$
+The mean of the distribution is minus the 1st derivative of the Laplace transform in 0, which is
+$$
+\alpha \psi'(0) \mathcal{L}(0) = \frac{\alpha}{\beta} m.
+$$
+Also
+$$
+\psi''(c) = -\beta^m (\beta + c)^{-m-2} (-m-1) (-m)
+$$
+And we have the second moment of the distribution the second derivative in 0, 
+$$
+EZ^2 = \alpha^2 \psi'^2(0) -\alpha \psi''(0) = \frac{\alpha^2}{\beta^2}m^2 + \frac{\alpha}{\beta^2} m(m+1)= 1^2 + \frac{\alpha}{\beta^2}m(m+1).
+$$
+We have
+$$
+\psi^{(k)}(c) = -\beta^m (\beta + c)^{-m-k} (-1)^{k+1} \frac{\Gamma(m + k)}{\Gamma(m)}.
+$$
+
+Now for the parametrization we set the mean equal to 1, which is done by having a $\theta > 0$ and
+$\beta = (m + 1) \theta$ and
+$\alpha = \frac{m + 1}{m} \theta.$ With this, we have that the mean is 1 and the variance
+$$
+VarZ = 1/\theta.
+$$
+NOTE: For $m<0$, in practice, this would make $\alpha < 0$, and since the $\mathrm{sign}(m) = -1$, we might as well take $\alpha = \vert \frac{m + 1}{m} \theta \vert$. Then the only correction that is still needed is a $-1$ in the $\mathcal{L}$.
+
+Under left truncation, we have
+$$
+\tilde\psi(c) = \beta^m \left[(\beta + \Lambda_L)^{-m} - (\beta + c +\Lambda_L)^{-m} \right]
+$$
+with the $k$-th derivative
+$$
+\tilde\psi^{(k)}(c) = -\beta^m (\beta + c + \Lambda_L)^{-m-k} (-1)^{k+1} \frac{\Gamma(m + k)}{\Gamma(m)}.
+$$
+
+With $m > 0$, this is a Compound Poisson distribution with mass at 0 $e^{-m}$.
+
+### Inverse Gaussian
+A particular case of the PVF distribution is the Inverse Gaussian, obtained when $ m = -1/2$, resulting in $\beta = \theta / 2$ and $\alpha = \theta$. The resulting Laplace transform is
+$$
+\mathcal{L}(c) = \exp \left\{\theta \left(1 - \sqrt{1 + 2c/\theta }\right) \right\}
+$$
+The $k$-th derivative of this can be written as
+$$
+\mathcal{L}^{(k)}(c) = (-1)^k \left(\frac{2}{\theta} c + 1\right)^{-k/2} \frac{\mathcal{K}_{k - 1/2} \left(\sqrt{ 2\theta \left(c + \frac{\theta}{2}\right)}\right)}{\mathcal{K}_{1/2} \left( \sqrt{ 2\theta \left(c + \frac{\theta}{2}\right)}\right)}
+$$
+where $\mathcal{K}$ is the modified Bessel function of the second kind.
+
+Under left truncation, the Inverse Gaussian is not Inverse Gaussian any more and then that situation is handled in the same way with the rest of the PVF distributions. 
+
+### Implementation
+The two main functions are: `emfrail()`, accessible to the user. This function calls repeatedly `emfrail_fit()`, an internal function that fits the EM algorithm for a certain value of $\log\theta$. 
+
+The optimization goes as follows:
+
+  - The `emfrail()` is given a value of $\log\theta$
+  - `emfrail()` decides, via the auxilliary function `dist_to_pars` to create the corresponding values of $(\alpha, \beta)$ that correspond to that. 
+  - For the gamma distribution, $\alpha = \beta = \exp(\log\theta)$
+  - For the stable distribution, $\alpha = 1$ and $\beta = 1 - \frac{\exp(\log\theta)}{(1 + \exp(\log\theta))}$.
+  - For the pvf distribution with a given $m$, $\alpha = \left|\frac{m+1}{m} \exp(\log\theta)\right|$ and $\beta = (m + 1) \exp(\log\theta)$
+  - The inverse gaussian is the particular case of the pvf distribution with $m = -0.5$, i.e. $\alpha = \exp(\log\theta)$ and $\beta = \exp(\log\theta) / 2$. 
+  
+
+#### Fast fit
+Closed form expressions are available for the gamma distribution (with or without left truncation) and the Inverse Gaussian (without left truncation). In these cases, the E step is calculated by `fast_Estep()`. 
+For the gamma, that returns 4 columns: one with $\alpha + n_i$, one with $\beta + Lambda_i$, one with the likelihood contribution
+$$\alpha  log(\beta) - (\alpha + n_i)\log(\beta + \Lambda_i) + \log \Gamma(\alpha + n_i) - \log \Gamma(\alpha)$$
+and one with 
+$$
+\widehat z_i^2 = (\alpha + n_i) (\alpha + n_i + 1) / (\beta + \Lambda_i)^2.
+$$
+
+For the Inverse Gaussian without left truncation, the four columns contain similar quantities as with the gamma. Let
+$cc = \sqrt{2 * \alpha * (\Lambda_i + \alpha / 2)}$. Then the first column is $\mathcal{K}_{n_i + 0.5}(cc)$, the second with $\sqrt{2 / \alpha * \Lambda_i + 1} * \mathcal{K}_{n_i - 0.5}(cc)$, the third has
+$$
+l_i =  (-n_i / 2) * \log(2/\alpha * \Lambda_i + 1) +
+      \log\mathcal{K}_{n_i - 0.5}(cc)  - 0.5 * \log(\pi  / (2  cc)) + cc +
+      \alpha * (1 - \sqrt{1 + 2 / \alpha * \Lambda_i})
+$$
+and the fourth one
+$$
+\widehat z_i^2 = \mathcal{K}_{n_i + 1.5}(cc)/ ((2 / \alpha * \Lambda_i + 1) *  \mathcal{K}_{n_i - 0.5}(cc))
+$$
+
+#### General fit
+If the distribution is not one of the above ones, then the program resorts to the `E_step` function which is entirely written in C++. For gamma or inverse gaussian, the option `fast_fit == FALSE` forces the estimation with this recursive algorithm.
+
+Say we have a distribution with Laplace transform $\psi(c)$ and Laplace transform of the type $\mathcal{L}(c) = \exp(-\alpha \psi(c))$. 
+Then the $k$-th derivative of $\mathcal{L}$ can be calculated recursively like this.
+
+For a certain individual or cluster with $k$ events and for given parameters and argument $c_i$, we start with a result of 0. We create a vector `v` of length $k$. 
+
+
+#### 
+## Outer problem
+
+
+
+## Standard errors
+The information matrix from the EM algorithm is obtained with Louis' formula. 
+
+
+
+## Useful quantities
+There is an idea to get some useful quantities out of these models.
+For one, the conditional ones: 
+
+
+## Comparison with other R packages
+
+

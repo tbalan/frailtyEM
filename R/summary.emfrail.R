@@ -7,7 +7,6 @@ summary.emfrail <- function(fit) {
   }
 }
 
-
 # (fit$est_dist$frailtypar + fit$res$z$nev) / (fit$est_dist$frailtypar + fit$res$z$Lambda)
 #
 # qgamma(0.025, shape = fit$est_dist$frailtypar + fit$res$z$nev, scale = fit$est_dist$frailtypar + fit$res$z$Lambda)

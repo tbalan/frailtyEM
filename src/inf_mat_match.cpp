@@ -5,9 +5,9 @@ using namespace Rcpp;
 NumericVector inf_mat_match(NumericVector left, NumericVector right, NumericVector elp, int maxlength) {
 
   NumericVector x(maxlength, 0.0);
-  int nrow = left.size();
+  unsigned int nrow = left.size();
 
-  int upto = max(right);
+  unsigned int upto = max(right);
   for(unsigned int i = 0; i <= upto; i++) {
     for(unsigned int j = 0; j < nrow; j++) {
       if((left[j] <= i) && (i < right[j]))

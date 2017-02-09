@@ -39,4 +39,3 @@ emfrail_distribution(dist = 'pvf')
 \seealso{
 \code{\link{emfrail}, \link{emfrail_control}}
 }
-

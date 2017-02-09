@@ -29,4 +29,3 @@ dist <- emfrial_distribution()
 laplace_transform(rexp(10), dist)
 
 }
-
