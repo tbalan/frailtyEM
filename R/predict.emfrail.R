@@ -16,20 +16,24 @@
 #' @include laplace_transform.R
 #'
 #' @examples
-#' #' m1 <- emfrail(.data =  dat, .formula = Surv(rep(0, nrow(dat)), time, status) ~  rx + sex + cluster(litter),
-#' .distribution = emfrail_distribution(dist = "gamma"))
+#' #' m1 <- emfrail(.data =  dat,
+#'   .formula = Surv(rep(0, nrow(dat)), time, status) ~  rx + sex + cluster(litter),
+#'   .distribution = emfrail_distribution(dist = "gamma"))
 #' predict.emfrail(m1)
 #'
-predict.emfrail <- function(fit,
+predict.emfrail <- function(x,
                             lp = c(0),
                             quantity = c("cumhaz", "survival"),
                             type = c("conditional", "marginal"),
                             conf_int = c("regular", "adjusted")) {
 
-  ncoef <- length(fit$res$coef)
+  fit <- x
+  est_dist <- fit$.distribution
+  est_dist$frailtypar <- exp(fit$outer_m$p1)
 
-  varH <- fit$vcov[(ncoef + 1): nrow(fit$vcov), (ncoef+ 1): nrow(fit$vcov)]
-  varH_adj <- fit$vcov_adj[(ncoef + 1): nrow(fit$vcov), (ncoef+ 1): nrow(fit$vcov)]
+  ncoef <- length(fit$inner_m$coef)
+  varH <-   fit$inner_m$Vcov[(ncoef + 1): nrow(fit$inner_m$Vcov), (ncoef+ 1): nrow(fit$inner_m$Vcov)]
+  varH_adj <- fit$vcov_adj[(ncoef + 1): nrow(fit$vcov_adj), (ncoef+ 1): nrow(fit$vcov_adj)]
 
   varH_time <- numeric(nrow(varH))
   for(i in 1:nrow(varH)) {
@@ -42,8 +46,9 @@ predict.emfrail <- function(fit,
   }
 
   # The "core" is to calculate the cumulative hazard and the confidence band for it
-  time <- fit$res$haz$time
-  cumhaz <- fit$res$haz$cumhaz
+
+  time <- fit$inner_m$tev
+  cumhaz <- cumsum(fit$inner_m$haz)
 
   se_chz <- sqrt(varH_time)
   se_chz_adj <- sqrt(varH_adj_time)
@@ -68,8 +73,8 @@ predict.emfrail <- function(fit,
   scenarios <- expand.grid(quantity, type, conf_int)
 
   survival <- function(chz) exp(-chz)
-  survival_m <- function(chz) laplace_transform(chz, fit$est_dist)
-  cumhaz_m <- function(chz) -1 * log(laplace_transform(chz, fit$est_dist))
+  survival_m <- function(chz) laplace_transform(chz, est_dist)
+  cumhaz_m <- function(chz) -1 * log(laplace_transform(chz, est_dist))
 
   # cumhaz_m(cumhaz)
   # first, add confidence bands for the cumulative hazard

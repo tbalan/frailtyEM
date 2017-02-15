@@ -450,6 +450,7 @@ em_fit <- function(logfrailtypar, dist, pvfm,
                # frailtypar = exp(logfrailtypar),
                tev = tev, # event time points
                haz = haz_tev, # the Breslow estimator for ech tev
+               nev_id = atrisk$nev_id,
                # haz = list(tev = tev,
                #            haz_tev = haz_tev),
                # logz = logz, estimated log frailties, we do not need

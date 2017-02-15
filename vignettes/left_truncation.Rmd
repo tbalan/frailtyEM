@@ -463,58 +463,59 @@ plot(stabpar /(1 + stabpar), emfrail_pll(.data =  dd,
 
 ## Left truncation
 ```{r lt1}
-# simulate 300 clusters of size 5
-set.seed(17)
-x <- sample(c(0,1), 5 * 300, TRUE)
-u <- rep(rgamma(300,1,1), each = 5)
-stime <- rexp(5*300, rate = u * exp(x))
-ltime <- runif(5 * 300)
-
-library(tidyverse)
-d <- data.frame(id = rep(1:300, each = 5),
-                x = x,
-                stime = stime,
-                u = u,
-                ltime = ltime,
-                status = 1)
-
-
-d1 <- d %>% filter(stime > ltime)
-
-# Naive analysis (no updated frailty)
-m1 <- d1 %>%
-  emfrail(Surv(ltime, stime, status)~ x + cluster(id), .control = emfrail_control(verbose = TRUE))
-
-m1
-
-
-m1 <- d1 %>%
-  fitfrail(Surv(ltime, stime, status)~ x + cluster(id), ., frailty = "gamma", se = TRUE)
-m1
-
-
-m2 <- d1 %>%
-  emfrail(Surv(ltime, stime, status)~ x + cluster(id),
-          .control = emfrail_control(verbose = TRUE),
-          .distribution = emfrail_distribution(dist = "pvf")
-          )
-
-m3 <- d1 %>%
-  emfrail(Surv(ltime, stime, status)~ x + cluster(id),
-          .control = emfrail_control(verbose = TRUE),
-          .distribution = emfrail_distribution(dist = "pvf", pvfm = 1/2)
-          )
-
-m4 <- d1 %>%
-  emfrail(Surv(ltime, stime, status)~ x + cluster(id), .control = emfrail_control(verbose = TRUE),
-          .distribution = emfrail_distribution(dist = "stable"))
+# # simulate 300 clusters of size 5
+# set.seed(17)
+# x <- sample(c(0,1), 5 * 300, TRUE)
+# u <- rep(rgamma(300,1,1), each = 5)
+# stime <- rexp(5*300, rate = u * exp(x))
+# ltime <- runif(5 * 300)
+# 
+# library(tidyverse)
+# d <- data.frame(id = rep(1:300, each = 5),
+#                 x = x,
+#                 stime = stime,
+#                 u = u,
+#                 ltime = ltime,
+#                 status = 1)
+# 
+# 
+# d1 <- d %>% filter(stime > ltime)
+# 
+# # Naive analysis (no updated frailty)
+# m1 <- d1 %>%
+#   emfrail(Surv(ltime, stime, status)~ x + cluster(id), .control = emfrail_control(verbose = TRUE))
+# 
+# m1
+# 
+# library(frailtySurv)
+# #frailtySurv::fitfrail()
+# m1 <- d1 %>%
+#   fitfrail(Surv(ltime, stime, status)~ x + cluster(id), ., frailty = "gamma", se = TRUE)
+# m1
+# 
+# 
+# m2 <- d1 %>%
+#   emfrail(Surv(ltime, stime, status)~ x + cluster(id),
+#           .control = emfrail_control(verbose = TRUE),
+#           .distribution = emfrail_distribution(dist = "pvf")
+#           )
+# 
+# m3 <- d1 %>%
+#   emfrail(Surv(ltime, stime, status)~ x + cluster(id),
+#           .control = emfrail_control(verbose = TRUE),
+#           .distribution = emfrail_distribution(dist = "pvf", pvfm = 1/2)
+#           )
+# 
+# m4 <- d1 %>%
+#   emfrail(Surv(ltime, stime, status)~ x + cluster(id), .control = emfrail_control(verbose = TRUE),
+#           .distribution = emfrail_distribution(dist = "stable"))
 ```
 Results of naive analysis (what `coxph` also does):
 ```{r lt2}
-m1
-m2
-m3
-m4
+# m1
+# m2
+# m3
+# m4
 ```
 
 Profile log-likelihood
@@ -522,58 +523,58 @@ Profile log-likelihood
 # profile likelihoods
 #par(mfrow = c(2,2))
 
-frvar <- seq(from = 0.1, to = 1.5, by = 0.1)
-plot(frvar, emfrail_pll(.data =  d1, .formula = Surv(ltime, stime, status)~ x + cluster(id),
-                        .distribution = emfrail_distribution(dist = "gamma"),
-                        .values = 1/frvar),
-     ylab = "log-likelihood",
-     xlab = "frailty variance",
-     type = "l",
-     main = "gamma")
-
-
-plot(frvar, emfrail_pll(.data =  d1, .formula = Surv(ltime, stime, status)~ x + cluster(id),
-                        .distribution = emfrail_distribution(dist = "pvf"),
-                        .values = 1/frvar),
-     ylab = "log-likelihood",
-     xlab = "frailty variance",
-     type = "l",
-     main = "IG")
-m2
-
-plot(frvar, emfrail_pll(.data =  d1, .formula = Surv(ltime, stime, status)~ x + cluster(id),
-                        .distribution = emfrail_distribution(dist = "pvf",
-                                                             pvfm = 1/2),
-                        .values = 1/frvar),
-     ylab = "log-likelihood",
-     xlab = "frailty variance",
-     type = "l",
-     main = "pvf m=1/2")
-
-
-plot(frvar, emfrail_pll(.data =  d1, .formula = Surv(ltime, stime, status)~ x + cluster(id),
-                        .distribution = emfrail_distribution(dist = "pvf",
-                                                             pvfm = 1),
-                        .values = 1/frvar),
-     ylab = "log-likelihood",
-     xlab = "frailty variance",
-     type = "l",
-     main = "pvf m=1")
-```
-
-
-```{r lt4}
-#par(mfrow = c(1,1))
-
-stabpar <- seq(from = 0.1, to = 3, length.out = 15)
-plot(stabpar /(1 + stabpar), emfrail_pll(.data =  d1,
-                            .formula = Surv(ltime, stime, status)~ x + cluster(id),
-                            .distribution = emfrail_distribution(dist = "stable"),
-                            .values = stabpar),
-     ylab = "log-likelihood",
-     xlab = "Kendall's tau = 1-beta",
-     type = "l",
-     main = "stable")
+# frvar <- seq(from = 0.1, to = 1.5, by = 0.1)
+# plot(frvar, emfrail_pll(.data =  d1, .formula = Surv(ltime, stime, status)~ x + cluster(id),
+#                         .distribution = emfrail_distribution(dist = "gamma"),
+#                         .values = 1/frvar),
+#      ylab = "log-likelihood",
+#      xlab = "frailty variance",
+#      type = "l",
+#      main = "gamma")
+# 
+# 
+# plot(frvar, emfrail_pll(.data =  d1, .formula = Surv(ltime, stime, status)~ x + cluster(id),
+#                         .distribution = emfrail_distribution(dist = "pvf"),
+#                         .values = 1/frvar),
+#      ylab = "log-likelihood",
+#      xlab = "frailty variance",
+#      type = "l",
+#      main = "IG")
+# m2
+# 
+# plot(frvar, emfrail_pll(.data =  d1, .formula = Surv(ltime, stime, status)~ x + cluster(id),
+#                         .distribution = emfrail_distribution(dist = "pvf",
+#                                                              pvfm = 1/2),
+#                         .values = 1/frvar),
+#      ylab = "log-likelihood",
+#      xlab = "frailty variance",
+#      type = "l",
+#      main = "pvf m=1/2")
+# 
+# 
+# plot(frvar, emfrail_pll(.data =  d1, .formula = Surv(ltime, stime, status)~ x + cluster(id),
+#                         .distribution = emfrail_distribution(dist = "pvf",
+#                                                              pvfm = 1),
+#                         .values = 1/frvar),
+#      ylab = "log-likelihood",
+#      xlab = "frailty variance",
+#      type = "l",
+#      main = "pvf m=1")
+# ```
+# 
+# 
+# ```{r lt4}
+# #par(mfrow = c(1,1))
+# 
+# stabpar <- seq(from = 0.1, to = 3, length.out = 15)
+# plot(stabpar /(1 + stabpar), emfrail_pll(.data =  d1,
+#                             .formula = Surv(ltime, stime, status)~ x + cluster(id),
+#                             .distribution = emfrail_distribution(dist = "stable"),
+#                             .values = stabpar),
+#      ylab = "log-likelihood",
+#      xlab = "Kendall's tau = 1-beta",
+#      type = "l",
+#      main = "stable")
 
 ```
 
@@ -581,96 +582,96 @@ plot(stabpar /(1 + stabpar), emfrail_pll(.data =  d1,
 Now I use the distribution of the frailty given the left truncation
 
 ```{r lt5}
-
-# this is the correct way here:
-m1_lt <- d1 %>%
-  emfrail(Surv(ltime, stime, status)~ x + cluster(id), .control = emfrail_control(verbose = FALSE),
-          .distribution = emfrail_distribution(left_truncation = TRUE))
-
-m2_lt <- d1 %>%
-  emfrail(Surv(ltime, stime, status)~ x + cluster(id), .control = emfrail_control(verbose = TRUE),
-          .distribution = emfrail_distribution(dist = "pvf", left_truncation = TRUE))
-
-library(parfm)
-
-parfm(Surv(ltime, stime, status)~ x , cluster = "id", data = d1, frailty = "ingau", dist = "exponential")
-
-m3_lt <- d1 %>%
-  emfrail(Surv(ltime, stime, status)~ x + cluster(id),
-          .control = emfrail_control(verbose = TRUE),
-          .distribution = emfrail_distribution(dist = "pvf", pvfm = 1/2, left_truncation = TRUE)
-  )
-
-m4_lt <- d1 %>%
-  emfrail(Surv(ltime, stime, status)~ x + cluster(id), .control = emfrail_control(verbose = FALSE),
-          .distribution = emfrail_distribution(dist = "stable", left_truncation = TRUE))
+# 
+# # this is the correct way here:
+# m1_lt <- d1 %>%
+#   emfrail(Surv(ltime, stime, status)~ x + cluster(id), .control = emfrail_control(verbose = FALSE),
+#           .distribution = emfrail_distribution(left_truncation = TRUE))
+# 
+# m2_lt <- d1 %>%
+#   emfrail(Surv(ltime, stime, status)~ x + cluster(id), .control = emfrail_control(verbose = TRUE),
+#           .distribution = emfrail_distribution(dist = "pvf", left_truncation = TRUE))
+# 
+# library(parfm)
+# 
+# parfm(Surv(ltime, stime, status)~ x , cluster = "id", data = d1, frailty = "ingau", dist = "exponential")
+# 
+# m3_lt <- d1 %>%
+#   emfrail(Surv(ltime, stime, status)~ x + cluster(id),
+#           .control = emfrail_control(verbose = TRUE),
+#           .distribution = emfrail_distribution(dist = "pvf", pvfm = 1/2, left_truncation = TRUE)
+#   )
+# 
+# m4_lt <- d1 %>%
+#   emfrail(Surv(ltime, stime, status)~ x + cluster(id), .control = emfrail_control(verbose = FALSE),
+#           .distribution = emfrail_distribution(dist = "stable", left_truncation = TRUE))
 ```
 
 Results:
 ```{r lt6}
-m1_lt
-m2_lt
-m3_lt
-m4_lt
+# m1_lt
+# m2_lt
+# m3_lt
+# m4_lt
 ```
 
 Profile log-likelihoods:
 ```{r lt7}
 # profile likelihoods
 # par(mfrow = c(2,2))
-
-frvar <- seq(from = 0.1, to = 1.5, by = 0.1)
-plot(frvar, emfrail_pll(.data =  d1, .formula = Surv(ltime, stime, status)~ x + cluster(id),
-                        .distribution = emfrail_distribution(dist = "gamma", left_truncation = TRUE),
-                        .values = 1/frvar),
-     ylab = "log-likelihood",
-     xlab = "frailty variance",
-     type = "l",
-     main = "gamma")
-
-
-plot(frvar, emfrail_pll(.data =  d1, .formula = Surv(ltime, stime, status)~ x + cluster(id),
-                        .distribution = emfrail_distribution(dist = "pvf", left_truncation = TRUE),
-                        .values = 1/frvar),
-     ylab = "log-likelihood",
-     xlab = "frailty variance",
-     type = "l",
-     main = "IG")
-
-
-plot(frvar, emfrail_pll(.data =  d1, .formula = Surv(ltime, stime, status)~ x + cluster(id),
-                        .distribution = emfrail_distribution(dist = "pvf",
-                                                             pvfm = 1/2,
-                                                             left_truncation = TRUE),
-                        .values = 1/frvar),
-     ylab = "log-likelihood",
-     xlab = "frailty variance",
-     type = "l",
-     main = "pvf m=1/2")
-
-
-plot(frvar, emfrail_pll(.data =  d1, .formula = Surv(ltime, stime, status)~ x + cluster(id),
-                        .distribution = emfrail_distribution(dist = "pvf",
-                                                             pvfm = 1,
-                                                             left_truncation  = TRUE),
-                        .values = 1/frvar),
-     ylab = "log-likelihood",
-     xlab = "frailty variance",
-     type = "l",
-     main = "pvf m=1")
+# 
+# frvar <- seq(from = 0.1, to = 1.5, by = 0.1)
+# plot(frvar, emfrail_pll(.data =  d1, .formula = Surv(ltime, stime, status)~ x + cluster(id),
+#                         .distribution = emfrail_distribution(dist = "gamma", left_truncation = TRUE),
+#                         .values = 1/frvar),
+#      ylab = "log-likelihood",
+#      xlab = "frailty variance",
+#      type = "l",
+#      main = "gamma")
+# 
+# 
+# plot(frvar, emfrail_pll(.data =  d1, .formula = Surv(ltime, stime, status)~ x + cluster(id),
+#                         .distribution = emfrail_distribution(dist = "pvf", left_truncation = TRUE),
+#                         .values = 1/frvar),
+#      ylab = "log-likelihood",
+#      xlab = "frailty variance",
+#      type = "l",
+#      main = "IG")
+# 
+# 
+# plot(frvar, emfrail_pll(.data =  d1, .formula = Surv(ltime, stime, status)~ x + cluster(id),
+#                         .distribution = emfrail_distribution(dist = "pvf",
+#                                                              pvfm = 1/2,
+#                                                              left_truncation = TRUE),
+#                         .values = 1/frvar),
+#      ylab = "log-likelihood",
+#      xlab = "frailty variance",
+#      type = "l",
+#      main = "pvf m=1/2")
+# 
+# 
+# plot(frvar, emfrail_pll(.data =  d1, .formula = Surv(ltime, stime, status)~ x + cluster(id),
+#                         .distribution = emfrail_distribution(dist = "pvf",
+#                                                              pvfm = 1,
+#                                                              left_truncation  = TRUE),
+#                         .values = 1/frvar),
+#      ylab = "log-likelihood",
+#      xlab = "frailty variance",
+#      type = "l",
+#      main = "pvf m=1")
 ```
 
 ```{r lt8}
 # par(mfrow = c(1,1))
 
-stabpar <- seq(from = 0.1, to = 3, length.out = 15)
-plot(stabpar /(1 + stabpar), emfrail_pll(.data =  d1,
-                            .formula = Surv(ltime, stime, status)~ x + cluster(id),
-                            .distribution = emfrail_distribution(dist = "stable", left_truncation = TRUE),
-                            .values = stabpar),
-     ylab = "log-likelihood",
-     xlab = "Kendall's tau = 1-beta",
-     type = "l",
-     main = "stable")
+# stabpar <- seq(from = 0.1, to = 3, length.out = 15)
+# plot(stabpar /(1 + stabpar), emfrail_pll(.data =  d1,
+#                             .formula = Surv(ltime, stime, status)~ x + cluster(id),
+#                             .distribution = emfrail_distribution(dist = "stable", left_truncation = TRUE),
+#                             .values = stabpar),
+#      ylab = "log-likelihood",
+#      xlab = "Kendall's tau = 1-beta",
+#      type = "l",
+#      main = "stable")
 
 ```

@@ -1,4 +1,10 @@
-# This function governs the parameter scaling for distributions.
+#' dist_to_pars
+#'
+#' @param dist One of gamma, stable, pvf
+#' @param logfrailtypar The log of theta
+#' @param pvfm The pvfm
+#'
+#' @return A list with 3 elements: alpha, beta (the parameters of the Laplace transform) and dist_id.
 dist_to_pars <- function(dist, logfrailtypar, pvfm) {
 
     if (dist == "gamma") {

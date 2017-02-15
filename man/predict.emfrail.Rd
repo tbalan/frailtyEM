@@ -4,13 +4,10 @@
 \alias{predict.emfrail}
 \title{Predicted hazard and survival curves from an \code{emfrail} object}
 \usage{
-\method{predict}{emfrail}(fit, lp = c(0), quantity = c("cumhaz",
-  "survival"), type = c("conditional", "marginal"), conf_int = c("regular",
-  "adjusted"))
+\method{predict}{emfrail}(x, lp = c(0), quantity = c("cumhaz", "survival"),
+  type = c("conditional", "marginal"), conf_int = c("regular", "adjusted"))
 }
 \arguments{
-\item{fit}{An \code{emfrail} fit object}
-
 \item{lp}{A vector of linear predictor values at which to calculate the curves.}
 
 \item{quantity}{The quantity to be calculated for the values of \code{lp}}
@@ -18,6 +15,8 @@
 \item{type}{The type of the quantity (conditional  / marginal)}
 
 \item{conf_int}{The type of the confidence interval (adjusted / regular)}
+
+\item{fit}{An \code{emfrail} fit object}
 }
 \value{
 A data frame with the column \code{time} and several other columns according to the input.
@@ -28,8 +27,9 @@ By default, for each \code{lp} it will give the following columns: \code{cumhaz}
 Predicted hazard and survival curves from an \code{emfrail} object
 }
 \examples{
-#' m1 <- emfrail(.data =  dat, .formula = Surv(rep(0, nrow(dat)), time, status) ~  rx + sex + cluster(litter),
-.distribution = emfrail_distribution(dist = "gamma"))
+#' m1 <- emfrail(.data =  dat,
+  .formula = Surv(rep(0, nrow(dat)), time, status) ~  rx + sex + cluster(litter),
+  .distribution = emfrail_distribution(dist = "gamma"))
 predict.emfrail(m1)
 
 }

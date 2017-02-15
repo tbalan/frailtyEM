@@ -19,7 +19,7 @@ Imports:
     optimx
 LinkingTo: Rcpp
 RoxygenNote: 6.0.1
-Collate: 
+Collate:
     'RcppExports.R'
     'dist_to_pars.R'
     'em_fit.R'
@@ -31,6 +31,7 @@ Collate:
     'laplace_transform.R'
     'predict.emfrail.R'
     'print.emfrail.R'
+    'print.emfrail_summary.R'
     'summary.emfrail.R'
 Suggests:
     knitr,

@@ -104,24 +104,6 @@
 #'
 #' # Plotting the baseline cumulative hazard / intensity
 #'
-#' with(mod2$res$haz,
-#'      plot(time, cumhaz, type = "s", ylim = c(0, max(cumhaz) + 2 * max(se_chz_adj)),
-#'      main = "Cumulative baseline hazard",
-#'      ylab = "H0"))
-#' with(mod2$res$haz, lines(time, cumhaz - 1.96*se_chz, col = 2))
-#' with(mod2$res$haz, lines(time, cumhaz + 1.96*se_chz, col = 2))
-#' with(mod2$res$haz, lines(time, cumhaz - 1.96*se_chz_adj, col = 3, lty = 2))
-#' with(mod2$res$haz, lines(time, cumhaz + 1.96*se_chz_adj, col = 3, lty = 2))
-#' legend(x = 0, y = 5, legend = c("95% CI", "adjusted 95% CI"), col = c(2,3), lty = c(1,2))
-#'
-#' # with ggplot2
-#' library(ggplot2)
-#' ggplot(mod2$res$haz, aes(x = time)) +
-#' geom_ribbon(aes(ymin = cumhaz - 1.96*se_chz, ymax = cumhaz + 1.96*se_chz),  fill = "grey70") +
-#'   geom_ribbon(aes(ymin = cumhaz - 1.96*se_chz_adj, ymax = cumhaz + 1.96*se_chz_adj),  fill = "pink", alpha = 0.2) +
-#'   geom_step(aes(y = cumhaz)) +
-#'   ggtitle("Cumulative baseline hazard") +
-#'   ylab("H0")
 #'
 #'
 #'  # Left truncation
@@ -200,12 +182,17 @@ emfrail <- function(.data,
   id <- mf[[pos_cluster]]
 
   # Identify Surv object
+
   Y <- mf[[1]]
   if(!inherits(Y, "Surv")) stop("left hand side not a survival object")
+  if(ncol(Y) != 3) {
+    warning("Y not in (tstart, tstop) format; taking tstart = 0")
+    # Y <- cbind(rep(0, nrow(Y)), Y)
+    # attr(Y, "dimnames") <- list(NULL, c("start", "stop", "status"))
+    # attr(Y, "type") <- "counting"
+    Y <- Surv(rep(0, nrow(Y)), Y[,1], Y[,2])
+  }
   if(attr(Y, "type") != "counting") stop("use Surv(tstart, tstop, status)")
-
-
-
 
 
   # get the model matrix
@@ -425,12 +412,6 @@ emfrail <- function(.data,
   #adj_se <- sqrt(diag(deta_dtheta %*% (1/(attr(opt_object, "details")[[3]])) %*% t(deta_dtheta)))
 
   vcov_adj = inner_m$Vcov + deta_dtheta %*% (1/(attr(outer_m, "details")[[3]])) %*% t(deta_dtheta)
-  #
-
-  # est_dist <- emfrail_distribution(dist = .distribution$dist,
-  #                                  frailtypar = final_fit$frailtypar,
-  #                                  pvfm = .distribution$pvfm
-  # )
 
 
   res <- list(outer_m = outer_m,
@@ -438,9 +419,9 @@ emfrail <- function(.data,
               loglik_null = mcox$loglik[length(mcox$loglik)],
               # mcox = mcox,
               vcov_adj = vcov_adj,
-              .formula,
-              .distribution,
-              .control
+              .formula = .formula,
+              .distribution = .distribution,
+              .control = .control
               )
 
 # res <- list(outer_m = opt_object, # contains the maximization

@@ -38,84 +38,84 @@ In `timereg` there is a function `two.step` which does some things. It does not 
 
 ### gamma frailty
 ```{r rats_gamma}
-library(frailtoys)
-dat <- survival::rats
-
-# frailtoys
-m_ft <- emfrail(.data = dat, .formula = Surv(rep(0, nrow(dat)), time, status) ~ sex + rx + cluster(litter),
-                .control = emfrail_control(opt_fit = TRUE))
-
-# survival
-m_cph <- coxph(data = dat, 
-                 formula = Surv(rep(0, nrow(dat)), time, status) ~ sex + rx + frailty(litter),
-                 ties = "breslow")
-
-# frailtysurv
-
-library(frailtySurv)
-m_ff <- fitfrail(Surv(rep(0, nrow(dat)), time, status) ~ sex + rx + cluster(litter), dat,  frailty = "gamma")
-m_ff_2 <- fitfrail(Surv(time, status) ~ sex + rx + cluster(litter), dat,  frailty = "gamma", se = TRUE)
-
-# parfm
-library(parfm)
-m_pf <- parfm(Surv(rep(0, nrow(dat)), time, status) ~ sex + rx, cluster = "litter", data = dat, frailty = "gamma", dist = "exponential")
-
-# frailtypack
-library(frailtypack)
-m_fp <- frailtyPenal(Surv(time, status) ~ sex + rx + cluster(litter), n.knots=12, kappa=10000, data = dat)
+# library(frailtoys)
+# dat <- survival::rats
+# 
+# # frailtoys
+# m_ft <- emfrail(.data = dat, .formula = Surv(rep(0, nrow(dat)), time, status) ~ sex + rx + cluster(litter),
+#                 .control = emfrail_control(opt_fit = TRUE))
+# 
+# # survival
+# m_cph <- coxph(data = dat, 
+#                  formula = Surv(rep(0, nrow(dat)), time, status) ~ sex + rx + frailty(litter),
+#                  ties = "breslow")
+# 
+# # frailtysurv
+# 
+# library(frailtySurv)
+# m_ff <- fitfrail(Surv(rep(0, nrow(dat)), time, status) ~ sex + rx + cluster(litter), dat,  frailty = "gamma")
+# m_ff_2 <- fitfrail(Surv(time, status) ~ sex + rx + cluster(litter), dat,  frailty = "gamma", se = TRUE)
+# 
+# # parfm
+# library(parfm)
+# m_pf <- parfm(Surv(rep(0, nrow(dat)), time, status) ~ sex + rx, cluster = "litter", data = dat, frailty = "gamma", dist = "exponential")
+# 
+# # frailtypack
+# library(frailtypack)
+# m_fp <- frailtyPenal(Surv(time, status) ~ sex + rx + cluster(litter), n.knots=12, kappa=10000, data = dat)
 ```
 
 
 ```{r rats_pvf}
-data("kidney")
-kidney$sex <- kidney$sex - 1
-# frailtoys
-names(kidney)
-m_ft <- emfrail(.data = kidney, .formula = Surv(rep(0, nrow(kidney)), time, status) ~ sex + age + cluster(id),
-                .control = emfrail_control(opt_fit = TRUE),
-                .distribution = emfrail_distribution(dist = "pvf", 
-                                                     pvfm = -1/2))
-
-
-  a1 <- predict(m_ft, quantity = "cumhaz", type = "conditional")
-  a1
-# survival
-# m_cph <- coxph(data = dat, 
-#                  formula = Surv(rep(0, nrow(dat)), time, status) ~ sex + rx + frailty(litter),
-#                  ties = "breslow")
-
-# frailtysurv
-library(frailtySurv)
-
-m_ff_2 <- fitfrail(Surv(time, status) ~ sex + age + cluster(id), kidney,  frailty = "pvf", se = TRUE)
-
-plot(m_ff_2, type = "cumhaz")
-str(m_ff_2)
-plot(m_ff_2$Lambda)
-
-m_ff
-?fitfrail
-m_ff <- fitfrail(Surv(rep(0, nrow(dat)), time, status) ~ sex + rx + cluster(litter), dat,  frailty = "gamma")
-m_ff_2 <- fitfrail(Surv(time, status) ~ sex + rx + cluster(litter), dat,  frailty = "gamma", se = TRUE)
-
-fitfrail
-# parfm
-m_pf <- parfm(Surv(rep(0, nrow(dat)), time, status) ~ sex + rx, cluster = "litter", data = dat, frailty = "gamma", dist = "exponential")
-
-# frailtypack
-m_fp <- frailtyPenal(Surv(time, status) ~ sex + rx + cluster(litter), n.knots=12, kappa=10000, data = dat)
+# data("kidney")
+# kidney$sex <- kidney$sex - 1
+# # frailtoys
+# names(kidney)
+# m_ft <- emfrail(.data = kidney, .formula = Surv(rep(0, nrow(kidney)), time, status) ~ sex + age + cluster(id),
+#                 .control = emfrail_control(opt_fit = TRUE),
+#                 .distribution = emfrail_distribution(dist = "pvf", 
+#                                                      pvfm = -1/2))
+# 
+# 
+#   a1 <- predict(m_ft, quantity = "cumhaz", type = "conditional")
+#   a1
+# # survival
+# # m_cph <- coxph(data = dat, 
+# #                  formula = Surv(rep(0, nrow(dat)), time, status) ~ sex + rx + frailty(litter),
+# #                  ties = "breslow")
+# 
+# # frailtysurv
+# library(frailtySurv)
+# 
+# m_ff_2 <- fitfrail(Surv(time, status) ~ sex + age + cluster(id), kidney,  frailty = "pvf", se = TRUE)
+# 
+# plot(m_ff_2, type = "cumhaz")
+# str(m_ff_2)
+# plot(m_ff_2$Lambda)
+# 
+# m_ff
+# ?fitfrail
+# m_ff <- fitfrail(Surv(rep(0, nrow(dat)), time, status) ~ sex + rx + cluster(litter), dat,  frailty = "gamma")
+# m_ff_2 <- fitfrail(Surv(time, status) ~ sex + rx + cluster(litter), dat,  frailty = "gamma", se = TRUE)
+# 
+# fitfrail
+# # parfm
+# m_pf <- parfm(Surv(rep(0, nrow(dat)), time, status) ~ sex + rx, cluster = "litter", data = dat, frailty = "gamma", dist = "exponential")
+# 
+# # frailtypack
+# m_fp <- frailtyPenal(Surv(time, status) ~ sex + rx + cluster(litter), n.knots=12, kappa=10000, data = dat)
 ```
 
 ```{r rats_gamma_show}
-m_ft
-
-m_cph
-
-m_ff_2
-
-m_pf
-
-m_fp
+# m_ft
+# 
+# m_cph
+# 
+# m_ff_2
+# 
+# m_pf
+# 
+# m_fp
 ```
 
 
