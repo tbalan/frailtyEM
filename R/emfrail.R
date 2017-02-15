@@ -114,7 +114,7 @@
 #' stime <- rexp(5*300, rate = u * exp(x))
 #' ltime <- runif(5 * 300)
 #'
-#' library(tidyverse)
+#' library(dplyr)
 #' d <- data.frame(id = rep(1:300, each = 5),
 #'                 x = x,
 #'                 stime = stime,

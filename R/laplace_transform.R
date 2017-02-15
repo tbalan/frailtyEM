@@ -11,7 +11,7 @@
 #' the marginal survival or hazard are given for the Laplace transform of a baseline subject entered at time 0.
 #' #'
 #' @examples
-#' dist <- emfrial_distribution()
+#' dist <- emfrail_distribution()
 #' laplace_transform(rexp(10), dist)
 #'
 laplace_transform <- function(x, .distribution) {

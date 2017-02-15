@@ -1,6 +1,7 @@
 #' @export
-print.emfrail_summary <- function(obj, ...) {
+print.emfrail_summary <- function(x, ...) {
 
+  obj <- x
   cat("Summary of emfrail fit:\n")
 
   cat("Estimated distribution:", obj$est_dist$dist, "/ left truncation:", obj$est_dist$left_truncation,"\n")

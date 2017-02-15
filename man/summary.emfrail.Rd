@@ -4,13 +4,16 @@
 \alias{summary.emfrail}
 \title{Summary for \code{emfrail} objects}
 \usage{
-\method{summary}{emfrail}(x, ...)
+\method{summary}{emfrail}(object, ...)
 }
 \arguments{
-\item{fit}{An object of class \code{emfrail}}
+\item{object}{An object of class \code{emfrail}}
+
+\item{...}{Ignored}
 }
 \value{
-An object of class \code{emfrail_summary}, which is a more human-readable list of results from an \code{emfrail} object
+An object of class \code{emfrail_summary},
+which is a more human-readable list of results from an \code{emfrail} object
 }
 \description{
 Summary for \code{emfrail} objects

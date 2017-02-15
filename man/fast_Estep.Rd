@@ -9,6 +9,8 @@ fast_Estep(c, c_lt = 0, delta, alpha, bbeta, pvfm, dist)
 \arguments{
 \item{c}{Vector of length \code{K} of cumulative hazards, i.e. total accumulated hazards within a cluster}
 
+\item{c_lt}{Vector of length \code{K} of cumulative hazard from 0 to the left truncation time}
+
 \item{delta}{Vector of integers of length \code{K} of the number of events for each cluster}
 
 \item{alpha, bbeta}{Parameters of the frailty distribution}

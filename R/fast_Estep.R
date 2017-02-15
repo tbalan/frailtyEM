@@ -5,6 +5,7 @@
 #' for the inverse Gaussian distribution (without left truncation).
 #' For a data set with \code{K} clusters,
 #' @param c Vector of length \code{K} of cumulative hazards, i.e. total accumulated hazards within a cluster
+#' @param c_lt Vector of length \code{K} of cumulative hazard from 0 to the left truncation time
 #' @param delta Vector of integers of length \code{K} of the number of events for each cluster
 #' @param alpha,bbeta Parameters of the frailty distribution
 #' @param pvfm Parameter for the PVF distribution, only matters in that case
@@ -14,7 +15,6 @@
 #' and the denominators of the frailty fraction, the third is the log-likelihood contribution, and the
 #' last column is the expectation of the squared frailty (only used in calculating the information matrix)
 #'
-#' @export
 fast_Estep <- function(c, c_lt = 0, delta, alpha, bbeta, pvfm, dist) {
 
   #if(!(dist == 0 | (dist == 2 & pvfm == -0.5))) stop("no fast option available here")

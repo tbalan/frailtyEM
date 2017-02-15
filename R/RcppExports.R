@@ -7,6 +7,7 @@
 #' This function does not check the input.
 #' For a data set with \code{K} clusters,
 #' @param c Vector of length \code{K} of cumulative hazards, i.e. total accumulated hazards within a cluster
+#' @param c_lt Vector of length \code{K} of cumulative hazard from 0 to the left truncation time
 #' @param delta Vector of integers of length \code{K} of the number of events for each cluster
 #' @param alpha,bbeta Parameters of the frailty distribution
 #' @param pvfm Parameter for the PVF distribution, only matters in that case
@@ -16,7 +17,6 @@
 #' and the denominators of the frailty fraction (without the Laplace transform) and the
 #' last column is the log(denominator) + log-Laplace transform, i.e. the log-likelihood contribution
 #'
-#' @export
 Estep <- function(c, c_lt, delta, alpha, bbeta, pvfm, dist) {
     .Call('frailtoys_Estep', PACKAGE = 'frailtoys', c, c_lt, delta, alpha, bbeta, pvfm, dist)
 }

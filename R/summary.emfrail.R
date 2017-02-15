@@ -1,8 +1,10 @@
 #' Summary for \code{emfrail} objects
 #'
-#' @param fit An object of class \code{emfrail}
+#' @param object An object of class \code{emfrail}
+#' @param ... Ignored
 #'
-#' @return An object of class \code{emfrail_summary}, which is a more human-readable list of results from an \code{emfrail} object
+#' @return An object of class \code{emfrail_summary},
+#' which is a more human-readable list of results from an \code{emfrail} object
 #' @export
 #'
 #' @examples
@@ -46,10 +48,10 @@
 #' library(plotly)
 #' ggplotly(pl2)
 
-summary.emfrail <- function(x, ...) {
+summary.emfrail <- function(object, ...) {
 
   # Calculate the following: estimated distribution of the frailty at time 0
-  fit <- x
+  fit <- object
   est_dist <- fit$.distribution
   est_dist$frailtypar <- exp(fit$outer_m$p1)
 

@@ -1,10 +1,11 @@
 #' Predicted hazard and survival curves from an \code{emfrail} object
 #'
-#' @param fit An \code{emfrail} fit object
+#' @param object An \code{emfrail} fit object
 #' @param lp A vector of linear predictor values at which to calculate the curves.
 #' @param quantity The quantity to be calculated for the values of \code{lp}
 #' @param type The type of the quantity (conditional  / marginal)
 #' @param conf_int The type of the confidence interval (adjusted / regular)
+#' @param ... Ignored
 #'
 #' @return A data frame with the column \code{time} and several other columns according to the input.
 #' By default, for each \code{lp} it will give the following columns: \code{cumhaz}, \code{survival},
@@ -16,16 +17,16 @@
 #' @include laplace_transform.R
 #'
 #' @examples
-#' #' m1 <- emfrail(.data =  dat,
-#'   .formula = Surv(rep(0, nrow(dat)), time, status) ~  rx + sex + cluster(litter),
-#'   .distribution = emfrail_distribution(dist = "gamma"))
-#' predict.emfrail(m1)
+#' m1 <- emfrail(.data =  dat,
+#'   .formula = Surv(time, status) ~  rx + sex + cluster(litter))
+#' predict(m1)
 #'
-predict.emfrail <- function(x,
+predict.emfrail <- function(object,
                             lp = c(0),
                             quantity = c("cumhaz", "survival"),
                             type = c("conditional", "marginal"),
-                            conf_int = c("regular", "adjusted")) {
+                            conf_int = c("regular", "adjusted"),
+                            ...) {
 
   fit <- x
   est_dist <- fit$.distribution

@@ -25,7 +25,7 @@ the marginal survival or hazard are given for the Laplace transform of a baselin
 #'
 }
 \examples{
-dist <- emfrial_distribution()
+dist <- emfrail_distribution()
 laplace_transform(rexp(10), dist)
 
 }
