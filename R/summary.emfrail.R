@@ -128,10 +128,10 @@ summary.emfrail <- function(object, ...) {
     shape <- est_dist$frailtypar + fit$inner_m$nev_id
     rate <- est_dist$frailtypar + fit$inner_m$Cvec
     var_z <- shape / rate^2
-    lower_q <- qgamma(0.025,
+    lower_q <- stats::qgamma(0.025,
                       shape = shape,
                       rate = rate)
-    upper_q <- qgamma(0.975,
+    upper_q <- stats::qgamma(0.975,
                       shape = shape,
                       rate = rate)
   }
