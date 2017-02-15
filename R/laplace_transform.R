@@ -9,10 +9,6 @@
 #' It is intended to be used to calculate marginal quantities from an \code{emfrail} object.
 #' Note that the \code{left_truncation} argument is ignored here;
 #' the marginal survival or hazard are given for the Laplace transform of a baseline subject entered at time 0.
-#' #'
-#' @examples
-#' dist <- emfrail_distribution()
-#' laplace_transform(rexp(10), dist)
 #'
 laplace_transform <- function(x, .distribution) {
   # if(missing(.distribution) & missing())

@@ -4,15 +4,15 @@ output: github_document
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
-
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+```{r, echo = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.path = "README-"
+)
 ```
 
-## How to install
-At this point, there is no easy way to install this package except to download it and build it with `devtools`. 
-You will probably need to
-`install.packages("devtools", "roxygen2", "Rcpp", "optimx", "magrittr", "msm")`.
 
-## What does it do?
-Start with `?emfrail` and also read the vignette
+Hello!
+
+This is an R package that fits shared frailty models. It's gonna be the best.

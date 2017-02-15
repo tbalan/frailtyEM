@@ -67,7 +67,7 @@ emfrail_distribution <- function(dist = "gamma", frailtypar, pvfm = -1/2, left_t
 #' The \code{zerotol} option defaults to \code{1e-04}, which in practical terms means, for example, that for
 #' the gamma / pvf distribution, a frailty variance below \code{1e-04} can not be detected.
 #'
-#' @seealso \code{\link{emfrail}, \link{emfrail_distributon}, \link{emfrail_pll}}
+#' @seealso \code{\link{emfrail}}, \code{\link{emfrail_distributon}}, \code{\link{emfrail_pll}}
 #' @examples
 #' emfrail_control()
 #' emfrail_control(eps = 10e-7)

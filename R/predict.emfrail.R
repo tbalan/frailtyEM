@@ -17,7 +17,7 @@
 #' @include laplace_transform.R
 #'
 #' @examples
-#' m1 <- emfrail(.data =  dat,
+#' m1 <- emfrail(.data =  rats,
 #'   .formula = Surv(time, status) ~  rx + sex + cluster(litter))
 #' predict(m1)
 #'
@@ -28,7 +28,7 @@ predict.emfrail <- function(object,
                             conf_int = c("regular", "adjusted"),
                             ...) {
 
-  fit <- x
+  fit <- object
   est_dist <- fit$.distribution
   est_dist$frailtypar <- exp(fit$outer_m$p1)
 
