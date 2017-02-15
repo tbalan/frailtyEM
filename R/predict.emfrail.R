@@ -14,7 +14,6 @@
 #'
 #' @export
 #'
-#' @include laplace_transform.R
 #'
 #' @examples
 #' m1 <- emfrail(.data =  rats,

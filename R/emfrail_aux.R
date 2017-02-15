@@ -1,6 +1,10 @@
-
-
-# Auxiliary functions which create the parameters
+#' dist_to_pars
+#'
+#' @param dist One of gamma, stable, pvf
+#' @param logfrailtypar The log of theta
+#' @param pvfm The pvfm
+#'
+#' @return A list with 3 elements: alpha, beta (the parameters of the Laplace transform) and dist_id.
 dist_to_pars <- function(dist, logfrailtypar, pvfm) {
 
     if (dist == "gamma") {
@@ -32,6 +36,89 @@ dist_to_pars <- function(dist, logfrailtypar, pvfm) {
     list(alpha = alpha, bbeta = bbeta, dist = dist_id)
 }
 
+
+#' Laplace transform calculation
+#'
+#' @param x A vector of positive values where to calculate the Laplace transform
+#' @param .distribution An \code{emfrail_distribution} object. See \code{?emfrail_distribution}.
+#'
+#' @return A vector of the same length as \code{x} with the Laplace transform of \code{x}
+#'
+#' @details This is a simple function which calculates the Laplace transform for the gamma, positive stable and PVF distribution.
+#' It is intended to be used to calculate marginal quantities from an \code{emfrail} object.
+#' Note that the \code{left_truncation} argument is ignored here;
+#' the marginal survival or hazard are given for the Laplace transform of a baseline subject entered at time 0.
+#'
+laplace_transform <- function(x, .distribution) {
+  # if(missing(.distribution) & missing())
+  if(!inherits(.distribution, "emfrail_distribution"))
+    stop(".distribution argument misspecified; see ?emfrail_distribution()")
+
+  getpars <- dist_to_pars(.distribution$dist, log(.distribution$frailtypar), .distribution$pvfm)
+
+  if(getpars$dist == 0L) {
+    L <- with(getpars, (bbeta / (bbeta + x))^alpha)
+  }
+
+  if(getpars$dist == 1L) {
+    L <- with(getpars, exp(-1 * x^bbeta))
+  }
+
+  if(getpars$dist == 2L) {
+    L <- with(getpars, exp(-alpha * sign(.distribution$pvfm) * (1 - (bbeta / (bbeta + x))^.distribution$pvfm )))
+  }
+
+  L
+
+}
+
+
+#' Profile log-likelihood calculation
+#'
+#' @param .data Same as in \code{emfrail}
+#' @param .formula Same as in \code{emfrail}
+#' @param .distribution Same as in \code{emfrail}
+#' @param .values A vector of values on where to calculate the profile likelihood. See details.
+#'
+#' @return The profile log-likelihood at the specific value of the frailty parameter
+#' @export
+#'
+#' @details This function can be used to calculate the profile log-likelihood.
+#' The scale is that of \code{frailtypar} as defined in \code{emfrail_distribution()}.
+#' For the gamma and pvf frailty, that is the inverse of the frailty variance.
+#'
+#' @note This function is just a simple wrapper for \code{emfrail()} with the \code{.control} argument
+#' a call from \code{emfrail_control} with the option \code{opt_fit = FALSE}.
+#'
+#' @examples
+#'
+#' fr_var <- c(0.001, 0.01, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9)
+#' profloglik <- emfrail_pll(rats,
+#'                           Surv(rep(0, nrow(rats)), time, status) ~ rx + sex + cluster(litter),
+#'                           .values = 1/fr_var)
+#' plot(fr_var, profloglik, xlab = "frailty variance", ylab = "profile log-likelihood")
+#'
+#' # check with coxph:
+#' profloglik_cph<- sapply(fr_var, function(th)
+#'   coxph(data =  rats, formula = Surv(time, status) ~ rx + sex + frailty(litter, theta = th),
+#'                  method = "breslow")$history[[1]][[3]])
+#'
+#' lines(fr_var, profloglik_cph, col = 2)
+#'
+emfrail_pll <- function(.data, .formula,
+                        .distribution = emfrail_distribution(),
+                        .values) {
+  sapply(.values, function(fp) {
+    -emfrail(.data = .data,
+             .formula = .formula,
+             .distribution =  emfrail_distribution(dist = .distribution$dist,
+                                                   frailtypar = fp,
+                                                   pvfm = .distribution$pvfm,
+                                                   left_truncation = .distribution$left_truncation),
+             .control = emfrail_control(opt_fit = FALSE))
+  })
+
+}
 
 
 # this one gives the baseline cumulative hazard at all the time points;

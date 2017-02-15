@@ -1,49 +1,3 @@
-#' Distribution parameters for emfrail
-#'
-#' @param dist One of 'gamma', 'stable' or 'pvf'.
-#' @param frailtypar A starting value for the 'outer' maximization with respect to the frailty parameter \eqn{\theta}. Must be positive.
-#' @param pvfm Only relevant if \code{dist = 'pvf'} is used. It determines which PVF distribution should be used. Must be  larger than -1 and not equal to 0.
-#' @param left_truncation Logical. Whether the data set represents left truncated survival times.
-#'
-#' @return An object of the type \code{emfrail_distribution}, which is mostly used to denote the
-#' supported frailty distributions in a consistent way.
-#' @export
-#'
-#' @details The \code{frailtypar} argument must be positive. In the case of gamma or PVF, this is \eqn{1/\theta}
-#'  where \eqn{\theta} is the frailty variance, i.e. the larger the \code{frailtypar} is,
-#'  the closer the model is to a Cox model. For the positive stable distribution, the parameter is
-#'  \eqn{\theta / (1 - \theta)}, where \eqn{0 < \theta < 1}.
-#'
-#' @seealso \code{\link{emfrail}, \link{emfrail_control}}
-#' @examples
-#' emfrail_distribution()
-#' # Compound Poisson distribution:
-#' emfrail_distribution(dist = 'pvf', frailtypar = 1.5, pvfm = 0.5)
-#' # Inverse Gaussian distribution:
-#' emfrail_distribution(dist = 'pvf')
-emfrail_distribution <- function(dist = "gamma", frailtypar, pvfm = -1/2, left_truncation = FALSE) {
-
-    if (!(dist %in% c("gamma", "stable", "pvf")))
-        stop("frailty distribution must be one of gamma, stable, pvf")
-    if(missing(frailtypar)) {
-      if(dist == "stable") frailtypar <- 0.5 else frailtypar <- 2
-    }
-    if (length(frailtypar) != 1)
-        stop("specify exactly 1 parameter (theta>0) for the frailty")
-    if (frailtypar <= 0)
-        stop("frailty parameter (theta) must be positive")
-    if (dist == "pvf" & (pvfm < -1 | pvfm == 0))
-        stop("pvfm must be >-1 and not equal to 0")
-
-    if(!is.logical(left_truncation)) stop("left_truncation must be TRUE or FALSE")
-    res <- list(dist = dist, frailtypar = frailtypar, pvfm = pvfm, left_truncation = left_truncation)
-    attr(res, "class") <- c("emfrail_distribution")
-    return(res)
-}
-
-
-
-
 #' Control parameters for emfrail
 #'
 #' @param eps Convergence criterion for the inner loops (the EM algorithm) for fixed frailty parameters
@@ -67,7 +21,7 @@ emfrail_distribution <- function(dist = "gamma", frailtypar, pvfm = -1/2, left_t
 #' The \code{zerotol} option defaults to \code{1e-04}, which in practical terms means, for example, that for
 #' the gamma / pvf distribution, a frailty variance below \code{1e-04} can not be detected.
 #'
-#' @seealso \code{\link{emfrail}}, \code{\link{emfrail_distributon}}, \code{\link{emfrail_pll}}
+#' @seealso \code{\link{emfrail}}, \code{\link{emfrail_distribution}}, \code{\link{emfrail_pll}}
 #' @examples
 #' emfrail_control()
 #' emfrail_control(eps = 10e-7)
@@ -110,3 +64,53 @@ emfrail_control <- function(eps = 0.0001, maxit = Inf, opt_fit = TRUE, verbose =
     attr(res, "class") <- c("emfrail_control")
     res
 }
+
+
+
+
+
+#' Distribution parameters for emfrail
+#'
+#' @param dist One of 'gamma', 'stable' or 'pvf'.
+#' @param frailtypar A starting value for the 'outer' maximization with respect to the frailty parameter \eqn{\theta}. Must be positive.
+#' @param pvfm Only relevant if \code{dist = 'pvf'} is used. It determines which PVF distribution should be used. Must be  larger than -1 and not equal to 0.
+#' @param left_truncation Logical. Whether the data set represents left truncated survival times.
+#'
+#' @return An object of the type \code{emfrail_distribution}, which is mostly used to denote the
+#' supported frailty distributions in a consistent way.
+#' @export
+#'
+#' @details The \code{frailtypar} argument must be positive. In the case of gamma or PVF, this is \eqn{1/\theta}
+#'  where \eqn{\theta} is the frailty variance, i.e. the larger the \code{frailtypar} is,
+#'  the closer the model is to a Cox model. For the positive stable distribution, the parameter is
+#'  \eqn{\theta / (1 - \theta)}, where \eqn{0 < \theta < 1}.
+#'
+#' @seealso \code{\link{emfrail}, \link{emfrail_control}}
+#' @examples
+#' emfrail_distribution()
+#' # Compound Poisson distribution:
+#' emfrail_distribution(dist = 'pvf', frailtypar = 1.5, pvfm = 0.5)
+#' # Inverse Gaussian distribution:
+#' emfrail_distribution(dist = 'pvf')
+emfrail_distribution <- function(dist = "gamma", frailtypar, pvfm = -1/2, left_truncation = FALSE) {
+
+  if (!(dist %in% c("gamma", "stable", "pvf")))
+    stop("frailty distribution must be one of gamma, stable, pvf")
+  if(missing(frailtypar)) {
+    if(dist == "stable") frailtypar <- 0.5 else frailtypar <- 2
+  }
+  if (length(frailtypar) != 1)
+    stop("specify exactly 1 parameter (theta>0) for the frailty")
+  if (frailtypar <= 0)
+    stop("frailty parameter (theta) must be positive")
+  if (dist == "pvf" & (pvfm < -1 | pvfm == 0))
+    stop("pvfm must be >-1 and not equal to 0")
+
+  if(!is.logical(left_truncation)) stop("left_truncation must be TRUE or FALSE")
+  res <- list(dist = dist, frailtypar = frailtypar, pvfm = pvfm, left_truncation = left_truncation)
+  attr(res, "class") <- c("emfrail_distribution")
+  return(res)
+}
+
+
+
