@@ -67,8 +67,9 @@ summary.emfrail <- function(object, ...) {
                                     mean = p1,
                                     cov = 1/attr(fit$outer_m, "details")[[3]]))
 
-  ci_theta_low <- with(fit, outer_m$p1 - 1.96 * sqrt(1/attr(outer_m, "details")[[3]]))
-  ci_theta_high <- with(fit, outer_m$p1 + 1.96 * sqrt(1/attr(outer_m, "details")[[3]]))
+  # CI is symmetric on log(theta)
+  ci_theta_low <- exp(with(fit, outer_m$p1 - 1.96 * sqrt(1/attr(outer_m, "details")[[3]])))
+  ci_theta_high <- exp(with(fit, outer_m$p1 + 1.96 * sqrt(1/attr(outer_m, "details")[[3]])))
 
 
   # for gamma and pvf theta is 1/variance
@@ -85,8 +86,8 @@ summary.emfrail <- function(object, ...) {
                       msm::deltamethod(~1/exp(x1),
                                        mean = p1,
                                        cov = 1/attr(fit$outer_m, "details")[[3]]))
-    ci_frvar_low <- 1/exp(ci_theta_high)
-    ci_frvar_high <- 1/exp(ci_theta_low)
+    ci_frvar_low <- 1/ci_theta_high
+    ci_frvar_high <- 1/ci_theta_low
   } else {
 
     # Kendall's tau

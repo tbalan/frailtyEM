@@ -4,6 +4,7 @@
 #' @param logfrailtypar The log of theta
 #' @param pvfm The pvfm
 #'
+#' @keywords internal
 #' @return A list with 3 elements: alpha, beta (the parameters of the Laplace transform) and dist_id.
 dist_to_pars <- function(dist, logfrailtypar, pvfm) {
 
@@ -48,7 +49,7 @@ dist_to_pars <- function(dist, logfrailtypar, pvfm) {
 #' It is intended to be used to calculate marginal quantities from an \code{emfrail} object.
 #' Note that the \code{left_truncation} argument is ignored here;
 #' the marginal survival or hazard are given for the Laplace transform of a baseline subject entered at time 0.
-#'
+#' @keywords internal
 laplace_transform <- function(x, .distribution) {
   # if(missing(.distribution) & missing())
   if(!inherits(.distribution, "emfrail_distribution"))

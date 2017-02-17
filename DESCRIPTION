@@ -5,8 +5,9 @@ Version: 0.4
 Author: Theodor Adrian Balan, Hein Putter
 Maintainer: Theodor Adrian Balan <teddybalan@gmail.com>
 Description: This package fits shared frailty models with a semiparametric
-    baseline hazard. For the frailty distribution, the gamma, PVF and positive
-    stable are supported.
+    baseline hazard for clustered failures with left truncation or for
+    recurrent events. For the frailty distribution, the gamma, PVF family
+    and positive stable are supported.
 License: GPL (>= 2)
 Encoding: UTF-8
 LazyData: true
@@ -32,10 +33,9 @@ VignetteBuilder: knitr
 Collate: 
     'RcppExports.R'
     'em_fit.R'
-    'dist_to_pars.R'
+    'emfrail_aux.R'
     'emfrail.R'
     'emfrail_arguments.R'
-    'emfrail_aux.R'
     'emfrail_pll.R'
     'fast_Estep.R'
     'predict.emfrail.R'

@@ -1,4 +1,5 @@
 #' @export
+#' @keywords internal
 print.emfrail_summary <- function(x, ...) {
 
   obj <- x
@@ -10,12 +11,17 @@ print.emfrail_summary <- function(x, ...) {
     if(obj$est_dist$pvfm == -0.5) cat("(Inverse Gaussian)")
     cat("\n")
   }
+  cat("\n")
 
+  cat("Fit summary:\n")
   cat("(marginal) no-frailty Log-likelihood:", round(obj$loglik[1], digits = 3), "\n")
   cat("(marginal) Log-likelihood:", round(obj$loglik[2], digits = 3), "\n")
   cat("LRT: 1/2 * pchisq(", format(obj$loglik[3], digits = 3),"), p-value ",
       format(obj$loglik[4], digits = 3), "\n", sep = "")
 
+  cat("\n")
+
+  cat("Frailty summary:\n")
   cat("theta = ",
       round(obj$theta[1], digits = 3),
       ", (",
@@ -64,9 +70,10 @@ print.emfrail_summary <- function(x, ...) {
   }
 
 
+  cat("\n")
   if(!is.null(obj$coefmat)) {
      cat("Regression coefficients:\n")
-     printCoefmat(as.data.frame(obj$coefmat))
+     printCoefmat(do.call(cbind, obj$coefmat), P.values = TRUE, has.Pvalue = TRUE)
  }
 
 }

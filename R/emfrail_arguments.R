@@ -44,10 +44,13 @@
 #' m_ft <- emfrail(dat, Surv(tstart, tstop, status) ~ x + cluster(id))
 #' m_ft
 #'
-#' # The algorithm gives as frailty parameter 10587.88 which means frailty variance 1/10587.88 = 9.44e-05
-#' # That is because by default, zerotol = 1e-04, which is the point where the algorithm decides that the frailty is 0.
+#' # The algorithm gives as frailty parameter 10587.88,
+#' # which means frailty variance 1/10587.88 = 9.44e-05
+#' # That is because by default, zerotol = 1e-04,
+#' # which is the point where the algorithm decides that the frailty is 0.
 #'
-#' # If you want the exact value of the estimate, increase the precision so the point stays somewhat interior to the parameter space.
+#' # If you want the exact value of the estimate,
+#' # increase the precision so the point stays somewhat interior to the parameter space:
 #' m_ft_08 <- emfrail(dat, Surv(tstart, tstop, status) ~ x + cluster(id),
 #'                    .control = emfrail_control(zerotol = 1e-8))
 #' # This gives a more precise estimate, 5845410 so frailty variance 1/5845410 = 1.71e-07

@@ -15,6 +15,7 @@
 #' and the denominators of the frailty fraction, the third is the log-likelihood contribution, and the
 #' last column is the expectation of the squared frailty (only used in calculating the information matrix)
 #'
+#' @keywords internal
 fast_Estep <- function(c, c_lt = 0, delta, alpha, bbeta, pvfm, dist) {
 
   #if(!(dist == 0 | (dist == 2 & pvfm == -0.5))) stop("no fast option available here")
