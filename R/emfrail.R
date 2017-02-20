@@ -55,7 +55,7 @@
 #' For small enough values of \eqn{1/\theta} the log-likelihood
 #' of the Cox model is returned to avoid such problems. This option can be tweaked in \code{emfrail_control()}.
 #'
-#' @seealso  \code{\link{pll_emfrail}} for calculating \eqn{\widehat{L}(\theta)} at specific values of \eqn{\theta},
+#' @seealso  \code{\link{emfrail_pll}} for calculating \eqn{\widehat{L}(\theta)} at specific values of \eqn{\theta},
 #' \code{\link{summary.emfrail}} for transforming the \code{emfrail} object into a more human-readable format and for
 #' visualizing the frailty (empirical Bayes) estimates,
 #' \code{\link{predict.emfrail}} for calculating and visalizing conditional and marginal survival and cumulative
@@ -121,7 +121,6 @@
 #'                       .formula = Surv(time, status) ~  rx + sex + cluster(litter),
 #'                       .distribution = emfrail_distribution(dist = "pvf"),
 #'                       .values = 1/fr_var )
-#' lines(fr_var, pll_if, col = 3)
 #'
 #' # Same for pvf with a psoitive pvfm parameter
 #' pll_pvf <- emfrail_pll(.data =  dat,
@@ -132,7 +131,7 @@
 #' miny <- min(c(pll_gamma, pll_cph, pll_if, pll_pvf))
 #' maxy <- max(c(pll_gamma, pll_cph, pll_if, pll_pvf))
 #'
-#' plot(fr_var, pll,
+#' plot(fr_var, pll_gamma,
 #'      type = "l",
 #'      xlab = "Frailty variance",
 #'      ylab = "Profile log-likelihood",
@@ -471,7 +470,7 @@ emfrail <- function(.data,
 
   # a fit just for the log-likelihood;
   if(!isTRUE(.control$opt_fit)) {
-    return(em_fit(logfrailtypar = log(.distribution$frailtypar),
+    return(em_fit(logfrailtypar = log(.distribution$theta),
            dist = .distribution$dist, pvfm = .distribution$pvfm,
            Y = Y, Xmat = X, atrisk = atrisk, basehaz_line = basehaz_line,
            mcox = list(coefficients = g, loglik = mcox$loglik),  # a "fake" cox model
@@ -482,7 +481,7 @@ emfrail <- function(.data,
 
 
   # otherwise, the maximizer
-  outer_m <- optimx::optimx(par = log(.distribution$frailtypar), fn = em_fit,
+  outer_m <- optimx::optimx(par = log(.distribution$theta), fn = em_fit,
                hessian = TRUE,
                #lower = -10000, upper = 10000,
                method = .control$opt_control$method, #control = .control$opt_control$control,

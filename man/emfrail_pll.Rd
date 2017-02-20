@@ -22,13 +22,15 @@ The profile log-likelihood at the specific value of the frailty parameter
 Profile log-likelihood calculation
 }
 \details{
-This function can be used to calculate the profile log-likelihood.
-The scale is that of \code{frailtypar} as defined in \code{emfrail_distribution()}.
+This function can be used to calculate the profile log-likelihood for different values of \eqn{\theta}.
+The scale is that of \code{theta} as defined in \code{emfrail_distribution()}.
 For the gamma and pvf frailty, that is the inverse of the frailty variance.
 }
 \note{
 This function is just a simple wrapper for \code{emfrail()} with the \code{.control} argument
-a call from \code{emfrail_control} with the option \code{opt_fit = FALSE}.
+a call from \code{emfrail_control} with the option \code{opt_fit = FALSE}. More flexibility can be obtained
+by calling \code{emfrail} with this option, especially
+for setting other \code{emfrail_control} parameters.
 }
 \examples{
 

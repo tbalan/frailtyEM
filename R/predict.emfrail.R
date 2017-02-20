@@ -1,25 +1,96 @@
 #' Predicted hazard and survival curves from an \code{emfrail} object
 #'
 #' @param object An \code{emfrail} fit object
-#' @param lp A vector of linear predictor values at which to calculate the curves.
-#' @param quantity The quantity to be calculated for the values of \code{lp}
-#' @param type The type of the quantity (conditional  / marginal)
-#' @param conf_int The type of the confidence interval (adjusted / regular)
+#' @param lp A vector of linear predictor values at which to calculate the curves. Default is 0 (baseline).
+#' @param quantity Can be \code{"cumhaz"} and/or \code{"survival"}. The quantity to be calculated for the values of \code{lp}.
+#' @param type Can be \code{"conditional"} and/or \code{"marginal"}. The type of the quantity to be calculated.
+#' @param conf_int Can be \code{"regular"} and/or \code{"adjusted"}. The type of confidence interval to be calculated.
 #' @param ... Ignored
 #'
 #' @return A data frame with the column \code{time} and several other columns according to the input.
 #' By default, for each \code{lp} it will give the following columns: \code{cumhaz}, \code{survival},
 #' \code{cumhaz_m}, \code{survival_m} for the cumulative hazard and survival, conditional and marginal.
 #'
+#' @details The \code{emfrail} only gives the Breslow estimates of the  baseline hazard \eqn{\lambda_0(t)} at the
+#' event time points, conditional on the frailty. Let \eqn{\lambda(t)} be the baseline hazard for a linear predictor of interest.
+#' The estimated conditional cumulative hazard is then
+#' \eqn{\Lambda(t) = \sum_{s= 0}^t \lambda(s)}. The variance of \eqn{\Lambda(t)} can be calculated from the (maybe adjusted)
+#' variance-covariance matrix.
+#'
+#' The conditional survival is obtained by the usual expression \eqn{S(t) = \exp(-\Lambda(t))}. The marginal survival
+#' is given by
+#' \deqn{\bar S(t) = E \left[\exp(-\Lambda(t)) \right] = \mathcal{L}(\Lambda(t)),}
+#' i.e. the Laplace transform of the frailty distribution calculated in \eqn{\Lambda(t)}.
+#'
+#' The marginal hazard is obtained as \deqn{\bar \Lambda(t) = - \log \bar S(t)}.
+#'
+#' The only standard errors that are available from \code{emfrail} are those for \eqn{\lambda_0(t)}. From this,
+#' standard errors of \eqn{\Lambda(t)} may be calculated. They have the following two issues: (1) the linear predictor is taken as fixed,
+#' i.e. the variability in the estimation of the regression coefficient is not taken into account and (2) the confidence intervals
+#' are based on asymptotic normality and are symmetric, which may lead in some situations to confidence intervals containing negative values.
+#' In this case, the lower bound for the cumulative hazard (or upper bound, for the survival) is truncated at 0 (or 1, for the survival).
+#'
 #'
 #' @export
 #'
 #'
 #' @examples
-#' m1 <- emfrail(.data =  rats,
-#'   .formula = Surv(time, status) ~  rx + sex + cluster(litter))
-#' predict(m1)
+#'kidney$sex <- kidney$sex - 1
+#' m1 <- emfrail(.data =  kidney,
+#'               .formula = Surv(time, status) ~  sex + age  + cluster(id))
 #'
+#' pred <- predict(m1)
+#'
+#' names(pred)
+#'
+#' # Plot cumulative hazard
+#' with(pred, plot(time, cumhaz, type = "s",main = "baseline Cumulative hazard") )
+#' with(pred, lines(time, cumhaz_m, type = "s", col = 2))
+#' legend(legend = c("conditional", "marginal"), x = "topleft", col = c(1,2), lty = 1)
+#'
+#' # Plot survival
+#' with(pred, plot(time, survival, ylim = c(0, 1),  type = "s",main = "baseline Survival") )
+#' with(pred, lines(time, survival_m, type = "s", col = 2))
+#' legend(legend = c("conditional", "marginal"), x = "topright", col = c(1,2), lty = 1)
+#'
+#'
+#' # Plot cumulative hazard with confidence intervals
+#' names(pred)
+#' library(ggplot2)
+#' ggplot(pred, aes(x = time, y = cumhaz)) +
+#'   geom_step() +
+#'   geom_ribbon(aes(ymin = cumhaz_l, ymax = cumhaz_r), alpha = 0.2) +
+#'   geom_ribbon(aes(ymin = cumhaz_l_a, ymax = cumhaz_r_a), alpha = 0.2) +
+#'   ggtitle("Baseline cumulative hazard with confidence intervals")
+#'
+#' # The linear predictor for someone with sex = 1 is
+#' lp_1 <- m1$inner_m$coef[1]
+#'
+#' pred2 <- predict(m1, lp = c(0, lp_1))
+#' pred2$sex <- ifelse(pred2$lp == 0, "male", "female")
+#' # Plot the conditional survival of two individuals
+#' ggplot(pred2, aes(x = time, y = survival, group = sex)) +
+#'   geom_step(aes(colour = sex)) + ggtitle("Conditional survival")
+#'
+#' # Plot the conditional and the marginal hazard in the same place
+#' library(dplyr)
+#' library(tidyr)
+#' pred2 %>%
+#'   gather(key = variable, value = survival, survival, survival_m) %>%
+#'   mutate(variable = ifelse(variable == "survival", "conditional", "marginal")) %>%
+#'   ggplot(aes(x = time, y = survival, colour = sex, linetype = variable)) +
+#'   geom_step() + ggtitle("Survival by sex")
+#'
+#' # The hazard ratio
+#' hr_conditional <- pred2$cumhaz[pred2$sex == "female"] / pred2$cumhaz[pred2$sex == "male"]
+#' hr_marginal <- pred2$cumhaz_m[pred2$sex == "female"] / pred2$cumhaz_m[pred2$sex == "male"]
+#' time <- pred2$time[pred2$sex == "male"]
+#'
+#' plot(time, hr_marginal, type = "s", col = 2, main = "Hazard ratio female vs male")
+#' lines(time, hr_conditional, type = "s")
+#' legend(c("conditional", "marginal"), x = "topleft", col = c(1,2), lty = 1)
+#' # The marginal hazard ratio in the case of gamma frailty shrinks towards 1
+#' # With positive stable, this plot would be two parallel lines
 predict.emfrail <- function(object,
                             lp = c(0),
                             quantity = c("cumhaz", "survival"),

@@ -25,6 +25,7 @@ Suggests:
     rmarkdown,
     ggplot2,
     dplyr,
+    tidyr,
     statmod,
     plotly,
     frailtySurv,
@@ -36,7 +37,6 @@ Collate:
     'emfrail_aux.R'
     'emfrail.R'
     'emfrail_arguments.R'
-    'emfrail_pll.R'
     'fast_Estep.R'
     'predict.emfrail.R'
     'print.emfrail.R'

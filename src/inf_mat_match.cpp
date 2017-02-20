@@ -19,10 +19,10 @@ NumericVector inf_mat_match(NumericVector left, NumericVector right, NumericVect
   unsigned int nrow = left.size();
 
   unsigned int upto = max(right); // this could be the length of the out vector
-  for(unsigned int i = 0; i <= upto; i++) {
+  for(unsigned int i = 1; i <= upto; i++) {
     for(unsigned int j = 0; j < nrow; j++) {
-      if((left[j] <= i) && (i < right[j]))
-        x[i] += elp[j];
+      if((left[j] < i) && (i <= right[j]))
+        x[i-1] += elp[j];
     }
   }
 

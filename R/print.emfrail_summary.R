@@ -73,7 +73,7 @@ print.emfrail_summary <- function(x, ...) {
   cat("\n")
   if(!is.null(obj$coefmat)) {
      cat("Regression coefficients:\n")
-     printCoefmat(do.call(cbind, obj$coefmat), P.values = TRUE, has.Pvalue = TRUE)
+     printCoefmat(obj$coefmat, P.values = TRUE, has.Pvalue = TRUE)
  }
 
 }

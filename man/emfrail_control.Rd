@@ -23,7 +23,7 @@ If \code{FALSE}, then the frailty parameter is treated as fixed and the \code{em
 \item{zerotol}{Lower limit for 1/frailtypar (variance in case of gamma / pvf). Below this value, the variance is taken to be 0 and the
 EM is not actually performed. The log-likelihood returned to the maximizer is that for the Cox model.}
 
-\item{opt_control}{A list with arguments to be sent to the maximizer. Currently ignored, will be useful in the future.}
+\item{opt_control}{A list with arguments to be sent to the maximizer.}
 }
 \value{
 An object of the type \code{emfrail_control}.

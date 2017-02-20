@@ -260,11 +260,13 @@ em_fit <- function(logfrailtypar, dist, pvfm,
       )
     # function()
 
-    # m_d2l_dhdg <- tev %>%
+    # m_d2l_dhdg_old <- tev %>%
     #   lapply(function(tk) which(Y[,1] < tk & tk <= Y[,2])) %>%
     #   lapply(function(x) x_z_elp[x]) %>%
     #   lapply(function(...) Reduce("+", ...)) %>% # instead of sum because this could be a matrix
     #   do.call(rbind, .)
+    #
+    #all.equal(m_d2l_dhdg, m_d2l_dhdg_old)
     # this is the most R piece of code I have ever written
   } else {
     m_d2l_dgdg <- NULL
@@ -284,7 +286,6 @@ em_fit <- function(logfrailtypar, dist, pvfm,
 
   Imat[1:length(mcox$coefficients), (length(mcox$coefficients)+1):nrow(Imat) ] <- t(m_d2l_dhdg)
   Imat[(length(mcox$coefficients)+1):nrow(Imat), 1:length(mcox$coefficients) ] <- m_d2l_dhdg
-
 
   # if(any(eigen(Imat)$values<0)) warning("Imat naive negative eigenvalues")
 
@@ -326,27 +327,29 @@ em_fit <- function(logfrailtypar, dist, pvfm,
 
 
 
-  # dl2_dh <- tev %>%
+  # dl2_dh_old <- tev %>%
   #   lapply(function(tk) which(Y[,1] < tk & tk <= Y[,2])) %>%
   #   lapply(function(lin) sum(z_elp[lin])) %>% # no Reduce or something because this ain't a matrix
   #   do.call(c, .)
 
+
+  tl_ord <- findInterval(Y[,1], tev)
+  tr_ord <- findInterval(Y[,2], tev, left.open = FALSE, rightmost.closed = FALSE)
+
   dl2_dh <- inf_mat_match(
-    findInterval(Y[,1], tev),
-    findInterval(Y[,2], tev, left.open = TRUE, rightmost.closed = TRUE),
-    z_elp, # because this is one dimensional!
+    tl_ord,
+    tr_ord,
+    z_elp, #this is one dimensional!
     length(tev)
   )
 
 
-
-  # This returns a list for each cluster, with every element the sum of elps
-  # that that cluster has at that specific time point.
-
+  # this is a list of data frames - for each individual - in each one a vector of length tev
+  # each thing is the sum of elp at risk at that tev from each cluster
   elp_to_tev <-  lapply(
     split.data.frame(data.frame(elp,
                                 y1 = findInterval(Y[,1], tev),
-                                y2 = findInterval(Y[,2], tev, left.open = TRUE, rightmost.closed = TRUE)),
+                                y2 = findInterval(Y[,2], tev, left.open = FALSE, rightmost.closed = FALSE)),
                      atrisk$order_id),
     function(dat) inf_mat_match(dat$y1, dat$y2, dat$elp, length(tev))
   )
@@ -459,7 +462,7 @@ em_fit <- function(logfrailtypar, dist, pvfm,
                #            haz_tev = haz_tev),
                # logz = logz, estimated log frailties, we do not need
                Cvec = Cvec, #the Lambdatildei, I don't think I need that. But maybe I do?
-               estep = e_step_val, # the E step oibject, just keep it like that.
+               estep = e_step_val, # the E step object, just keep it like that.
                coef = mcox$coefficients, # the maximized coefficients. I need this.
                Vcov = Vcov) # the Vcov matrix, yes I want it!
                #pvfm = pvfm)

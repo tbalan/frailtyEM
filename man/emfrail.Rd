@@ -124,7 +124,6 @@ pll_if <- emfrail_pll(.data =  dat,
                       .formula = Surv(time, status) ~  rx + sex + cluster(litter),
                       .distribution = emfrail_distribution(dist = "pvf"),
                       .values = 1/fr_var )
-lines(fr_var, pll_if, col = 3)
 
 # Same for pvf with a psoitive pvfm parameter
 pll_pvf <- emfrail_pll(.data =  dat,
@@ -135,7 +134,7 @@ pll_pvf <- emfrail_pll(.data =  dat,
 miny <- min(c(pll_gamma, pll_cph, pll_if, pll_pvf))
 maxy <- max(c(pll_gamma, pll_cph, pll_if, pll_pvf))
 
-plot(fr_var, pll,
+plot(fr_var, pll_gamma,
      type = "l",
      xlab = "Frailty variance",
      ylab = "Profile log-likelihood",
@@ -264,7 +263,7 @@ summary(mod_2)
 summary(mod_3)
 }
 \seealso{
-\code{\link{pll_emfrail}} for calculating \eqn{\widehat{L}(\theta)} at specific values of \eqn{\theta},
+\code{\link{emfrail_pll}} for calculating \eqn{\widehat{L}(\theta)} at specific values of \eqn{\theta},
 \code{\link{summary.emfrail}} for transforming the \code{emfrail} object into a more human-readable format and for
 visualizing the frailty (empirical Bayes) estimates,
 \code{\link{predict.emfrail}} for calculating and visalizing conditional and marginal survival and cumulative

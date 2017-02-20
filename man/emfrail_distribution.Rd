@@ -4,13 +4,13 @@
 \alias{emfrail_distribution}
 \title{Distribution parameters for emfrail}
 \usage{
-emfrail_distribution(dist = "gamma", frailtypar, pvfm = -1/2,
+emfrail_distribution(dist = "gamma", theta, pvfm = -1/2,
   left_truncation = FALSE)
 }
 \arguments{
 \item{dist}{One of 'gamma', 'stable' or 'pvf'.}
 
-\item{frailtypar}{A starting value for the 'outer' maximization with respect to the frailty parameter \eqn{\theta}. Must be positive.}
+\item{theta}{A starting value for the 'outer' maximization with respect to the frailty parameter \eqn{\theta}. Must be positive.}
 
 \item{pvfm}{Only relevant if \code{dist = 'pvf'} is used. It determines which PVF distribution should be used. Must be  larger than -1 and not equal to 0.}
 
@@ -24,15 +24,15 @@ supported frailty distributions in a consistent way.
 Distribution parameters for emfrail
 }
 \details{
-The \code{frailtypar} argument must be positive. In the case of gamma or PVF, this is \eqn{1/\theta}
- where \eqn{\theta} is the frailty variance, i.e. the larger the \code{frailtypar} is,
- the closer the model is to a Cox model. For the positive stable distribution, the parameter is
- \eqn{\theta / (1 - \theta)}, where \eqn{0 < \theta < 1}.
+The \code{theta} argument must be positive. In the case of gamma or PVF, this is the inverse of
+ the frailty variance, i.e. the larger the \code{theta} is,
+ the closer the model is to a Cox model. For the positive stable distribution, the \eqn{\gamma} parameter of the Laplace trnasform is
+ \eqn{1 - \theta / (1 + \theta)}, with the \eqn{alpha} parameter fixed to 1.
 }
 \examples{
 emfrail_distribution()
 # Compound Poisson distribution:
-emfrail_distribution(dist = 'pvf', frailtypar = 1.5, pvfm = 0.5)
+emfrail_distribution(dist = 'pvf', theta = 1.5, pvfm = 0.5)
 # Inverse Gaussian distribution:
 emfrail_distribution(dist = 'pvf')
 }

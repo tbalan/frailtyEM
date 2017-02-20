@@ -38,24 +38,34 @@ In `timereg` there is a function `two.step` which does some things. It does not 
 
 ### gamma frailty
 ```{r rats_gamma}
-# library(frailtoys)
-# dat <- survival::rats
-# 
-# # frailtoys
-# m_ft <- emfrail(.data = dat, .formula = Surv(rep(0, nrow(dat)), time, status) ~ sex + rx + cluster(litter),
-#                 .control = emfrail_control(opt_fit = TRUE))
-# 
-# # survival
-# m_cph <- coxph(data = dat, 
-#                  formula = Surv(rep(0, nrow(dat)), time, status) ~ sex + rx + frailty(litter),
-#                  ties = "breslow")
-# 
-# # frailtysurv
-# 
-# library(frailtySurv)
-# m_ff <- fitfrail(Surv(rep(0, nrow(dat)), time, status) ~ sex + rx + cluster(litter), dat,  frailty = "gamma")
-# m_ff_2 <- fitfrail(Surv(time, status) ~ sex + rx + cluster(litter), dat,  frailty = "gamma", se = TRUE)
-# 
+library(frailtoys)
+dat <- survival::rats
+
+# frailtoys
+m_ft <- frailtoys::emfrail(.data = dat, 
+                .formula = Surv(time, status) ~ sex + rx + cluster(litter))
+
+m_cph <- survival::coxph(data = dat,
+                 formula = Surv(time, status) ~ sex + rx + frailty(litter),
+                 ties = "breslow")
+
+m_fs <- frailtySurv::fitfrail(Surv(time, status) ~ sex + rx + cluster(litter), 
+                      dat = dat, frailty = "gamma", se = TRUE)
+
+sum_ft <- summary(m_ft)
+
+# Log-likelihoods
+sum_ft$loglik[2]
+m_cph$history$`frailty(litter)`$c.loglik
+m_fs$loglik
+ 
+# regression coefficients
+sum_ft$coefmat
+summary(m_cph)
+m_fs
+
+
+
 # # parfm
 # library(parfm)
 # m_pf <- parfm(Surv(rep(0, nrow(dat)), time, status) ~ sex + rx, cluster = "litter", data = dat, frailty = "gamma", dist = "exponential")

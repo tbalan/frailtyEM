@@ -13,10 +13,25 @@
 }
 \value{
 An object of class \code{emfrail_summary},
-which is a more human-readable list of results from an \code{emfrail} object
+with some more human-readable results from an \code{emfrail} object.
 }
 \description{
 Summary for \code{emfrail} objects
+}
+\details{
+Regardless of
+the fitted model, one can expect the following
+fields in this object: \code{est_dist} (an object of class \code{emfrail_distribution}) with the estimated
+distribution, \code{loglik} (a named vector with the log-likelihoods of the no-frailty model, the frailty model,
+the likelihood ratio test statistic and the p-value of the one-sided likelihood ratio test), \code{theta} (a named vector with
+the estimated value of the parameter \eqn{\theta}, the standard error, and the limits of a 95% cofindence interval) and \code{z}, which
+is a data frame with the following columns: \code{id} (cluster identifier), \code{z} (empirical Bayes frailty estimates), and optional
+\code{lower_q} and \code{upper_q} as the 2.5% and 97.5% quantiles of the posterior distribution of the frailties (only for gamma distribution).
+
+For the the PVF or gamma distributions, the field \code{fr_var} contains a transformation of \code{theta} to correspond to the
+frailty variance.
+The fields \code{pvf_pars} and \code{stable_pars} are for quantities that are calculated only when the distribution is PVF or stable.
+If the model contains covariates, the field \code{coefmat} contains the corresponding details.
 }
 \examples{
 data("bladder")
@@ -25,8 +40,6 @@ mod_gamma <- emfrail(bladder1, Surv(start, stop, status) ~ treatment + cluster(i
 summary(mod_gamma)
 
 # plot the Empirical Bayes estimates of the frailty
-data("bladder")
-mod_gamma <- emfrail(bladder1, Surv(start, stop, status) ~ treatment + cluster(id))
 sum_mod <- summary(mod_gamma)
 library(dplyr)
 library(ggplot2)
@@ -38,7 +51,7 @@ pl1 <- sum_mod$z \%>\%
   ggplot(aes(x = x, y = z)) +
   geom_point()
 
-# If the quantiles of the posterior distribution is
+# If the quantiles of the posterior distribution are
 # known, then error bars can be added:
 if(!is.null(sum_mod$z$lower_q))
   pl1 <- pl1 + geom_errorbar(aes(ymin = lower_q, ymax = upper_q), alpha = 0.5)
@@ -58,4 +71,15 @@ if(!is.null(sum_mod$z$lower_q))
 
 library(plotly)
 ggplotly(pl2)
+
+# Proportional hazards test
+off_z <- log(sum_mod$z$z)[match(bladder1$id, sum_mod$z$id)]
+
+zph1 <- cox.zph(coxph(Surv(start, stop, status) ~ treatment + cluster(id), data = bladder1))
+
+# no sign of non-proportionality
+zph2 <- cox.zph(coxph(Surv(start, stop, status) ~ treatment + offset(off_z), data = bladder1))
+
+zph2
+# the p-values are even larger; the frailty "corrects" for proportionality.
 }

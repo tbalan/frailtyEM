@@ -81,7 +81,7 @@ Profile log-likelihoods:
 #par(mfrow = c(2,2))
 
 frvar <- seq(from = 0.1, to = 1.5, by = 0.1)
-plot(frvar, emfrail_pll(.data =  dat, .formula = Surv(rep(0, nrow(dat)), time, status) ~  rx + sex + cluster(litter),
+plot(frvar, emfrail_pll(.data =  dat, .formula = Surv(time, status) ~  rx + sex + cluster(litter),
                         .distribution = emfrail_distribution(dist = "gamma"),
                         .values = 1/frvar),
      ylab = "log-likelihood",
@@ -90,7 +90,7 @@ plot(frvar, emfrail_pll(.data =  dat, .formula = Surv(rep(0, nrow(dat)), time, s
      main = "gamma")
 
 
-plot(frvar, emfrail_pll(.data =  dat, .formula = Surv(rep(0, nrow(dat)), time, status) ~  rx + sex + cluster(litter),
+plot(frvar, emfrail_pll(.data =  dat, .formula = Surv(time, status) ~  rx + sex + cluster(litter),
                         .distribution = emfrail_distribution(dist = "pvf"),
                         .values = 1/frvar),
      ylab = "log-likelihood",
@@ -99,7 +99,7 @@ plot(frvar, emfrail_pll(.data =  dat, .formula = Surv(rep(0, nrow(dat)), time, s
      main = "IG")
 
 
-plot(frvar, emfrail_pll(.data =  dat, .formula = Surv(rep(0, nrow(dat)), time, status) ~  rx + sex + cluster(litter),
+plot(frvar, emfrail_pll(.data =  dat, .formula = Surv(time, status) ~  rx + sex + cluster(litter),
                         .distribution = emfrail_distribution(dist = "pvf",
                                                              pvfm = 1/2),
                         .values = 1/frvar),
