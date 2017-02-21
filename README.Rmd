@@ -17,5 +17,5 @@ Hello!
 
 This is an R package that fits shared frailty models. You can install it by:
 ```{r}
-devtools::install_github("tabalan/frailtoys")
+#devtools::install_github("tabalan/frailtoys")
 ```
