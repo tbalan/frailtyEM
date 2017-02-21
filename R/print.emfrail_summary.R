@@ -49,6 +49,12 @@ print.emfrail_summary <- function(x, ...) {
         round(obj$fr_var[4], digits = 3),
         "]\n", sep = "")
 
+  # gamma-specific
+  if(!is.null(obj$gamma_pars))
+    cat("Kendall's tau:",
+        obj$gamma_pars$tau,
+        "\n")
+
   # pvf-specific
   if(!is.null(obj$pvf_pars))
     cat("Estimated mass at 0:",

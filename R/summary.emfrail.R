@@ -116,7 +116,7 @@ summary.emfrail <- function(object, ...) {
   } else {
 
     # Kendall's tau
-    tau <- theta / (theta + 1)
+    tau_stab <- theta / (theta + 1)
 
     se_tau <- with(fit$outer_m,
                    msm::deltamethod(~exp(x1) / (exp(x1) + 1),
@@ -153,7 +153,7 @@ summary.emfrail <- function(object, ...) {
     # the EB frailties have mean z and variance...
 
     # Kendall's tau
-    tau <- theta / (theta + 1)
+    tau <- 1 / (1 + 2 * theta)
 
 
     shape <- est_dist$frailtypar + fit$inner_m$nev_id
@@ -204,8 +204,9 @@ summary.emfrail <- function(object, ...) {
                   se_fr_var = se_fr_var,
                   ci_frvar_low = ci_frvar_low,
                   ci_frvar_high = ci_frvar_high),
+       gamma_pars = c(tau = tau),
        pvf_pars = c(mass_at_0 = mass_at_0),
-       stable_pars = c(tau = tau,
+       stable_pars = c(tau = tau_stab,
                        se_tau = se_tau,
                        ci_tau_high = ci_tau_high,
                        ci_tau_low = ci_tau_low,

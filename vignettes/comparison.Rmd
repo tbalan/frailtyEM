@@ -82,7 +82,7 @@ m_ft <- emfrail(.data = rats,
 m_fs <- fitfrail(Surv(time, status) ~ sex + rx + cluster(litter), dat = rats, frailty = "gamma", se = TRUE)
 
 summary(m_cph)
-summary(m_ft)
+str(summary(m_ft))
 m_fs
 ```
 All 3 mehtods give roughly similar results. The estimates of the regression coefficients in the `emfrail` and `coxph` fits are identical up to the 3rd digit, while those from `fitfrail` are a bit larger, but still close. There is also a good agreement between the standard errors and the estimated variance of the gamma frailty. The marginal log-likelihood values are similar between `emfrail` and `coxph` ("I-likelihood" in the `coxph` fit), but the one from `fitfrail` is very different. The frailty variance is estimated 0.445 or 0.443 (`coxph` / `emfrail`) and 0.484 (`fitfrail`). 
