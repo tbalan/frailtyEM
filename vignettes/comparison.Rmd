@@ -33,8 +33,81 @@ In `timereg` there is a function `two.step` which does some things. It does not 
 
 
 
+## Data sets
+We choose a number of data sets available in `R`.
 
-## Example 1: rats data
+### rats
+The `rats` data from the `survival` package. Two binary covariates: `rx` and `sex`, right-censored survival times.
+```{r rats}
+rats <- survival::rats
+head(rats)
+```
+
+### kidney
+Each patient has 2 observations. 3 covariates: sex, disease and age.
+```{r kidney}
+kidney <- survival::kidney
+kidney$sex <- kidney$sex - 1 # now 0 = male, 1 = female
+head(kidney)
+
+```
+
+### bladder
+Data on recurrences of bladder cancer, used by many people to demonstrate methodology for recurrent event modelling. Andersen-Gill style formatting, 2 covariates: `rx` and `number`. 
+```{r bladder}
+bladder2 <- survival::bladder2
+head(bladder2)
+```
+
+### cgd
+Data are from a placebo controlled trial of gamma interferon in chronic granulotomous disease (CGD). Contains the data on time to serious infections observed through end of study for each patient.
+```{r}
+cgd <- survival::cgd
+head(cgd0)
+```
+
+## gamma frailty
+
+### Semi-parametric
+```{r rats_gamma}
+library(survival)
+library(frailtoys)
+library(frailtySurv)
+#head(rats)
+
+
+m_cph <- coxph(Surv(time, status) ~ sex + rx + frailty(litter), data = rats, ties = "breslow")
+m_ft <- emfrail(.data = rats, 
+                .formula = Surv(time, status) ~ sex + rx + cluster(litter))
+m_fs <- fitfrail(Surv(time, status) ~ sex + rx + cluster(litter), dat = rats, frailty = "gamma", se = TRUE)
+
+summary(m_cph)
+summary(m_ft)
+m_fs
+```
+All 3 mehtods give roughly similar results. The estimates of the regression coefficients in the `emfrail` and `coxph` fits are identical up to the 3rd digit, while those from `fitfrail` are a bit larger, but still close. There is also a good agreement between the standard errors and the estimated variance of the gamma frailty. The marginal log-likelihood values are similar between `emfrail` and `coxph` ("I-likelihood" in the `coxph` fit), but the one from `fitfrail` is very different. The frailty variance is estimated 0.445 or 0.443 (`coxph` / `emfrail`) and 0.484 (`fitfrail`). 
+
+```{r rats_gamma2}
+str(summary(m_ft))
+plot(summary(m_ft)$z$z , exp(m_cph$frail))
+```
+The estimated frailties are identical from `emfrail` and `coxph`, `fitfrail` does not offer this option.
+
+```{r rats_gamma3}
+plot(m_fs$Lambda.all, type = "s")
+with(predict(m_ft), lines(time, cumhaz, col = 2, type = "s"))
+with(basehaz(m_cph, centered = FALSE), lines(time, hazard, col = 3, type = "s"))
+```
+The estimate of the cumulative hazard is slightly larger in `fitfrail` than in the others. 
+
+## Stable frailty
+
+```{r rats_stable}
+m_ft <- emfrail(.data = rats, 
+                .formula = Surv(time, status) ~ sex + rx + cluster(litter),
+                .distribution = emfrail_distribution(dist = "stable"))
+m_fs <- fitfrail(Surv(time, status) ~ sex + rx + cluster(litter), dat = rats, frailty = "pvf", se = TRUE)
+```
 
 ### gamma frailty
 ```{r rats_gamma}

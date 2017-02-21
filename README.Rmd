@@ -15,4 +15,7 @@ knitr::opts_chunk$set(
 
 Hello!
 
-This is an R package that fits shared frailty models. It's gonna be the best.
+This is an R package that fits shared frailty models. You can install it by:
+```{r}
+devtools::install_github()
+```

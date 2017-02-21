@@ -151,6 +151,11 @@ summary.emfrail <- function(object, ...) {
 
   if (est_dist$dist == "gamma") {
     # the EB frailties have mean z and variance...
+
+    # Kendall's tau
+    tau <- theta / (theta + 1)
+
+
     shape <- est_dist$frailtypar + fit$inner_m$nev_id
     rate <- est_dist$frailtypar + fit$inner_m$Cvec
     var_z <- shape / rate^2
