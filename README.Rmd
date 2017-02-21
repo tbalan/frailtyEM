@@ -15,7 +15,9 @@ knitr::opts_chunk$set(
 
 Hello!
 
-This is an R package that fits shared frailty models. You can install it by:
-```{r}
-#devtools::install_github("tabalan/frailtoys")
+This is an R package. Install like this:
+
+```{r, eval=FALSE}
+devtools::install_github("teddybalan/frailtoys")
 ```
+Keep an eye around here, it will be updated often!
