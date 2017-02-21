@@ -11,7 +11,14 @@
 #' By default, for each \code{lp} it will give the following columns: \code{cumhaz}, \code{survival},
 #' \code{cumhaz_m}, \code{survival_m} for the cumulative hazard and survival, conditional and marginal.
 #'
-#' @details The \code{emfrail} only gives the Breslow estimates of the  baseline hazard \eqn{\lambda_0(t)} at the
+#' @details The names of the columns in the returned object are as follows: \code{time} represents the unique event time points
+#' from the data set, \code{lp} is the value of the linear predictor (as specified in the input). The two "quantities" that can be returned are
+#' named \code{cumhaz} and \code{survival}. If we denote each quantity with \code{q}, then the columns with the marginal estimates
+#' are named \code{q_m}. The confidence intervals contain the name of the quantity (conditional or marginal) followed by \code{_l} or \code{_r} for
+#' the lower and upper bound. The bounds calculated with the adjusted standard errors have the name of the regular bounds followed by
+#' \code{_a}. For example, the adjusted lower bound for the marginal survival is in the column named \code{survival_m_l_a}.
+#'
+#' The \code{emfrail} only gives the Breslow estimates of the  baseline hazard \eqn{\lambda_0(t)} at the
 #' event time points, conditional on the frailty. Let \eqn{\lambda(t)} be the baseline hazard for a linear predictor of interest.
 #' The estimated conditional cumulative hazard is then
 #' \eqn{\Lambda(t) = \sum_{s= 0}^t \lambda(s)}. The variance of \eqn{\Lambda(t)} can be calculated from the (maybe adjusted)
@@ -29,6 +36,7 @@
 #' i.e. the variability in the estimation of the regression coefficient is not taken into account and (2) the confidence intervals
 #' are based on asymptotic normality and are symmetric, which may lead in some situations to confidence intervals containing negative values.
 #' In this case, the lower bound for the cumulative hazard (or upper bound, for the survival) is truncated at 0 (or 1, for the survival).
+#'
 #'
 #'
 #' @export
