@@ -1,11 +1,14 @@
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
-Hello!
-
-This is an R package. Install like this:
+Hi! This is a cool R package. To install, use:
 
 ``` r
 devtools::install_github("teddybalan/frailtoys")
 ```
 
-Keep an eye around here, it will be updated often!
+Where to start? Well, try this:
+
+``` r
+library(frailtoys)
+?emfrail
+```
