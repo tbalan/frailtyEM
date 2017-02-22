@@ -52,13 +52,13 @@ print.emfrail_summary <- function(x, ...) {
   # gamma-specific
   if(!is.null(obj$gamma_pars))
     cat("Kendall's tau:",
-        obj$gamma_pars$tau,
+        obj$gamma_pars[[1]],
         "\n")
 
   # pvf-specific
   if(!is.null(obj$pvf_pars))
     cat("Estimated mass at 0:",
-        obj$pvf_pars$mass_at_0,
+        obj$pvf_pars[[1]],
         "\n")
 
   # stable-specific

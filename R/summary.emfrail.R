@@ -101,7 +101,7 @@ summary.emfrail <- function(object, ...) {
   # for stable the L.T. is exp(- c^(1 - theta / (theta + 1)))
 
   fr_var <- se_fr_var <- ci_frvar_low <- ci_frvar_high <- NULL
-  tau <- se_tau <- attenuation <- ci_tau_high <- ci_tau_low <- e_log_y <- NULL
+  tau <- tau_stab <- se_tau <- attenuation <- ci_tau_high <- ci_tau_low <- e_log_y <- NULL
   coefmat <- NULL
   mass_at_0 <- NULL
 
