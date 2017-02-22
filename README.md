@@ -5,7 +5,7 @@ Hello!
 This is an R package. Install like this:
 
 ``` r
-devtools::install_github("tabalan/frailtoys")
+devtools::install_github("teddybalan/frailtoys")
 ```
 
 Keep an eye around here, it will be updated often!
