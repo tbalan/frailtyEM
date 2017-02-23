@@ -1,0 +1,291 @@
+#' @name plot_emfrail
+#' @rdname plot_emfrail
+#'
+#' @title Plot functions for \code{emfrail} objects
+#'
+#' @param object An \code{emfrail} object
+#' @param lp The value(s) of the linear predictor. For \code{plot_pred} this should have length 1 and for \code{plot_hr} length 2.
+#' @param quantity One of "cumhaz" (for cumulative hazard) or "survival"
+#' @param type One of "conditional", "marginal" or "both"
+#' @param conf_int One of "adjusted", "regular", or "none
+#' @param ... Parameters passed on to plot functions
+#'
+#' @details These functions exist mostly for conveince. They are in fact simple wrappers that use \code{predict.emfrail} or \code{summary.emfrail} on
+#' \code{object}, and extract some quantities of interest. Nicer plots can be obtained manually;
+#' in the documentation of \code{emfrail}, \code{emfrail_pll}, \code{summary.emfrail}, \code{predict.emfrail}
+#' several examples can be found.
+#'
+#' @seealso \code{\link{predict.emfrail}}, \code{\link{summary.emfrail}}.
+#' @return Nothing.
+#' @importFrom graphics abline hist legend lines plot
+#' @examples
+#'mod_rec <- emfrail(bladder1, Surv(start, stop, status) ~ treatment + number + cluster(id))
+#' summary(mod_rec)
+#'
+#' # cumulative hazard
+#' plot_pred(mod_rec)
+#'
+#' # survival, although not very meaningful with recurrent events
+#' plot_pred(mod_rec, quantity = "survival")
+#'
+#' # hazard ratio between an individual with 0 and with 1 recurrence at baseline
+#' lp <- c(mod_rec$inner_m$coef[3], 0)
+#' # the marginal hazard ratio is "pulled" towards 1:
+#' plot_hr(mod_rec, lp)
+#'
+#' # hazard ratio with the stable distribution:
+#' mod_rec_stab <- emfrail(bladder1,
+#'                         Surv(start, stop, status) ~ treatment + number + cluster(id),
+#'                         .distribution = emfrail_distribution(dist = "stable"))
+#'
+#' plot_hr(mod_rec_stab, lp)
+#'
+#' # histogram of frailty estimates
+#' hist_frail(mod_rec)
+NULL
+
+
+
+#' \code{plot_pred} plots predicted cumulative hazard or survival curves, marginal and / or conditional, with or without confidence intervals.
+#' @rdname plot_emfrail
+#' @name plot_pred
+#' @export
+#'
+plot_pred <- function(object, lp = 0, quantity = "cumhaz", type = "both", conf_int = "adjusted", ...) {
+  if(length(lp) != 1)
+    stop("lp must be a number")
+
+  if(!(quantity %in% c("cumhaz", "survival")) | length(quantity) != 1)
+    stop("quantity must be cumhaz or survival ")
+
+  if(!(type %in% c("conditional", "marginal", "both")) | length(type) != 1)
+    stop("type must be conditional, marginal, or both ")
+
+  if(!(conf_int %in% c("adjusted", "regular", "none")) | length(conf_int) != 1)
+    stop("conf_int must be adjusted, regular or none")
+
+  if(type == "both")
+    type_pred <- c("conditional", "marginal") else
+      type_pred <- type
+
+    p1 <- predict.emfrail(object,
+                          lp = lp,
+                          quantity = quantity,
+                          type = type_pred,
+                          conf_int = conf_int)
+
+    # determine columns to be plotted by name,
+    # possibilities: quantity is just one of survival or cumhaz
+    # they may have an _m or not at the end,
+    if(lp == 0) baseline <- TRUE else baseline <- FALSE
+
+    if(type == "conditional") {
+      if(quantity == "cumhaz") {
+        if(conf_int == "adjusted") ylim <- c(0, max(p1$cumhaz_r_a)) else
+          if(conf_int == "regular") ylim <- c(0, max(p1$cumhaz_r)) else
+            ylim <- c(0, max(p1$cumhaz_m))
+
+          with(p1, plot(time, cumhaz,
+                        type = "s",
+                        main = "Cumulative hazard",
+                        ylab = "cumhaz",
+                        xlab = "time",
+                        ylim = ylim,
+                        ...))
+          if(conf_int == "adjusted") {
+            with(p1, lines(time, cumhaz_l_a, lty = 2))
+            with(p1, lines(time, cumhaz_r_a, lty = 2))
+          }
+          if(conf_int == "regular") {
+            with(p1, lines(time, cumhaz_l, lty = 2))
+            with(p1, lines(time, cumhaz_r, lty = 2))
+          }
+      }
+
+      if(quantity == "survival") {
+        with(p1, plot(time, survival,
+                      type = "s",
+                      main = "Survival",
+                      ylab = "S(t)",
+                      xlab = "time",
+                      ylim = c(0,1),
+                      ...))
+        if(conf_int == "adjusted") {
+          with(p1, lines(time, survival_l_a, lty = 2))
+          with(p1, lines(time, survival_r_a, lty = 2))
+        }
+        if(conf_int == "regular") {
+          with(p1, lines(time, survival_l, lty = 2))
+          with(p1, lines(time, survival_r, lty = 2))
+        }
+      }
+    }
+
+    if(type == "marginal") {
+      if(quantity == "cumhaz") {
+        if(conf_int == "adjusted") ylim <- c(0, max(p1$cumhaz_m_r)) else
+          if(conf_int == "regular") ylim <- c(0, max(p1$cumhaz_m_r_a)) else
+            ylim <- c(0, max(p1$cumhaz_m))
+
+          with(p1, plot(time, cumhaz_m,
+                        type = "s",
+                        main = "Cumulative hazard",
+                        ylab = "cumhaz",
+                        xlab = "time",
+                        ylim = ylim,
+                        ...))
+          if(conf_int == "adjusted") {
+            with(p1, lines(time, cumhaz_m_l_a, lty = 2))
+            with(p1, lines(time, cumhaz_m_r_a, lty = 2))
+          }
+          if(conf_int == "regular") {
+            with(p1, lines(time, cumhaz_m_l, lty = 2))
+            with(p1, lines(time, cumhaz_m_r, lty = 2))
+          }
+      }
+
+      if(quantity == "survival") {
+        with(p1, plot(time, survival_m,
+                      type = "s",
+                      main = "Survival",
+                      ylab = "S(t)",
+                      xlab = "time",
+                      ylim = c(0,1),
+                      ...))
+        if(conf_int == "adjusted") {
+          with(p1, lines(time, survival_m_l_a, lty = 2))
+          with(p1, lines(time, survival_m_r_a, lty = 2))
+        }
+        if(conf_int == "regular") {
+          with(p1, lines(time, survival_m_l, lty = 2))
+          with(p1, lines(time, survival_m_r, lty = 2))
+        }
+      }
+
+
+    }
+
+    if(type == "both") {
+      if(quantity == "cumhaz") {
+        if(conf_int == "adjusted") ylim <- c(0, max(p1$cumhaz_r_a)) else
+          if(conf_int == "regular") ylim <- c(0, max(p1$cumhaz_r)) else
+            ylim <- c(0, max(p1$cumhaz))
+
+          with(p1, plot(time, cumhaz,
+                        type = "s",
+                        main = "Cumulative hazard",
+                        ylab = "cumhaz",
+                        xlab = "time",
+                        ylim = ylim,
+                        col = 1,
+                        ...))
+          with(p1, lines(time, cumhaz_m,
+                         type = "s",
+                         col = 2,
+                         ...))
+
+          if(conf_int == "adjusted") {
+            with(p1, lines(time, cumhaz_m_l_a, lty = 2, col = 2))
+            with(p1, lines(time, cumhaz_m_r_a, lty = 2, col = 2))
+            with(p1, lines(time, cumhaz_l_a, lty = 2))
+            with(p1, lines(time, cumhaz_r_a, lty = 2))
+          }
+
+          if(conf_int == "regular") {
+            with(p1, lines(time, cumhaz_m_l, lty = 2, col = 2))
+            with(p1, lines(time, cumhaz_m_r, lty = 2, col = 2))
+            with(p1, lines(time, cumhaz_l, lty = 2))
+            with(p1, lines(time, cumhaz_r, lty = 2))
+          }
+
+          legend(x = "topleft", legend = c("conditional", "marginal"), col = 1:2, lty = 1)
+      }
+
+      if(quantity == "survival") {
+        with(p1, plot(time, survival_m,
+                      type = "s",
+                      main = "Survival",
+                      ylab = "S(t)",
+                      xlab = "time",
+                      col = 2,
+                      ylim = c(0,1),
+                      ...))
+        with(p1, lines(time, survival,
+                       type = "s",
+                       col = 1,
+                       ...))
+
+        if(conf_int == "adjusted") {
+          with(p1, lines(time, survival_m_l_a, lty = 2, col = 2))
+          with(p1, lines(time, survival_m_r_a, lty = 2, col = 2))
+          with(p1, lines(time, survival_l_a, lty = 2))
+          with(p1, lines(time, survival_r_a, lty = 2))
+        }
+        if(conf_int == "regular") {
+          with(p1, lines(time, survival_m_l, lty = 2, col = 2))
+          with(p1, lines(time, survival_m_r, lty = 2, col = 2))
+          with(p1, lines(time, survival_l, lty = 2))
+          with(p1, lines(time, survival_r, lty = 2))
+        }
+
+        legend(x = "topright", legend = c("conditional", "marginal"), col = 1:2, lty = 1)
+      }
+
+
+    }
+
+
+}
+
+#' \code{plot_hr} plots the estimated marginal and conditional hazard ratio between two units with different linear predictor values.
+#' @rdname plot_emfrail
+#' @name plot_hr
+#' @export
+#'
+plot_hr <- function(object, lp, ...) {
+  if(length(lp) != 2)
+    stop("lp must be of length 2")
+  if(lp[1] == lp[2])
+    stop("the two lp values must be different")
+
+
+  p1 <- predict.emfrail(object,
+                        lp = lp[1],
+                        quantity = "cumhaz",
+                        conf_int = NULL)
+
+  p2 <- predict.emfrail(object,
+                        lp = lp[2],
+                        quantity = "cumhaz",
+                        conf_int = NULL)
+
+  hr_cond <- p1$cumhaz / p2$cumhaz
+  hr_mar <- p1$cumhaz_m / p2$cumhaz_m
+
+  ylim <- c(min(c(hr_cond, hr_mar, 0.95)), max(c(hr_cond, hr_mar, 1.05)))
+
+  plot(p1$time, hr_cond, type = "s", ylim = ylim,
+       xlab = "time",
+       ylab = "hazard ratio", ...)
+  lines(p1$time, hr_mar, type = "s", col = 2)
+  abline(a = 1, b = 0, lty = 2, col = "gray")
+
+  legend(x = "bottom", legend = c("conditional", "marginal"), col = 1:2, lty = 1)
+
+}
+
+
+#' \code{hist_frail} plots a histogram of the estimated frailties.
+#' @rdname plot_emfrail
+#' @name hist_frail
+#'
+#' @export
+#'
+#' @examples
+#'
+hist_frail <- function(object, ...) {
+  sobj <- summary.emfrail(object)
+  hist(sobj$frail$z, xlab = "Frailties", main = "Fraily estimates", ... )
+}
+
+

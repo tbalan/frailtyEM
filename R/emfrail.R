@@ -55,7 +55,7 @@
 #' For small enough values of \eqn{1/\theta} the log-likelihood
 #' of the Cox model is returned to avoid such problems. This option can be tweaked in \code{emfrail_control()}.
 #'
-#' @seealso  \code{\link{emfrail_pll}} for calculating \eqn{\widehat{L}(\theta)} at specific values of \eqn{\theta},
+#' @seealso \code{\link{plot_emfrail}} for plot functions directly available, \code{\link{emfrail_pll}} for calculating \eqn{\widehat{L}(\theta)} at specific values of \eqn{\theta},
 #' \code{\link{summary.emfrail}} for transforming the \code{emfrail} object into a more human-readable format and for
 #' visualizing the frailty (empirical Bayes) estimates,
 #' \code{\link{predict.emfrail}} for calculating and visalizing conditional and marginal survival and cumulative
@@ -153,25 +153,29 @@
 #' summary(mod_rec)
 #'
 #' # Create a histogram of the estimated frailties
+#'
+#' hist_frail(mod_rec)
+#'
+#' # or, with ggplot:
 #' library(ggplot2)
 #' sum_mod_rec <- summary(mod_rec)
 #'
-#' ggplot(sum_mod_rec$z, aes(x = z)) +
+#' ggplot(sum_mod_rec$frail, aes(x = z)) +
 #'   geom_histogram() +
 #'   ggtitle("Estimated frailties")
 #'
 #' # Plot the frailty estimates with quantiles of the estimated distribution
-#' ggplot(sum_mod_rec$z, aes(x = id, y = z)) +
+#' ggplot(sum_mod_rec$frail, aes(x = id, y = z)) +
 #'   geom_point() +
 #'   ggtitle("Estimated frailties") +
 #'   geom_errorbar(aes(ymin = lower_q, ymax = upper_q))
 #'
 #' # We can do the same plot but with the ordered frailties:
-#' ord <- order(sum_mod_rec$z$z)
+#' ord <- order(sum_mod_rec$frail$z)
 #' # we need new x coordinates for that:
 #' ordering <- 1:length(ord)
 #'
-#' ggplot(sum_mod_rec$z[ord,], aes(x = ordering, y = z)) +
+#' ggplot(sum_mod_rec$frail[ord,], aes(x = ordering, y = z)) +
 #'   geom_point() +
 #'   ggtitle("Estimated frailties") +
 #'   geom_errorbar(aes(ymin = lower_q, ymax = upper_q))
@@ -181,7 +185,7 @@
 #' # To add text to elements we add id in aes()
 #' library(plotly)
 #' ggplotly(
-#'   ggplot(sum_mod_rec$z[ord,], aes(x = ordering, y = z)) +
+#'   ggplot(sum_mod_rec$frail[ord,], aes(x = ordering, y = z)) +
 #'     geom_point(aes(id = id)) +
 #'     ggtitle("Estimated frailties") +
 #'     geom_errorbar(aes(ymin = lower_q, ymax = upper_q, id = id))
@@ -190,30 +194,9 @@
 #'
 #' # Plot marginal and conditional curves
 #' # For recurrent events, the survival is not very meaningful
-#' # The default is for a baseline individual:
-#' pr_mod_rec <- predict(mod_rec, quantity = "cumhaz")
 #'
-#' with(pr_mod_rec, plot(time, cumhaz, type = "l", ylab = "cumulative intensity"))
-#'
-#' # add confidence bands
-#' with(pr_mod_rec, lines(time, cumhaz_l, col = 2))
-#' with(pr_mod_rec, lines(time, cumhaz_r, col = 2))
-#'
-#' # in this case, they are roughly equal
-#'
-#' # plot the marginal cumulative hazard
-#'
-#' with(pr_mod_rec, lines(time, cumhaz_m, lty =2,  ylab = "cumulative intensity"))
-#'
-#' # add confidence bands
-#' with(pr_mod_rec, lines(time, cumhaz_m_l, lty =2, col = 2))
-#' with(pr_mod_rec, lines(time, cumhaz_m_r, lty =2, col = 2))
-#'
-#' legend("topright",
-#'        legend = c("conditional", "marginal"),
-#'        lty = 1:2)
-#'
-#' # The strong frailty "drags down" the intensity
+#' plot_pred(mod_rec, quantity = "cumhaz")
+#' #The strong frailty "drags down" the intensity
 #'
 #'
 #'
@@ -258,7 +241,6 @@
 #' summary(mod_1)
 #' summary(mod_2)
 #' summary(mod_3)
-#'@seealso \code{\link{summary.emfrail}, \link{predict.emfrail}, \link{emfrail_distribution}, \link{emfrail_control}}
 
 
 emfrail <- function(.data,
