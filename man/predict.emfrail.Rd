@@ -30,6 +30,13 @@ By default, for each \code{lp} it will give the following columns: \code{cumhaz}
 Predicted hazard and survival curves from an \code{emfrail} object
 }
 \details{
+The names of the columns in the returned object are as follows: \code{time} represents the unique event time points
+from the data set, \code{lp} is the value of the linear predictor (as specified in the input). The two "quantities" that can be returned are
+named \code{cumhaz} and \code{survival}. If we denote each quantity with \code{q}, then the columns with the marginal estimates
+are named \code{q_m}. The confidence intervals contain the name of the quantity (conditional or marginal) followed by \code{_l} or \code{_r} for
+the lower and upper bound. The bounds calculated with the adjusted standard errors have the name of the regular bounds followed by
+\code{_a}. For example, the adjusted lower bound for the marginal survival is in the column named \code{survival_m_l_a}.
+
 The \code{emfrail} only gives the Breslow estimates of the  baseline hazard \eqn{\lambda_0(t)} at the
 event time points, conditional on the frailty. Let \eqn{\lambda(t)} be the baseline hazard for a linear predictor of interest.
 The estimated conditional cumulative hazard is then
@@ -41,7 +48,7 @@ is given by
 \deqn{\bar S(t) = E \left[\exp(-\Lambda(t)) \right] = \mathcal{L}(\Lambda(t)),}
 i.e. the Laplace transform of the frailty distribution calculated in \eqn{\Lambda(t)}.
 
-The marginal hazard is obtained as \deqn{\bar \Lambda(t) = - \log \bar S(t)}.
+The marginal hazard is obtained as \deqn{\bar \Lambda(t) = - \log \bar S(t).}
 
 The only standard errors that are available from \code{emfrail} are those for \eqn{\lambda_0(t)}. From this,
 standard errors of \eqn{\Lambda(t)} may be calculated. They have the following two issues: (1) the linear predictor is taken as fixed,
@@ -58,18 +65,14 @@ pred <- predict(m1)
 
 names(pred)
 
-# Plot cumulative hazard
-with(pred, plot(time, cumhaz, type = "s",main = "baseline Cumulative hazard") )
-with(pred, lines(time, cumhaz_m, type = "s", col = 2))
-legend(legend = c("conditional", "marginal"), x = "topleft", col = c(1,2), lty = 1)
+# Plot baseline cumulative hazard
+plot_pred(m1)
 
-# Plot survival
-with(pred, plot(time, survival, ylim = c(0, 1),  type = "s",main = "baseline Survival") )
-with(pred, lines(time, survival_m, type = "s", col = 2))
-legend(legend = c("conditional", "marginal"), x = "topright", col = c(1,2), lty = 1)
+# Plot baseline urvival
+plot_pred(m1, quantity = "survival")
 
 
-# Plot cumulative hazard with confidence intervals
+# Plot cumulative hazard with confidence intervals, ggplot2
 names(pred)
 library(ggplot2)
 ggplot(pred, aes(x = time, y = cumhaz)) +
@@ -106,4 +109,7 @@ lines(time, hr_conditional, type = "s")
 legend(c("conditional", "marginal"), x = "topleft", col = c(1,2), lty = 1)
 # The marginal hazard ratio in the case of gamma frailty shrinks towards 1
 # With positive stable, this plot would be two parallel lines
+}
+\seealso{
+\code{\link{plot_pred}}, \code{\link{plot_hr}}
 }

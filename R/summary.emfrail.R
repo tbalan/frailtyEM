@@ -12,7 +12,7 @@
 #' fields in this object: \code{est_dist} (an object of class \code{emfrail_distribution}) with the estimated
 #' distribution, \code{loglik} (a named vector with the log-likelihoods of the no-frailty model, the frailty model,
 #' the likelihood ratio test statistic and the p-value of the one-sided likelihood ratio test), \code{theta} (a named vector with
-#' the estimated value of the parameter \eqn{\theta}, the standard error, and the limits of a 95% cofindence interval) and \code{z}, which
+#' the estimated value of the parameter \eqn{\theta}, the standard error, and the limits of a 95% cofindence interval) and \code{frail}, which
 #' is a data frame with the following columns: \code{id} (cluster identifier), \code{z} (empirical Bayes frailty estimates), and optional
 #' \code{lower_q} and \code{upper_q} as the 2.5% and 97.5% quantiles of the posterior distribution of the frailties (only for gamma distribution).
 #'
@@ -23,6 +23,8 @@
 #'
 #' @export
 #'
+#' @seealso \code{\link{predict.emfrail}, \link{plot_emfrail}}
+#'
 #' @examples
 #' data("bladder")
 #' coxph(Surv(start, stop, status) ~ treatment + frailty(id), data = bladder1, method = "breslow")
@@ -30,12 +32,16 @@
 #' summary(mod_gamma)
 #'
 #' # plot the Empirical Bayes estimates of the frailty
+#' # easy way:
+#' hist_frail(mod_gamma)
+#'
+#' # a fancy graph:
 #' sum_mod <- summary(mod_gamma)
 #' library(dplyr)
 #' library(ggplot2)
 #'
 #' # Create a plot just with the points
-#' pl1 <- sum_mod$z %>%
+#' pl1 <- sum_mod$frail %>%
 #'   arrange(z) %>%
 #'   mutate(x = 1:n()) %>%
 #'   ggplot(aes(x = x, y = z)) +
@@ -43,14 +49,14 @@
 #'
 #' # If the quantiles of the posterior distribution are
 #' # known, then error bars can be added:
-#' if(!is.null(sum_mod$z$lower_q))
+#' if(!is.null(sum_mod$frail$lower_q))
 #'   pl1 <- pl1 + geom_errorbar(aes(ymin = lower_q, ymax = upper_q), alpha = 0.5)
 #'
 #' pl1
 #'
 #' # The plot can be made interactive!
 #' # ggplot2 gives a warning about the "id" aesthetic, just ignore it
-#' pl2 <- sum_mod$z %>%
+#' pl2 <- sum_mod$frail %>%
 #'   arrange(z) %>%
 #'   mutate(x = 1:n()) %>%
 #'   ggplot(aes(x = x, y = z)) +
@@ -63,7 +69,7 @@
 #' ggplotly(pl2)
 #'
 #' # Proportional hazards test
-#' off_z <- log(sum_mod$z$z)[match(bladder1$id, sum_mod$z$id)]
+#' off_z <- log(sum_mod$frail$z)[match(bladder1$id, sum_mod$frail$id)]
 #'
 #' zph1 <- cox.zph(coxph(Surv(start, stop, status) ~ treatment + cluster(id), data = bladder1))
 #'
@@ -214,7 +220,7 @@ summary.emfrail <- function(object, ...) {
                        attenuation = attenuation,
                        e_log_y = e_log_y),
        coefmat = do.call(cbind,coefmat),
-       z = z
+       frail = z
        )
 
   #attr(ret, "class") <- "emfrail_summary"

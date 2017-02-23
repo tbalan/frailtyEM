@@ -29,7 +29,7 @@
 #' \deqn{\bar S(t) = E \left[\exp(-\Lambda(t)) \right] = \mathcal{L}(\Lambda(t)),}
 #' i.e. the Laplace transform of the frailty distribution calculated in \eqn{\Lambda(t)}.
 #'
-#' The marginal hazard is obtained as \deqn{\bar \Lambda(t) = - \log \bar S(t)}.
+#' The marginal hazard is obtained as \deqn{\bar \Lambda(t) = - \log \bar S(t).}
 #'
 #' The only standard errors that are available from \code{emfrail} are those for \eqn{\lambda_0(t)}. From this,
 #' standard errors of \eqn{\Lambda(t)} may be calculated. They have the following two issues: (1) the linear predictor is taken as fixed,
@@ -51,18 +51,14 @@
 #'
 #' names(pred)
 #'
-#' # Plot cumulative hazard
-#' with(pred, plot(time, cumhaz, type = "s",main = "baseline Cumulative hazard") )
-#' with(pred, lines(time, cumhaz_m, type = "s", col = 2))
-#' legend(legend = c("conditional", "marginal"), x = "topleft", col = c(1,2), lty = 1)
+#' # Plot baseline cumulative hazard
+#' plot_pred(m1)
 #'
-#' # Plot survival
-#' with(pred, plot(time, survival, ylim = c(0, 1),  type = "s",main = "baseline Survival") )
-#' with(pred, lines(time, survival_m, type = "s", col = 2))
-#' legend(legend = c("conditional", "marginal"), x = "topright", col = c(1,2), lty = 1)
+#' # Plot baseline urvival
+#' plot_pred(m1, quantity = "survival")
 #'
 #'
-#' # Plot cumulative hazard with confidence intervals
+#' # Plot cumulative hazard with confidence intervals, ggplot2
 #' names(pred)
 #' library(ggplot2)
 #' ggplot(pred, aes(x = time, y = cumhaz)) +
@@ -99,6 +95,7 @@
 #' legend(c("conditional", "marginal"), x = "topleft", col = c(1,2), lty = 1)
 #' # The marginal hazard ratio in the case of gamma frailty shrinks towards 1
 #' # With positive stable, this plot would be two parallel lines
+#' @seealso \code{\link{plot_pred}}, \code{\link{plot_hr}}
 predict.emfrail <- function(object,
                             lp = c(0),
                             quantity = c("cumhaz", "survival"),
