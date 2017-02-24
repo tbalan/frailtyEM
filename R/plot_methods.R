@@ -87,7 +87,7 @@ plot_pred <- function(object, lp = 0, quantity = "cumhaz", type = "both", conf_i
 
           with(p1, plot(time, cumhaz,
                         type = "s",
-                        main = "Cumulative hazard",
+                        #main = "Cumulative hazard",
                         ylab = "cumhaz",
                         xlab = "time",
                         #ylim = ylim,
@@ -105,7 +105,7 @@ plot_pred <- function(object, lp = 0, quantity = "cumhaz", type = "both", conf_i
       if(quantity == "survival") {
         with(p1, plot(time, survival,
                       type = "s",
-                      main = "Survival",
+                      #main = "Survival",
                       ylab = "S(t)",
                       xlab = "time",
                       ylim = c(0,1),
@@ -129,7 +129,7 @@ plot_pred <- function(object, lp = 0, quantity = "cumhaz", type = "both", conf_i
 
           with(p1, plot(time, cumhaz_m,
                         type = "s",
-                        main = "Cumulative hazard",
+                        #main = "Cumulative hazard",
                         ylab = "cumhaz",
                         xlab = "time",
                         # ylim = ylim,
@@ -147,7 +147,7 @@ plot_pred <- function(object, lp = 0, quantity = "cumhaz", type = "both", conf_i
       if(quantity == "survival") {
         with(p1, plot(time, survival_m,
                       type = "s",
-                      main = "Survival",
+                      #main = "Survival",
                       ylab = "S(t)",
                       xlab = "time",
                       ylim = c(0,1),
@@ -173,7 +173,7 @@ plot_pred <- function(object, lp = 0, quantity = "cumhaz", type = "both", conf_i
 
           with(p1, plot(time, cumhaz,
                         type = "s",
-                        main = "Cumulative hazard",
+                        #main = "Cumulative hazard",
                         ylab = "cumhaz",
                         xlab = "time",
                         # ylim = ylim,
@@ -204,7 +204,7 @@ plot_pred <- function(object, lp = 0, quantity = "cumhaz", type = "both", conf_i
       if(quantity == "survival") {
         with(p1, plot(time, survival_m,
                       type = "s",
-                      main = "Survival",
+                      #main = "Survival",
                       ylab = "S(t)",
                       xlab = "time",
                       col = 2,
