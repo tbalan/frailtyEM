@@ -159,14 +159,14 @@ predict.emfrail <- function(object,
   if(length(conf_int) > 0) {
     if("regular" %in% conf_int) {
       bounds <- c(bounds, "cumhaz_l", "cumhaz_r")
-      ret$cumhaz_l <- pmax(0, cumhaz - 1.96*se_chz)
-      ret$cumhaz_r <- cumhaz + 1.96*se_chz
+      ret$cumhaz_l <- pmax(0, ret$cumhaz - 1.96*se_chz)
+      ret$cumhaz_r <- ret$cumhaz + 1.96*se_chz
     }
 
     if("adjusted" %in% conf_int) {
       bounds <- c(bounds, "cumhaz_l_a", "cumhaz_r_a")
-        ret$cumhaz_l_a <- pmax(0, cumhaz - 1.96*se_chz_adj)
-        ret$cumhaz_r_a <- cumhaz + 1.96*se_chz_adj
+        ret$cumhaz_l_a <- pmax(0, ret$cumhaz - 1.96*se_chz_adj)
+        ret$cumhaz_r_a <- ret$cumhaz + 1.96*se_chz_adj
     }
   }
 
