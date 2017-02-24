@@ -81,16 +81,16 @@ plot_pred <- function(object, lp = 0, quantity = "cumhaz", type = "both", conf_i
 
     if(type == "conditional") {
       if(quantity == "cumhaz") {
-        if(conf_int == "adjusted") ylim <- c(0, max(p1$cumhaz_r_a)) else
-          if(conf_int == "regular") ylim <- c(0, max(p1$cumhaz_r)) else
-            ylim <- c(0, max(p1$cumhaz_m))
+        # if(conf_int == "adjusted") ylim <- c(0, max(p1$cumhaz_r_a)) else
+        #   if(conf_int == "regular") ylim <- c(0, max(p1$cumhaz_r)) else
+        #     ylim <- c(0, max(p1$cumhaz_m))
 
           with(p1, plot(time, cumhaz,
                         type = "s",
                         main = "Cumulative hazard",
                         ylab = "cumhaz",
                         xlab = "time",
-                        ylim = ylim,
+                        #ylim = ylim,
                         ...))
           if(conf_int == "adjusted") {
             with(p1, lines(time, cumhaz_l_a, lty = 2))
@@ -123,16 +123,16 @@ plot_pred <- function(object, lp = 0, quantity = "cumhaz", type = "both", conf_i
 
     if(type == "marginal") {
       if(quantity == "cumhaz") {
-        if(conf_int == "adjusted") ylim <- c(0, max(p1$cumhaz_m_r)) else
-          if(conf_int == "regular") ylim <- c(0, max(p1$cumhaz_m_r_a)) else
-            ylim <- c(0, max(p1$cumhaz_m))
+        # if(conf_int == "adjusted") ylim <- c(0, max(p1$cumhaz_m_r)) else
+        #   if(conf_int == "regular") ylim <- c(0, max(p1$cumhaz_m_r_a)) else
+        #     ylim <- c(0, max(p1$cumhaz_m))
 
           with(p1, plot(time, cumhaz_m,
                         type = "s",
                         main = "Cumulative hazard",
                         ylab = "cumhaz",
                         xlab = "time",
-                        ylim = ylim,
+                        # ylim = ylim,
                         ...))
           if(conf_int == "adjusted") {
             with(p1, lines(time, cumhaz_m_l_a, lty = 2))
@@ -167,16 +167,16 @@ plot_pred <- function(object, lp = 0, quantity = "cumhaz", type = "both", conf_i
 
     if(type == "both") {
       if(quantity == "cumhaz") {
-        if(conf_int == "adjusted") ylim <- c(0, max(p1$cumhaz_r_a)) else
-          if(conf_int == "regular") ylim <- c(0, max(p1$cumhaz_r)) else
-            ylim <- c(0, max(p1$cumhaz))
+        # if(conf_int == "adjusted") ylim <- c(0, max(p1$cumhaz_r_a)) else
+        #   if(conf_int == "regular") ylim <- c(0, max(p1$cumhaz_r)) else
+        #     ylim <- c(0, max(p1$cumhaz))
 
           with(p1, plot(time, cumhaz,
                         type = "s",
                         main = "Cumulative hazard",
                         ylab = "cumhaz",
                         xlab = "time",
-                        ylim = ylim,
+                        # ylim = ylim,
                         col = 1,
                         ...))
           with(p1, lines(time, cumhaz_m,
