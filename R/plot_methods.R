@@ -198,6 +198,7 @@ plot_pred <- function(object, lp = 0, quantity = "cumhaz", type = "both", conf_i
             with(p1, lines(time, cumhaz_r, lty = 2))
           }
 
+
           legend(x = "topleft", legend = c("conditional", "marginal"), col = 1:2, lty = 1)
       }
 
@@ -270,7 +271,9 @@ plot_hr <- function(object, lp, ...) {
   lines(p1$time, hr_mar, type = "s", col = 2)
   abline(a = 1, b = 0, lty = 2, col = "gray")
 
-  legend(x = "bottom", legend = c("conditional", "marginal"), col = 1:2, lty = 1)
+  if(hr_mar[length(hr_mar)] > 1) pos <- "bottomright" else
+    pos <- "topright"
+  legend(x = pos, legend = c("conditional", "marginal"), col = 1:2, lty = 1)
 
 }
 
