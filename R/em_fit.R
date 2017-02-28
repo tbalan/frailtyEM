@@ -222,14 +222,43 @@ em_fit <- function(logfrailtypar, dist, pvfm,
     return(-loglik)
   }  # for when maximizing
 
+
+  tev <- atrisk$time[haz > 0]
+  haz_tev = haz[haz > 0]
+
+
+  if(!isTRUE(.control$se_fit)) {
+    if(length(Xmat) == 0) {
+      Vcov <- matrix(NA, length(tev), length(tev))
+    } else {
+      Vcov <- matrix(NA, ncol(Xmat) + length(tev), ncol(Xmat) + length(tev))
+    }
+
+    res = list(loglik = loglik, # this we need
+               # dist = dist, # do we need this?
+               # frailtypar = exp(logfrailtypar),
+               tev = tev, # event time points
+               haz = haz_tev, # the Breslow estimator for ech tev
+               nev_id = atrisk$nev_id,
+               # haz = list(tev = tev,
+               #            haz_tev = haz_tev),
+               # logz = logz, estimated log frailties, we do not need
+               Cvec = Cvec, #the Lambdatildei, I don't think I need that. But maybe I do?
+               estep = e_step_val, # the E step object, just keep it like that.
+               coef = mcox$coefficients, # the maximized coefficients. I need this.
+               Vcov = Vcov) # the Vcov matrix, yes I want it!
+    #pvfm = pvfm)
+
+    return(res)
+  }
+
   # Standard error calculation
   # First part, second derivatives
 
 
   # this is a residual thing from the old way of calculating cumulative hazards
 
-  tev <- atrisk$time[haz > 0]
-  haz_tev = haz[haz > 0]
+
 
   nev_tp <- atrisk$nevent[atrisk$nevent!=0]
 

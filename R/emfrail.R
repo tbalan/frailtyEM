@@ -475,7 +475,7 @@ emfrail <- function(.data,
                Cvec_lt = Cvec_lt,
                .control = .control)
 
-  message("Calculating final fit with information matrix...")
+  #message("Calculating final fit with information matrix...")
 
   inner_m <- em_fit(logfrailtypar = outer_m$p1,
                       dist = .distribution$dist, pvfm = .distribution$pvfm,
@@ -485,41 +485,46 @@ emfrail <- function(.data,
                       Cvec_lt = Cvec_lt,
                       .control = .control, return_loglik = FALSE)
 
+  if(isTRUE(.control$se_fit) & isTRUE(.control$se_adj)) {
+
+    h <- as.numeric(sqrt(1/(attr(outer_m, "details")[[3]]))/2)
+    lfp_minus <- max(outer_m$p1 - h , outer_m$p1 - 5)
+    lfp_plus <- min(outer_m$p1 + h , outer_m$p1 + 5)
+
+    message("Calculating adjustment for information matrix...")
+
+
+    final_fit_minus <- em_fit(logfrailtypar = lfp_minus,
+                              dist = .distribution$dist, pvfm = .distribution$pvfm,
+                              Y = Y, Xmat = X, atrisk = atrisk, basehaz_line = basehaz_line,
+                              mcox = list(coefficients = g, loglik = mcox$loglik),  # a "fake" cox model
+                              Cvec = Cvec, lt = .distribution$left_truncation,
+                              Cvec_lt = Cvec_lt,
+                              .control = .control, return_loglik = FALSE)
+
+    final_fit_plus <- em_fit(logfrailtypar = lfp_plus,
+                             dist = .distribution$dist, pvfm = .distribution$pvfm,
+                             Y = Y, Xmat = X, atrisk = atrisk, basehaz_line = basehaz_line,
+                             mcox = list(coefficients = g, loglik = mcox$loglik),  # a "fake" cox model
+                             Cvec = Cvec, lt = .distribution$left_truncation,
+                             Cvec_lt = Cvec_lt,
+                             .control = .control, return_loglik = FALSE)
+
+
+    # instructional: this should be more or less equal to the
+    # -(final_fit_plus$loglik + final_fit_minus$loglik - 2 * inner_m$loglik)/h^2
+
+    # se_logtheta^2 / (2 * (final_fit$loglik -final_fit_plus$loglik ))
+
+    deta_dtheta <- (c(final_fit_plus$coef, final_fit_plus$haz) -
+                      c(final_fit_minus$coef, final_fit_minus$haz)) / (2*h)
+
+    #adj_se <- sqrt(diag(deta_dtheta %*% (1/(attr(opt_object, "details")[[3]])) %*% t(deta_dtheta)))
+
+    vcov_adj = inner_m$Vcov + deta_dtheta %*% (1/(attr(outer_m, "details")[[3]])) %*% t(deta_dtheta)
+
+  } else vcov_adj = matrix(NA, nrow(inner_m$Vcov), nrow(inner_m$Vcov))
   # that the hessian
-  h <- as.numeric(sqrt(1/(attr(outer_m, "details")[[3]]))/2)
-  lfp_minus <- max(outer_m$p1 - h , outer_m$p1 - 5)
-  lfp_plus <- min(outer_m$p1 + h , outer_m$p1 + 5)
-
-  message("Calculating adjustment for information matrix...")
-
-
-  final_fit_minus <- em_fit(logfrailtypar = lfp_minus,
-                            dist = .distribution$dist, pvfm = .distribution$pvfm,
-                            Y = Y, Xmat = X, atrisk = atrisk, basehaz_line = basehaz_line,
-                            mcox = list(coefficients = g, loglik = mcox$loglik),  # a "fake" cox model
-                            Cvec = Cvec, lt = .distribution$left_truncation,
-                            Cvec_lt = Cvec_lt,
-                            .control = .control, return_loglik = FALSE)
-
-  final_fit_plus <- em_fit(logfrailtypar = lfp_plus,
-                           dist = .distribution$dist, pvfm = .distribution$pvfm,
-                           Y = Y, Xmat = X, atrisk = atrisk, basehaz_line = basehaz_line,
-                           mcox = list(coefficients = g, loglik = mcox$loglik),  # a "fake" cox model
-                           Cvec = Cvec, lt = .distribution$left_truncation,
-                           Cvec_lt = Cvec_lt,
-                           .control = .control, return_loglik = FALSE)
-
-  # instructional: this should be more or less equal to the
-  -(final_fit_plus$loglik + final_fit_minus$loglik - 2 * inner_m$loglik)/h^2
-
-  # se_logtheta^2 / (2 * (final_fit$loglik -final_fit_plus$loglik ))
-
-  deta_dtheta <- (c(final_fit_plus$coef, final_fit_plus$haz) -
-    c(final_fit_minus$coef, final_fit_minus$haz)) / (2*h)
-
-  #adj_se <- sqrt(diag(deta_dtheta %*% (1/(attr(opt_object, "details")[[3]])) %*% t(deta_dtheta)))
-
-  vcov_adj = inner_m$Vcov + deta_dtheta %*% (1/(attr(outer_m, "details")[[3]])) %*% t(deta_dtheta)
 
 
   res <- list(outer_m = outer_m,

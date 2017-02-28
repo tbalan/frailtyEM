@@ -143,7 +143,7 @@ predict.emfrail <- function(object,
                                               lp = as.factor(x))))
 
 
-  chz_to_surv <- function(x) exp(-x)
+chz_to_surv <- function(x) exp(-x)
   surv_to_chz <- function(x) -1 * log(x)
 
   scenarios <- expand.grid(quantity, type, conf_int)

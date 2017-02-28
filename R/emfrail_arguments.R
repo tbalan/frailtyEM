@@ -8,6 +8,8 @@
 #' @param fast_fit Logical. Whether to try to calculate the E step directly, when possible. See details.
 #' @param zerotol Lower limit for 1/frailtypar (variance in case of gamma / pvf). Below this value, the variance is taken to be 0 and the
 #' EM is not actually performed. The log-likelihood returned to the maximizer is that for the Cox model.
+#' @param se_fit Logical. Whether to calculate the variance / covariance matrix.
+#' @param se_adj Logical. Whether to calculate the adjusted variance / covariance matrix (needs \code{se_fit == TRUE})
 #' @param opt_control A list with arguments to be sent to the maximizer.
 #'
 #' @return An object of the type \code{emfrail_control}.
@@ -56,14 +58,22 @@
 #' # This gives a more precise estimate, 5845410 so frailty variance 1/5845410 = 1.71e-07
 #'
 emfrail_control <- function(eps = 0.0001, maxit = Inf, opt_fit = TRUE, verbose = FALSE, fast_fit = TRUE,
-                            zerotol = 1e-4,
+                            zerotol = 1e-4, se_fit = TRUE, se_adj = TRUE,
                             opt_control = list(method = "bobyqa",
     itnmax = NULL, control = list())) {
     # calculate SE as well
 
     # Here some checks
 
-    res <- list(eps = eps, maxit = maxit, opt_fit = opt_fit, zerotol = zerotol, verbose = verbose, fast_fit = fast_fit, opt_control = opt_control)
+    res <- list(eps = eps,
+                maxit = maxit,
+                opt_fit = opt_fit,
+                zerotol = zerotol,
+                verbose = verbose,
+                fast_fit = fast_fit,
+                se_fit = se_fit,
+                se_adj = se_adj,
+                opt_control = opt_control)
     attr(res, "class") <- c("emfrail_control")
     res
 }
