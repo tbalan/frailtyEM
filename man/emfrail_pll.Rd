@@ -36,7 +36,7 @@ for setting other \code{emfrail_control} parameters.
 
 fr_var <- c(0.001, 0.01, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9)
 profloglik <- emfrail_pll(rats,
-                          Surv(rep(0, nrow(rats)), time, status) ~ rx + sex + cluster(litter),
+                          Surv(time, status) ~ rx + sex + cluster(litter),
                           .values = 1/fr_var)
 plot(fr_var, profloglik, xlab = "frailty variance", ylab = "profile log-likelihood")
 

@@ -1,7 +1,9 @@
 #' Predicted hazard and survival curves from an \code{emfrail} object
 #'
+#' @importFrom stats .getXlevels delete.response drop.terms
 #' @param object An \code{emfrail} fit object
 #' @param lp A vector of linear predictor values at which to calculate the curves. Default is 0 (baseline).
+#' @param newdata A data frame with the same variable names as those that appear in the \code{emfrail} formula, used to calculate the \code{lp} (optional).
 #' @param quantity Can be \code{"cumhaz"} and/or \code{"survival"}. The quantity to be calculated for the values of \code{lp}.
 #' @param type Can be \code{"conditional"} and/or \code{"marginal"}. The type of the quantity to be calculated.
 #' @param conf_int Can be \code{"regular"} and/or \code{"adjusted"}. The type of confidence interval to be calculated.
@@ -98,10 +100,27 @@
 #' @seealso \code{\link{plot_pred}}, \code{\link{plot_hr}}
 predict.emfrail <- function(object,
                             lp = c(0),
+                            newdata = NULL,
                             quantity = c("cumhaz", "survival"),
                             type = c("conditional", "marginal"),
                             conf_int = c("regular", "adjusted"),
                             ...) {
+
+
+  if(!is.null(newdata)) {
+    if(!inherits(newdata, "data.frame")) stop("newdata must be a data.frame")
+    #message("newdata specified, ignoring lp")
+
+    mdata <- attr(object, "metadata")
+    mf <- model.frame(mdata[[1]], data = newdata, xlev = mdata[[2]])
+    mm <- try(model.matrix(mdata[[1]], mf)[,-1])
+    if(inherits(mm, "try-error")) stop("newdata probably misspecified")
+    lp <- as.numeric(mm %*% object$inner_m$coef)
+    lp_all <- cbind(newdata, lp)
+  } else
+    lp_all <- data.frame(lp = lp)
+
+
 
   fit <- object
   est_dist <- fit$.distribution
@@ -135,15 +154,19 @@ predict.emfrail <- function(object,
   # upper_chz_adj <- cumhaz + 1.96*se_chz_adj
 
   # Now calculate that for different LPs
+  lp_all <- data.frame(lp_all, row.names = NULL)
+  row.names(lp_all) <- NULL
+    ret <- do.call(rbind,
+                 lapply(split(lp_all, 1:nrow(lp_all)), function(x) cbind(time = time,
+                                              cumhaz = cumhaz * exp(x$lp),
+                                              se_chz = exp(x$lp) * se_chz,
+                                              se_chz_adj = exp(x$lp) * se_chz_adj,
+                                              x,
+                                              row.names = NULL))
+                 )
 
-  ret <- do.call(rbind, lapply(lp, function(x) data.frame(time = time,
-                                              cumhaz = cumhaz * exp(x),
-                                              se_chz = exp(x) * se_chz,
-                                              se_chz_adj = exp(x) * se_chz_adj,
-                                              lp = as.factor(x))))
 
-
-chz_to_surv <- function(x) exp(-x)
+  chz_to_surv <- function(x) exp(-x)
   surv_to_chz <- function(x) -1 * log(x)
 
   scenarios <- expand.grid(quantity, type, conf_int)

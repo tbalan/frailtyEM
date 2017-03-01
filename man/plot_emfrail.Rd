@@ -7,10 +7,10 @@
 \alias{hist_frail}
 \title{Plot functions for \code{emfrail} objects}
 \usage{
-plot_pred(object, lp = 0, quantity = "cumhaz", type = "both",
-  conf_int = "adjusted", ...)
+plot_pred(object, lp = 0, newdata = NULL, quantity = "cumhaz",
+  type = "both", conf_int = "adjusted", ...)
 
-plot_hr(object, lp, ...)
+plot_hr(object, lp, newdata = NULL, ...)
 
 hist_frail(object, ...)
 }
@@ -18,6 +18,8 @@ hist_frail(object, ...)
 \item{object}{An \code{emfrail} object}
 
 \item{lp}{The value(s) of the linear predictor. For \code{plot_pred} this should have length 1 and for \code{plot_hr} length 2.}
+
+\item{newdata}{A \code{data.frame} from each each line corresponds to a value of the linear predictor (optional).}
 
 \item{quantity}{One of "cumhaz" (for cumulative hazard) or "survival"}
 

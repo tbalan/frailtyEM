@@ -289,7 +289,6 @@ emfrail <- function(.data,
   if(length(pos_cluster) != 1) stop("misspecified or non-specified cluster")
   id <- mf[[pos_cluster]]
 
-  # Identify Surv object
 
   Y <- mf[[1]]
   if(!inherits(Y, "Surv")) stop("left hand side not a survival object")
@@ -571,7 +570,16 @@ emfrail <- function(.data,
 #             vcov = final_fit$Vcov,
 #             vcov_adj = vcov_adj
 #                )
+
+  # these are things that make the predict work
+  terms_2 <- delete.response(attr(mf, "terms"))
+  pos_cluster_2 <- grep("cluster", attr(terms_2, "term.labels"))
+  terms <- drop.terms(terms_2, pos_cluster_2)
+  myxlev <- .getXlevels(terms, mf)
+  attr(res, "metadata") <- list(terms, myxlev)
+
   attr(res, "class") <- "emfrail"
+
 
   res
 

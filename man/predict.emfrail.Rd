@@ -4,14 +4,16 @@
 \alias{predict.emfrail}
 \title{Predicted hazard and survival curves from an \code{emfrail} object}
 \usage{
-\method{predict}{emfrail}(object, lp = c(0), quantity = c("cumhaz",
-  "survival"), type = c("conditional", "marginal"), conf_int = c("regular",
-  "adjusted"), ...)
+\method{predict}{emfrail}(object, lp = c(0), newdata = NULL,
+  quantity = c("cumhaz", "survival"), type = c("conditional", "marginal"),
+  conf_int = c("regular", "adjusted"), ...)
 }
 \arguments{
 \item{object}{An \code{emfrail} fit object}
 
 \item{lp}{A vector of linear predictor values at which to calculate the curves. Default is 0 (baseline).}
+
+\item{newdata}{A data frame with the same variable names as those that appear in the \code{emfrail} formula, used to calculate the \code{lp} (optional).}
 
 \item{quantity}{Can be \code{"cumhaz"} and/or \code{"survival"}. The quantity to be calculated for the values of \code{lp}.}
 

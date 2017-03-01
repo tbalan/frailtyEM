@@ -5,6 +5,7 @@
 #'
 #' @param object An \code{emfrail} object
 #' @param lp The value(s) of the linear predictor. For \code{plot_pred} this should have length 1 and for \code{plot_hr} length 2.
+#' @param newdata A \code{data.frame} from each each line corresponds to a value of the linear predictor (optional).
 #' @param quantity One of "cumhaz" (for cumulative hazard) or "survival"
 #' @param type One of "conditional", "marginal" or "both"
 #' @param conf_int One of "adjusted", "regular", or "none
@@ -51,9 +52,15 @@ NULL
 #' @name plot_pred
 #' @export
 #'
-plot_pred <- function(object, lp = 0, quantity = "cumhaz", type = "both", conf_int = "adjusted", ...) {
-  if(length(lp) != 1)
-    stop("lp must be a number")
+plot_pred <- function(object, lp = 0, newdata = NULL, quantity = "cumhaz", type = "both", conf_int = "adjusted", ...) {
+
+  if(is.null(newdata)) {
+    if(length(lp) != 1) stop("lp must be a number")
+  }
+
+  if(!is.null(newdata))
+    if(!inherits(newdata, "data.frame")) stop("newdata must be a data.frame") else
+      if(nrow(newdata) != 1) stop("newdata must have exactly 1 row")
 
   if(!(quantity %in% c("cumhaz", "survival")) | length(quantity) != 1)
     stop("quantity must be cumhaz or survival ")
@@ -70,6 +77,7 @@ plot_pred <- function(object, lp = 0, quantity = "cumhaz", type = "both", conf_i
 
     p1 <- predict.emfrail(object,
                           lp = lp,
+                          newdata = newdata,
                           quantity = quantity,
                           type = type_pred,
                           conf_int = conf_int)
@@ -243,20 +251,27 @@ plot_pred <- function(object, lp = 0, quantity = "cumhaz", type = "both", conf_i
 #' @name plot_hr
 #' @export
 #'
-plot_hr <- function(object, lp, ...) {
-  if(length(lp) != 2)
-    stop("lp must be of length 2")
-  if(lp[1] == lp[2])
-    stop("the two lp values must be different")
+plot_hr <- function(object, lp, newdata = NULL, ...) {
 
+  if(is.null(newdata))
+    if(missing(lp)) stop("lp or newdata should be specified") else
+      if(length(lp) != 2) stop("lp must be of length 2, or newdata must have 2 rows") else
+        if(lp[1] == lp[2]) stop("values of lp should be different")
+
+  if(!is.null(newdata))
+    if(!inherits(newdata, "data.frame")) stop("newdata must be a data.frame") else
+      if(nrow(newdata) != 2) stop("newdata must have exactly 2 rows") else
+        if(isTRUE(all.equal(newdata[1,], newdata[2,]))) stop("the rows of newdata must be different")
 
   p1 <- predict.emfrail(object,
                         lp = lp[1],
+                        newdata = newdata[1,],
                         quantity = "cumhaz",
                         conf_int = NULL)
 
   p2 <- predict.emfrail(object,
                         lp = lp[2],
+                        newdata = newdata[2,],
                         quantity = "cumhaz",
                         conf_int = NULL)
 

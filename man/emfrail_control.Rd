@@ -5,8 +5,9 @@
 \title{Control parameters for emfrail}
 \usage{
 emfrail_control(eps = 1e-04, maxit = Inf, opt_fit = TRUE,
-  verbose = FALSE, fast_fit = TRUE, zerotol = 1e-04,
-  opt_control = list(method = "bobyqa", itnmax = NULL, control = list()))
+  verbose = FALSE, fast_fit = TRUE, zerotol = 1e-04, se_fit = TRUE,
+  se_adj = TRUE, opt_control = list(method = "bobyqa", itnmax = NULL,
+  control = list()))
 }
 \arguments{
 \item{eps}{Convergence criterion for the inner loops (the EM algorithm) for fixed frailty parameters}
@@ -22,6 +23,10 @@ If \code{FALSE}, then the frailty parameter is treated as fixed and the \code{em
 
 \item{zerotol}{Lower limit for 1/frailtypar (variance in case of gamma / pvf). Below this value, the variance is taken to be 0 and the
 EM is not actually performed. The log-likelihood returned to the maximizer is that for the Cox model.}
+
+\item{se_fit}{Logical. Whether to calculate the variance / covariance matrix.}
+
+\item{se_adj}{Logical. Whether to calculate the adjusted variance / covariance matrix (needs \code{se_fit == TRUE})}
 
 \item{opt_control}{A list with arguments to be sent to the maximizer.}
 }
