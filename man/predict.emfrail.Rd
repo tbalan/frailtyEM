@@ -32,8 +32,15 @@ By default, for each \code{lp} it will give the following columns: \code{cumhaz}
 Predicted hazard and survival curves from an \code{emfrail} object
 }
 \details{
+There are two ways of specifying for which individuals to calculate the cumulative hazard or survival curve.
+One way is directly, for certain values of the linear predictor, via \code{lp},
+and the second way is via \code{newdata}, a \code{data.frame} where the column names are the same as in the original data.
+If \code{newdata} is specified, then the \code{lp} argument is ignored.
+
 The names of the columns in the returned object are as follows: \code{time} represents the unique event time points
-from the data set, \code{lp} is the value of the linear predictor (as specified in the input). The two "quantities" that can be returned are
+from the data set, \code{lp} is the value of the linear predictor (as specified in the input or as calculated from the lines of \code{newdata}). If
+\code{newdata} is specified, columns repeating each line of \code{newdata} are also added.
+ The two "quantities" that can be returned are
 named \code{cumhaz} and \code{survival}. If we denote each quantity with \code{q}, then the columns with the marginal estimates
 are named \code{q_m}. The confidence intervals contain the name of the quantity (conditional or marginal) followed by \code{_l} or \code{_r} for
 the lower and upper bound. The bounds calculated with the adjusted standard errors have the name of the regular bounds followed by
@@ -59,7 +66,7 @@ are based on asymptotic normality and are symmetric, which may lead in some situ
 In this case, the lower bound for the cumulative hazard (or upper bound, for the survival) is truncated at 0 (or 1, for the survival).
 }
 \examples{
-kidney$sex <- kidney$sex - 1
+kidney$sex <- ifelse(kidney$sex == 1, "male", "female")
 m1 <- emfrail(.data =  kidney,
               .formula = Surv(time, status) ~  sex + age  + cluster(id))
 
@@ -67,32 +74,35 @@ pred <- predict(m1)
 
 names(pred)
 
-# Plot baseline cumulative hazard
+# Plot baseline cumulative hazard: note that is for someone aged 0!
 plot_pred(m1)
 
-# Plot baseline urvival
-plot_pred(m1, quantity = "survival")
+# More realistic:
+plot_pred(m1, newdata = data.frame(sex = "female", age = mean(kidney$age)))
+
+# Plot survival
+plot_pred(m1,
+          newdata = data.frame(sex = "female", age = mean(kidney$age)),
+          quantity = "survival", conf_int = "none")
 
 
 # Plot cumulative hazard with confidence intervals, ggplot2
-names(pred)
-library(ggplot2)
 ggplot(pred, aes(x = time, y = cumhaz)) +
   geom_step() +
   geom_ribbon(aes(ymin = cumhaz_l, ymax = cumhaz_r), alpha = 0.2) +
   geom_ribbon(aes(ymin = cumhaz_l_a, ymax = cumhaz_r_a), alpha = 0.2) +
   ggtitle("Baseline cumulative hazard with confidence intervals")
 
-# The linear predictor for someone with sex = 1 is
-lp_1 <- m1$inner_m$coef[1]
-
-pred2 <- predict(m1, lp = c(0, lp_1))
-pred2$sex <- ifelse(pred2$lp == 0, "male", "female")
-# Plot the conditional survival of two individuals
+# For two individuals: with sex 1 and sex 0
+pred2 <- predict(m1, newdata = data.frame(sex = c("female", "male"), age = c(44, 44)))
+# Plot the conditional & survival of two individuals
 ggplot(pred2, aes(x = time, y = survival, group = sex)) +
   geom_step(aes(colour = sex)) + ggtitle("Conditional survival")
 
-# Plot the conditional and the marginal hazard in the same place
+ggplot(pred2, aes(x = time, y = survival_m, group = sex)) +
+  geom_step(aes(colour = sex)) + ggtitle("Marginal survival")
+
+# Plot the conditional and the marginal survival in the same place
 library(dplyr)
 library(tidyr)
 pred2 \%>\%
@@ -108,9 +118,12 @@ time <- pred2$time[pred2$sex == "male"]
 
 plot(time, hr_marginal, type = "s", col = 2, main = "Hazard ratio female vs male")
 lines(time, hr_conditional, type = "s")
-legend(c("conditional", "marginal"), x = "topleft", col = c(1,2), lty = 1)
+legend(c("conditional", "marginal"), x = "bottomleft", col = c(1,2), lty = 1)
 # The marginal hazard ratio in the case of gamma frailty shrinks towards 1
 # With positive stable, this plot would be two parallel lines
+
+# Or easier, in this way:
+plot_hr(m1, newdata = data.frame(sex = c("female", "male"), age = c(44, 44)))
 }
 \seealso{
 \code{\link{plot_pred}}, \code{\link{plot_hr}}

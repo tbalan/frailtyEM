@@ -5,7 +5,7 @@
 #'
 #' @param object An \code{emfrail} object
 #' @param lp The value(s) of the linear predictor. For \code{plot_pred} this should have length 1 and for \code{plot_hr} length 2.
-#' @param newdata A \code{data.frame} from each each line corresponds to a value of the linear predictor (optional).
+#' @param newdata A \code{data.frame} from each each line corresponds to a value of the linear predictor (optional). For \code{plot_pred} this should have 1 row and for \code{plot_hr} 2 rows.
 #' @param quantity One of "cumhaz" (for cumulative hazard) or "survival"
 #' @param type One of "conditional", "marginal" or "both"
 #' @param conf_int One of "adjusted", "regular", or "none
@@ -20,32 +20,35 @@
 #' @return Nothing.
 #' @importFrom graphics abline hist legend lines plot
 #' @examples
-#'mod_rec <- emfrail(bladder1, Surv(start, stop, status) ~ treatment + number + cluster(id))
+#' mod_rec <- emfrail(bladder1, Surv(start, stop, status) ~ treatment + number + cluster(id))
 #' summary(mod_rec)
 #'
 #' # cumulative hazard
+#' # Note: this individual has number = 0, which does not exist in the data
 #' plot_pred(mod_rec)
 #'
 #' # survival, although not very meaningful with recurrent events
 #' plot_pred(mod_rec, quantity = "survival")
 #'
-#' # hazard ratio between an individual with 0 and with 1 recurrence at baseline
-#' lp <- c(mod_rec$inner_m$coef[3], 0)
+#'
+#' # For an individual with number == 2
+#' plot_pred(mod_rec, newdata = data.frame(treatment = "placebo", number = 2))
+#'
+#' # hazard ratio between an individual with 0 and with 2 recurrences at baseline
 #' # the marginal hazard ratio is "pulled" towards 1:
-#' plot_hr(mod_rec, lp)
+#' plot_hr(mod_rec, newdata = data.frame(treatment = "placebo", number = c(0, 2)))
 #'
 #' # hazard ratio with the stable distribution:
 #' mod_rec_stab <- emfrail(bladder1,
 #'                         Surv(start, stop, status) ~ treatment + number + cluster(id),
 #'                         .distribution = emfrail_distribution(dist = "stable"))
 #'
-#' plot_hr(mod_rec_stab, lp)
+#' plot_hr(mod_rec_stab, newdata = data.frame(treatment = "placebo", number = c(0, 2)))
 #'
 #' # histogram of frailty estimates
-#' hist_frail(mod_rec)
+#' hist_frail(mod_rec_stab)
+#'
 NULL
-
-
 
 #' \code{plot_pred} plots predicted cumulative hazard or survival curves, marginal and / or conditional, with or without confidence intervals.
 #' @rdname plot_emfrail
@@ -278,6 +281,8 @@ plot_hr <- function(object, lp, newdata = NULL, ...) {
   hr_cond <- p1$cumhaz / p2$cumhaz
   hr_mar <- p1$cumhaz_m / p2$cumhaz_m
 
+  hr_cond[1] <- hr_cond[2]  # that's cause it's 0/0
+  hr_mar[1] <- hr_mar[2]
   ylim <- c(min(c(hr_cond, hr_mar, 0.95)), max(c(hr_cond, hr_mar, 1.05)))
 
   plot(p1$time, hr_cond, type = "s", ylim = ylim,

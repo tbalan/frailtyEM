@@ -13,8 +13,15 @@
 #' By default, for each \code{lp} it will give the following columns: \code{cumhaz}, \code{survival},
 #' \code{cumhaz_m}, \code{survival_m} for the cumulative hazard and survival, conditional and marginal.
 #'
-#' @details The names of the columns in the returned object are as follows: \code{time} represents the unique event time points
-#' from the data set, \code{lp} is the value of the linear predictor (as specified in the input). The two "quantities" that can be returned are
+#' @details There are two ways of specifying for which individuals to calculate the cumulative hazard or survival curve.
+#' One way is directly, for certain values of the linear predictor, via \code{lp},
+#' and the second way is via \code{newdata}, a \code{data.frame} where the column names are the same as in the original data.
+#' If \code{newdata} is specified, then the \code{lp} argument is ignored.
+#'
+#' The names of the columns in the returned object are as follows: \code{time} represents the unique event time points
+#' from the data set, \code{lp} is the value of the linear predictor (as specified in the input or as calculated from the lines of \code{newdata}). If
+#' \code{newdata} is specified, columns repeating each line of \code{newdata} are also added.
+#'  The two "quantities" that can be returned are
 #' named \code{cumhaz} and \code{survival}. If we denote each quantity with \code{q}, then the columns with the marginal estimates
 #' are named \code{q_m}. The confidence intervals contain the name of the quantity (conditional or marginal) followed by \code{_l} or \code{_r} for
 #' the lower and upper bound. The bounds calculated with the adjusted standard errors have the name of the regular bounds followed by
@@ -45,7 +52,7 @@
 #'
 #'
 #' @examples
-#'kidney$sex <- kidney$sex - 1
+#' kidney$sex <- ifelse(kidney$sex == 1, "male", "female")
 #' m1 <- emfrail(.data =  kidney,
 #'               .formula = Surv(time, status) ~  sex + age  + cluster(id))
 #'
@@ -53,32 +60,35 @@
 #'
 #' names(pred)
 #'
-#' # Plot baseline cumulative hazard
+#' # Plot baseline cumulative hazard: note that is for someone aged 0!
 #' plot_pred(m1)
 #'
-#' # Plot baseline urvival
-#' plot_pred(m1, quantity = "survival")
+#' # More realistic:
+#' plot_pred(m1, newdata = data.frame(sex = "female", age = mean(kidney$age)))
+#'
+#' # Plot survival
+#' plot_pred(m1,
+#'           newdata = data.frame(sex = "female", age = mean(kidney$age)),
+#'           quantity = "survival", conf_int = "none")
 #'
 #'
 #' # Plot cumulative hazard with confidence intervals, ggplot2
-#' names(pred)
-#' library(ggplot2)
 #' ggplot(pred, aes(x = time, y = cumhaz)) +
 #'   geom_step() +
 #'   geom_ribbon(aes(ymin = cumhaz_l, ymax = cumhaz_r), alpha = 0.2) +
 #'   geom_ribbon(aes(ymin = cumhaz_l_a, ymax = cumhaz_r_a), alpha = 0.2) +
 #'   ggtitle("Baseline cumulative hazard with confidence intervals")
 #'
-#' # The linear predictor for someone with sex = 1 is
-#' lp_1 <- m1$inner_m$coef[1]
-#'
-#' pred2 <- predict(m1, lp = c(0, lp_1))
-#' pred2$sex <- ifelse(pred2$lp == 0, "male", "female")
-#' # Plot the conditional survival of two individuals
+#' # For two individuals: with sex 1 and sex 0
+#' pred2 <- predict(m1, newdata = data.frame(sex = c("female", "male"), age = c(44, 44)))
+#' # Plot the conditional & survival of two individuals
 #' ggplot(pred2, aes(x = time, y = survival, group = sex)) +
 #'   geom_step(aes(colour = sex)) + ggtitle("Conditional survival")
 #'
-#' # Plot the conditional and the marginal hazard in the same place
+#' ggplot(pred2, aes(x = time, y = survival_m, group = sex)) +
+#'   geom_step(aes(colour = sex)) + ggtitle("Marginal survival")
+#'
+#' # Plot the conditional and the marginal survival in the same place
 #' library(dplyr)
 #' library(tidyr)
 #' pred2 %>%
@@ -94,9 +104,12 @@
 #'
 #' plot(time, hr_marginal, type = "s", col = 2, main = "Hazard ratio female vs male")
 #' lines(time, hr_conditional, type = "s")
-#' legend(c("conditional", "marginal"), x = "topleft", col = c(1,2), lty = 1)
+#' legend(c("conditional", "marginal"), x = "bottomleft", col = c(1,2), lty = 1)
 #' # The marginal hazard ratio in the case of gamma frailty shrinks towards 1
 #' # With positive stable, this plot would be two parallel lines
+#'
+#' # Or easier, in this way:
+#' plot_hr(m1, newdata = data.frame(sex = c("female", "male"), age = c(44, 44)))
 #' @seealso \code{\link{plot_pred}}, \code{\link{plot_hr}}
 predict.emfrail <- function(object,
                             lp = c(0),
@@ -154,13 +167,16 @@ predict.emfrail <- function(object,
   # upper_chz_adj <- cumhaz + 1.96*se_chz_adj
 
   # Now calculate that for different LPs
-  lp_all <- data.frame(lp_all, row.names = NULL)
-  row.names(lp_all) <- NULL
+  #lp_all <- data.frame(lp_all, row.names = NULL)
+
+  mintime <- max(0, c(min(time)-1))
+
+  #row.names(lp_all) <- NULL
     ret <- do.call(rbind,
-                 lapply(split(lp_all, 1:nrow(lp_all)), function(x) cbind(time = time,
-                                              cumhaz = cumhaz * exp(x$lp),
-                                              se_chz = exp(x$lp) * se_chz,
-                                              se_chz_adj = exp(x$lp) * se_chz_adj,
+                 lapply(split(lp_all, 1:nrow(lp_all)), function(x) cbind(time = c(mintime,time),
+                                              cumhaz = c(0, cumhaz * exp(x$lp)),
+                                              se_chz = c(0, exp(x$lp) * se_chz),
+                                              se_chz_adj = c(0, exp(x$lp) * se_chz_adj),
                                               x,
                                               row.names = NULL))
                  )
@@ -182,14 +198,14 @@ predict.emfrail <- function(object,
   if(length(conf_int) > 0) {
     if("regular" %in% conf_int) {
       bounds <- c(bounds, "cumhaz_l", "cumhaz_r")
-      ret$cumhaz_l <- pmax(0, ret$cumhaz - 1.96*se_chz)
-      ret$cumhaz_r <- ret$cumhaz + 1.96*se_chz
+      ret$cumhaz_l <- pmax(0, ret$cumhaz - 1.96*ret$se_chz)
+      ret$cumhaz_r <- ret$cumhaz + 1.96*ret$se_chz
     }
 
     if("adjusted" %in% conf_int) {
       bounds <- c(bounds, "cumhaz_l_a", "cumhaz_r_a")
-        ret$cumhaz_l_a <- pmax(0, ret$cumhaz - 1.96*se_chz_adj)
-        ret$cumhaz_r_a <- ret$cumhaz + 1.96*se_chz_adj
+        ret$cumhaz_l_a <- pmax(0, ret$cumhaz - 1.96*ret$se_chz_adj)
+        ret$cumhaz_r_a <- ret$cumhaz + 1.96*ret$se_chz_adj
     }
   }
 
