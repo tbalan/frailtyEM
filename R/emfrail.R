@@ -3,7 +3,7 @@
 #' @importFrom survival Surv
 #' @importFrom stats approx coef model.frame model.matrix pchisq printCoefmat
 #' @importFrom magrittr "%>%"
-#' @useDynLib frailtoys
+#' @useDynLib frailtyEM
 #' @include em_fit.R
 #' @include emfrail_aux.R
 #'
