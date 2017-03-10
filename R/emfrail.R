@@ -1,4 +1,4 @@
-#' Fitting shared frailty models wiht the EM algorithm
+#' Fitting shared frailty models with the EM algorithm
 #'
 #' @importFrom survival Surv
 #' @importFrom stats approx coef model.frame model.matrix pchisq printCoefmat

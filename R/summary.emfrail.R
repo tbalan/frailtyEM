@@ -108,7 +108,7 @@ summary.emfrail <- function(object, ...) {
 
   fr_var <- se_fr_var <- ci_frvar_low <- ci_frvar_high <- NULL
   tau <- tau_stab <- se_tau <- attenuation <- ci_tau_high <- ci_tau_low <- e_log_y <- NULL
-
+  se_tau_stab <- ci_tau_high_stab <- ci_tau_low_stab <- NULL
   coefmat <- NULL
   mass_at_0 <- NULL
 
@@ -125,15 +125,15 @@ summary.emfrail <- function(object, ...) {
     # Kendall's tau
     tau_stab <- theta / (theta + 1)
 
-    se_tau <- with(fit$outer_m,
+    se_tau_stab <- with(fit$outer_m,
                    msm::deltamethod(~exp(x1) / (exp(x1) + 1),
                                     mean = p1,
                                     cov = 1/attr(fit$outer_m, "details")[[3]]))
 
     attenuation <- 1 - theta  # this is the gamma of the distribution as well
 
-    ci_tau_low <- exp(ci_theta_high) / (1 + exp(ci_theta_high))
-    ci_tau_high <- exp(ci_theta_low) / (1 + exp(ci_theta_low))
+    ci_tau_low_stab <- ci_theta_high / (1 + ci_theta_high)
+    ci_tau_high_stab <- ci_theta_low / (1 + ci_theta_low)
 
     e_log_y <-  (-1) * (1 / (1-theta) - 1) * digamma(1)
 
@@ -161,6 +161,13 @@ summary.emfrail <- function(object, ...) {
 
     # Kendall's tau
     tau <- 1 / (1 + 2 * theta)
+
+    se_tau <- with(fit$outer_m,
+                   msm::deltamethod(~1 / (1 + 2 * exp(x1)),
+                                    mean = p1,
+                                    cov = 1/attr(fit$outer_m, "details")[[3]]))
+    ci_tau_low <- 1 / (1 + 2 * ci_theta_low)
+    ci_tau_high <- 1 / (1 + 2 * ci_theta_high)
 
 
     shape <- est_dist$frailtypar + fit$inner_m$nev_id
@@ -211,12 +218,15 @@ summary.emfrail <- function(object, ...) {
                   se_fr_var = se_fr_var,
                   ci_frvar_low = ci_frvar_low,
                   ci_frvar_high = ci_frvar_high),
-       gamma_pars = c(tau = tau),
+       gamma_pars = c(tau = tau,
+                      se_tau = se_tau,
+                      ci_tau_high = ci_tau_high,
+                      ci_tau_low = ci_tau_low),
        pvf_pars = c(mass_at_0 = mass_at_0),
        stable_pars = c(tau = tau_stab,
-                       se_tau = se_tau,
-                       ci_tau_high = ci_tau_high,
-                       ci_tau_low = ci_tau_low,
+                       se_tau = se_tau_stab,
+                       ci_tau_high = ci_tau_high_stab,
+                       ci_tau_low = ci_tau_low_stab,
                        attenuation = attenuation,
                        e_log_y = e_log_y),
        coefmat = do.call(cbind,coefmat),

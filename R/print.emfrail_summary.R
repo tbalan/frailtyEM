@@ -29,7 +29,7 @@ print.emfrail_summary <- function(x, ...) {
   cat("Frailty summary:\n")
   cat("theta = ",
       round(obj$theta[1], digits = 3),
-      ", (",
+      " (",
       round(obj$theta[2], digits = 2),
       ") / 95% CI: [",
       round(obj$theta[3], digits = 3),
@@ -41,7 +41,7 @@ print.emfrail_summary <- function(x, ...) {
   if(!is.null(obj$fr_var))
     cat("variance = ",
         round(obj$fr_var[1], digits = 3),
-        ", (",
+        " (",
         round(obj$fr_var[2], digits = 2),
         ") / 95% CI: [",
         round(obj$fr_var[3], digits = 3),
@@ -51,9 +51,18 @@ print.emfrail_summary <- function(x, ...) {
 
   # gamma-specific
   if(!is.null(obj$gamma_pars))
-    cat("Kendall's tau:",
-        obj$gamma_pars[[1]],
-        "\n")
+  cat("Kendall's tau: ",
+      round(obj$gamma_pars[1], digits = 3),
+      " (",
+      round(obj$gamma_pars[2], digits = 2),
+      ") / 95% CI: [",
+      round(obj$gamma_pars[3], digits = 3),
+      ", ",
+      round(obj$gamma_pars[4], digits = 3),
+      "]\n", sep = "")
+    # cat("Kendall's tau:",
+    #     obj$gamma_pars[[1]],
+    #     "\n")
 
   # pvf-specific
   if(!is.null(obj$pvf_pars))
