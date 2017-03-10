@@ -1,3 +1,9 @@
+# frailtyEM 0.4.8
+Changed name to the more professional `frailtyEM`.
+Added CI and SE for Kendall's tau with gamma
+
+bugfixes: CI for tau with stable is now ok
+
 # frailtoys 0.4.7
 Added a `newdata` option for the `predict` method and for the `plot` methods. 
 This can be used instead of `lp`, and basically calculates the corresponding linear predictor for the 

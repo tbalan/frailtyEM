@@ -7,7 +7,7 @@ using namespace Rcpp;
 
 // Estep
 NumericMatrix Estep(NumericVector c, NumericVector c_lt, IntegerVector delta, double alpha, double bbeta, const double& pvfm, const int& dist);
-RcppExport SEXP frailtoys_Estep(SEXP cSEXP, SEXP c_ltSEXP, SEXP deltaSEXP, SEXP alphaSEXP, SEXP bbetaSEXP, SEXP pvfmSEXP, SEXP distSEXP) {
+RcppExport SEXP frailtyEM_Estep(SEXP cSEXP, SEXP c_ltSEXP, SEXP deltaSEXP, SEXP alphaSEXP, SEXP bbetaSEXP, SEXP pvfmSEXP, SEXP distSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -24,7 +24,7 @@ END_RCPP
 }
 // inf_mat_match
 NumericVector inf_mat_match(NumericVector left, NumericVector right, NumericVector elp, int maxlength);
-RcppExport SEXP frailtoys_inf_mat_match(SEXP leftSEXP, SEXP rightSEXP, SEXP elpSEXP, SEXP maxlengthSEXP) {
+RcppExport SEXP frailtyEM_inf_mat_match(SEXP leftSEXP, SEXP rightSEXP, SEXP elpSEXP, SEXP maxlengthSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;

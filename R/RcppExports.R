@@ -18,10 +18,10 @@
 #' last column is the log(denominator) + log-Laplace transform, i.e. the log-likelihood contribution
 #' @keywords internal
 Estep <- function(c, c_lt, delta, alpha, bbeta, pvfm, dist) {
-    .Call('frailtoys_Estep', PACKAGE = 'frailtoys', c, c_lt, delta, alpha, bbeta, pvfm, dist)
+    .Call('frailtyEM_Estep', PACKAGE = 'frailtyEM', c, c_lt, delta, alpha, bbeta, pvfm, dist)
 }
 
 inf_mat_match <- function(left, right, elp, maxlength) {
-    .Call('frailtoys_inf_mat_match', PACKAGE = 'frailtoys', left, right, elp, maxlength)
+    .Call('frailtyEM_inf_mat_match', PACKAGE = 'frailtyEM', left, right, elp, maxlength)
 }
 

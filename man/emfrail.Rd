@@ -2,7 +2,7 @@
 % Please edit documentation in R/emfrail.R
 \name{emfrail}
 \alias{emfrail}
-\title{Fitting shared frailty models wiht the EM algorithm}
+\title{Fitting shared frailty models with the EM algorithm}
 \usage{
 emfrail(.data, .formula, .distribution = emfrail_distribution(),
   .control = emfrail_control())
@@ -23,7 +23,7 @@ An object of the class \code{emfrail}, that is in fact a list which contains (1)
 outer maximization, and (5,6,7) are copies of the original input arguments: .formula, .distribution and .control.
 }
 \description{
-Fitting shared frailty models wiht the EM algorithm
+Fitting shared frailty models with the EM algorithm
 }
 \details{
 The \code{emfrail} function fits shared frailty models for processes which have intensity

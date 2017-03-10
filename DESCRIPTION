@@ -1,4 +1,4 @@
-Package: frailtoys
+Package: frailtyEM
 Type: Package
 Title: Fitting Frailty Models with the EM Algorithm
 Version: 0.4.7
