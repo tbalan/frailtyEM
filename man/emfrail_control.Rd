@@ -6,8 +6,8 @@
 \usage{
 emfrail_control(eps = 1e-04, maxit = Inf, opt_fit = TRUE,
   verbose = FALSE, fast_fit = TRUE, zerotol = 1e-04, se_fit = TRUE,
-  se_adj = TRUE, opt_control = list(method = "bobyqa", itnmax = NULL,
-  control = list()))
+  se_adj = TRUE, ca_test = TRUE, only_ca_test = FALSE,
+  opt_control = list(method = "bobyqa", itnmax = NULL, control = list()))
 }
 \arguments{
 \item{eps}{Convergence criterion for the inner loops (the EM algorithm) for fixed frailty parameters}
@@ -27,6 +27,10 @@ EM is not actually performed. The log-likelihood returned to the maximizer is th
 \item{se_fit}{Logical. Whether to calculate the variance / covariance matrix.}
 
 \item{se_adj}{Logical. Whether to calculate the adjusted variance / covariance matrix (needs \code{se_fit == TRUE})}
+
+\item{ca_test}{Logical. Should the Commenges-Andersen test be calculated?}
+
+\item{only_ca_test}{Logical. Should ONLY the Commenges-Andersen test be calculated?}
 
 \item{opt_control}{A list with arguments to be sent to the maximizer.}
 }

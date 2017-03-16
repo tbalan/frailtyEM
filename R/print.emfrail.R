@@ -32,6 +32,12 @@ print.emfrail <- function(x, ...) {
 
     printCoefmat(coefmat)
   }
+
+  if(!is.null(obj$ca_test)) {
+    cat("\n")
+    cat("Commenges-Andersen test for heterogeneity: p-val", format(obj$ca_test[3], digits = 3))
+  }
+
   invisible(obj)
 
 }

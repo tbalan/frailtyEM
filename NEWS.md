@@ -1,3 +1,9 @@
+# frailtyEM 0.4.9
+Added the Commenges-Andersen test for heterogeneity. 
+The test is implemented in a pretty non-efficient way, and it can be skipped with a proper `emfrail_control()` call, see `?emfrail_control`. Also there I added an option to *just* calculate the test, instead of doing anything else, and then just that is returned. A nice idea would be to implement this as a post-hoc calculation for `coxph` objects but that seems like another project atm.
+
+R CMD check: PASS, 0 warnings, 0 notes.
+
 # frailtyEM 0.4.8
 Changed name to the more professional `frailtyEM`.
 Added CI and SE for Kendall's tau with gamma

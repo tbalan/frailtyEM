@@ -419,7 +419,10 @@ emfrail <- function(.data,
 
   Cvec <- rowsum(cumhaz_line, atrisk$order_id)
 
+  ca_test <- NULL
 
+  if(isTRUE(.control$ca_test)) ca_test <- ca_test_fit(mcox, X, atrisk, exp_g_x, cumhaz)
+  if(isTRUE(.control$only_ca_test)) return(ca_test)
   # cumulative hazard?
 
 
@@ -531,6 +534,7 @@ emfrail <- function(.data,
               loglik_null = mcox$loglik[length(mcox$loglik)],
               # mcox = mcox,
               vcov_adj = vcov_adj,
+              ca_test = ca_test,
               .formula = .formula,
               .distribution = .distribution,
               .control = .control

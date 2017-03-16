@@ -19,9 +19,11 @@ print.emfrail_summary <- function(x, ...) {
   cat("\n")
 
   cat("Fit summary:\n")
+  if(!is.null(x$ca_test))
+    cat("Commenges-Andersen test for heterogeneity: p-val ", format(x$ca_test[3], digits = 3), "\n")
   cat("(marginal) no-frailty Log-likelihood:", round(obj$loglik[1], digits = 3), "\n")
   cat("(marginal) Log-likelihood:", round(obj$loglik[2], digits = 3), "\n")
-  cat("LRT: 1/2 * pchisq(", format(obj$loglik[3], digits = 3),"), p-value ",
+  cat("LRT: 1/2 * pchisq(", format(obj$loglik[3], digits = 3),"), p-val ",
       format(obj$loglik[4], digits = 3), "\n", sep = "")
 
   cat("\n")

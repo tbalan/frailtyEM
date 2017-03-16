@@ -1,4 +1,19 @@
-ca_test_calc <- function(mcox, atrisk, cumhaz, nrisk, newrisk) {
+#' ca_test_fit
+#'
+#' @param mcox An object as returned by  \code{agreg.fit}
+#' @param X The \code{X} matrix of covariates as obtained from \code{model.matrix} without the cluster or intercept
+#' @param atrisk A list with some fields from which the at-risk indicator can be deduced, as calculated in \code{emfrail()}
+#' @param exp_g_x A vector of exponentiated linear predictor for each row of the data
+#' @param cumhaz An estimate of the cumulative hazard at each time point in the data.
+#'
+#' @return A list with the test statistic, variance, and p-value
+#'
+#' @details This is my implementation of Commenges & Andersen (1995) test for heterogeneity, with a few adjustments to make it work with recurrent events data (?).
+#' It could be made much faster and more efficient, but since it's not such an essential part, I'll let someone else do it.
+#' @keywords internal
+#'
+if(getRversion() >= "2.15.1")  utils::globalVariables(".")
+ca_test_fit <- function(mcox, X, atrisk, exp_g_x, cumhaz) {
 
   # numerator
 
@@ -27,7 +42,7 @@ ca_test_calc <- function(mcox, atrisk, cumhaz, nrisk, newrisk) {
   pi_t <- lapply(pij_t, function(x) rowsum(x, atrisk$order_id)) %>%
     lapply(as.numeric)
 
-  T_stat <- sum(rowsum(mcox$residuals , id)  ^2) -
+  T_stat <- sum(rowsum(mcox$residuals , atrisk$order_id)  ^2) -
     sum(atrisk$death) +
   sum(pi_t %>%
     lapply(function(x) sum(x^2)) %>%
@@ -36,15 +51,15 @@ ca_test_calc <- function(mcox, atrisk, cumhaz, nrisk, newrisk) {
 
 
   # this is the martingale path of each line
-  # caveat:
-  mapply(function(pos_left, pos_right) {
+
+  mt_ij <- mapply(function(pos_left, pos_right) {
 
     if(pos_left == 0) {
       cumhaz[pos_right:length(cumhaz)] <- cumhaz[pos_right]
     return(-cumhaz)}
 
 
-    cumhaz[pos_left+1:length(cumhaz)] <- cumhaz[pos_left:length(cumhaz)] - cumhaz[pos_left]
+    cumhaz[(pos_left+1):length(cumhaz)] <- cumhaz[(pos_left+1):length(cumhaz)] - cumhaz[pos_left]
     cumhaz[1:(pos_left+1)] <- 0
     cumhaz[pos_right:length(cumhaz)] <- cumhaz[pos_right]
 
@@ -119,11 +134,11 @@ ca_test_calc <- function(mcox, atrisk, cumhaz, nrisk, newrisk) {
     do.call(rbind, .) %>%
     apply(., 2, sum)
 
-  V2 <- theta_h %*% mcox$var %*% t(theta_h)
+  V2 <- t(theta_h) %*% mcox$var %*% theta_h
 
   V <- V1 + V2
 
-  list(tstat = T_stat, var = V, pval = pchisq(T_stat^2 / V, 1, lower.tail = FALSE))
+  c(tstat = T_stat, var = V, pval = pchisq(T_stat^2 / V, 1, lower.tail = FALSE))
 }
 
 

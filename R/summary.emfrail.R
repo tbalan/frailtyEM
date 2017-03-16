@@ -210,6 +210,7 @@ summary.emfrail <- function(object, ...) {
 
   ret <- list(est_dist = est_dist,
        loglik = loglik,
+       ca_test = object$ca_test,
        theta = c(theta = theta,
                  se_theta = se_theta,
                  ci_theta_low = ci_theta_low,

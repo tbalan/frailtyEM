@@ -1,7 +1,7 @@
 Package: frailtyEM
 Type: Package
 Title: Fitting Frailty Models with the EM Algorithm
-Version: 0.4.7
+Version: 0.4.8
 Author: Theodor Adrian Balan, Hein Putter
 Maintainer: Theodor Adrian Balan <teddybalan@gmail.com>
 Description: This package fits shared frailty models with a semiparametric
@@ -33,6 +33,7 @@ Suggests:
 VignetteBuilder: knitr
 Collate: 
     'RcppExports.R'
+    'ca_test.R'
     'em_fit.R'
     'emfrail_aux.R'
     'emfrail.R'
