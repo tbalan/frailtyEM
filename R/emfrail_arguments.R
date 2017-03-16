@@ -10,6 +10,8 @@
 #' EM is not actually performed. The log-likelihood returned to the maximizer is that for the Cox model.
 #' @param se_fit Logical. Whether to calculate the variance / covariance matrix.
 #' @param se_adj Logical. Whether to calculate the adjusted variance / covariance matrix (needs \code{se_fit == TRUE})
+#' @param ca_test Logical. Should the Commenges-Andersen test be calculated?
+#' @param only_ca_test Logical. Should ONLY the Commenges-Andersen test be calculated?
 #' @param opt_control A list with arguments to be sent to the maximizer.
 #'
 #' @return An object of the type \code{emfrail_control}.
@@ -58,13 +60,14 @@
 #' # This gives a more precise estimate, 5845410 so frailty variance 1/5845410 = 1.71e-07
 #'
 emfrail_control <- function(eps = 0.0001, maxit = Inf, opt_fit = TRUE, verbose = FALSE, fast_fit = TRUE,
-                            zerotol = 1e-4, se_fit = TRUE, se_adj = TRUE,
+                            zerotol = 1e-4, se_fit = TRUE, se_adj = TRUE, ca_test = TRUE, only_ca_test = FALSE,
                             opt_control = list(method = "bobyqa",
     itnmax = NULL, control = list())) {
     # calculate SE as well
 
     # Here some checks
 
+  if(isTRUE(only_ca_test) & !isTRUE(ca_test)) stop("control: if only_ca_test is TRUE then ca_test must be TRUE as well")
     res <- list(eps = eps,
                 maxit = maxit,
                 opt_fit = opt_fit,
@@ -73,6 +76,8 @@ emfrail_control <- function(eps = 0.0001, maxit = Inf, opt_fit = TRUE, verbose =
                 fast_fit = fast_fit,
                 se_fit = se_fit,
                 se_adj = se_adj,
+                ca_test = ca_test,
+                only_ca_test = only_ca_test,
                 opt_control = opt_control)
     attr(res, "class") <- c("emfrail_control")
     res

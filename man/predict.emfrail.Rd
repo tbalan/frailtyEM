@@ -87,6 +87,7 @@ plot_pred(m1,
 
 
 # Plot cumulative hazard with confidence intervals, ggplot2
+library(ggplot2)
 ggplot(pred, aes(x = time, y = cumhaz)) +
   geom_step() +
   geom_ribbon(aes(ymin = cumhaz_l, ymax = cumhaz_r), alpha = 0.2) +
