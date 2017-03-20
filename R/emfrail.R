@@ -11,11 +11,12 @@
 #' @param .formula A formula that contains on the left hand side an object of the type \code{Surv} in the Andersen-Gill format, and on the right hand side a \code{+cluster(id)} statement
 #' @param .distribution An object as created by \code{\link{emfrail_distribution}}
 #' @param .control An object as created by \code{\link{emfrail_control}}
-#'
 #' @return An object of the class \code{emfrail}, that is in fact a list which contains (1) the object returned by the
 #' "outer maximization" from \code{optimx}, (2) the object with all the estimates returned by the "inner maximization",
 #' (3) the log-likelihood of the Cox model without frailty, (4) the variance-covariance matrix adjusted for the uncertainty in the
-#' outer maximization, and (5,6,7) are copies of the original input arguments: .formula, .distribution and .control.
+#' outer maximization, (5) the results of the Commenges-Andersen test for heterogeneity and (6,7,8) are copies of the original input arguments: .formula, .distribution and .control.
+#' Two attributes are also present, \code{class} for determining the object type and \code{metadata} which contains some information that is used to
+#' process the input for \code{predict.emfrail()}.
 #' @export
 #'
 #' @details The \code{emfrail} function fits shared frailty models for processes which have intensity
@@ -33,9 +34,9 @@
 #' with respect to \eqn{\beta, \theta} can be done with an EM algorithm. This procedure has been described, for the
 #' gamma frailty, in Nielsen (1992).
 #' The "inner" problem is, for a fixed of \eqn{\theta}, to calculate
-#'\deqn{\widehat{L}(\theta) = \text{max}_{\beta, \lambda_0} L(\beta, \lambda_0 | \theta).}
+#'\deqn{\widehat{L}(\theta) = \mathrm{max}_{\beta, \lambda_0} L(\beta, \lambda_0 | \theta).}
 #' which is done via an EM algorithm. The "outer" problem is to calculate
-#' \deqn{\widehat{L} = \text{max}_{\theta} \widehat{L}(\theta)}.
+#' \deqn{\widehat{L} = \mathrm{max}_{\theta} \widehat{L}(\theta).}
 #'
 #' The "inner" problem is solved relying on \code{agreg.fit} from the \code{survival} package in the M step
 #' and with an E step which is done in \code{R} when there are closed form solutions and in \code{C++} when the
