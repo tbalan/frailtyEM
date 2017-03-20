@@ -90,7 +90,7 @@ emfrail_control <- function(eps = 0.0001, maxit = Inf, opt_fit = TRUE, verbose =
 #' Distribution parameters for emfrail
 #'
 #' @param dist One of 'gamma', 'stable' or 'pvf'.
-#' @param theta A starting value for the 'outer' maximization with respect to the frailty parameter \eqn{\theta}. Must be positive.
+#' @param theta A starting value for the 'outer' maximization with respect to the frailty parameter \eqn{\theta}. Must be >0.
 #' @param pvfm Only relevant if \code{dist = 'pvf'} is used. It determines which PVF distribution should be used. Must be  larger than -1 and not equal to 0.
 #' @param left_truncation Logical. Whether the data set represents left truncated survival times.
 #'
