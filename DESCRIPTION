@@ -1,13 +1,16 @@
 Package: frailtyEM
 Type: Package
 Title: Fitting Frailty Models with the EM Algorithm
-Version: 0.4.8
+Version: 0.5.0
 Author: Theodor Adrian Balan, Hein Putter
 Maintainer: Theodor Adrian Balan <teddybalan@gmail.com>
-Description: This package fits shared frailty models with a semiparametric
-    baseline hazard for clustered failures with left truncation or for
-    recurrent events. For the frailty distribution, the gamma, PVF family
-    and positive stable are supported.
+URL: https://github.com/teddybalan/frailtyEM
+BugReports: https://github.com/teddybalan/frailtyEM/issues
+Description: Contains functions for fitting shared frailty models with a semiparametric
+    baseline hazard with the Expectation-Maximziation algorithm. Supported data formats 
+    include clustered failures with left truncation and recurrent events in gaptime
+    or Andersen-Gill format. Several frailty distributions, such as the the gamma, PVF family
+    and positive stable are supported. 
 License: GPL (>= 2)
 Encoding: UTF-8
 LazyData: true
@@ -21,8 +24,6 @@ Imports:
 LinkingTo: Rcpp
 RoxygenNote: 6.0.1
 Suggests:
-    knitr,
-    rmarkdown,
     ggplot2,
     dplyr,
     tidyr,
@@ -30,7 +31,6 @@ Suggests:
     plotly,
     frailtySurv,
     parfm
-VignetteBuilder: knitr
 Collate: 
     'RcppExports.R'
     'ca_test.R'
