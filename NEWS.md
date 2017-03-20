@@ -1,3 +1,7 @@
+# frailtyEM 0.5.0
+Added vignette, fixed small things for R CMD check
+R CMD check: PASS, 0 warnings, 1 note / about new developer, that's ok.
+
 # frailtyEM 0.4.9
 Added the Commenges-Andersen test for heterogeneity. 
 The test is implemented in a pretty non-efficient way, and it can be skipped with a proper `emfrail_control()` call, see `?emfrail_control`. Also there I added an option to *just* calculate the test, instead of doing anything else, and then just that is returned. A nice idea would be to implement this as a post-hoc calculation for `coxph` objects but that seems like another project atm.
