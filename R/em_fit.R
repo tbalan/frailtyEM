@@ -16,7 +16,7 @@ em_fit <- function(logfrailtypar, dist, pvfm,
 
   .pars <- dist_to_pars(dist, logfrailtypar, pvfm)
 
-  if(logfrailtypar < -100) stop("frailtypar virtually 0; try another starting value")
+  if(logfrailtypar < -100) stop("theta virtually 0; try another starting value")
 
   if (isTRUE(.control$verbose)) {
     print(paste0(#"dist=", .pars$dist,

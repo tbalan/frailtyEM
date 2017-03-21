@@ -89,7 +89,7 @@
 #' m4
 #'
 #' # Compare marginal log-likelihoods
-#'
+#' \dontrun{
 #' models <- list(m1, m2, m3, m4)
 #'
 #' logliks <- lapply(models,
@@ -103,15 +103,20 @@
 #' )
 #'
 #' logliks
-#'
-#' # Draw a profile log-likelihood
+#' }
+#' # Draw the profile log-likelihood
 #' fr_var <- seq(from = 0.01, to = 1.4, length.out = 20)
 #'
 #' # For gamma the variance is 1/theta (see parametrizations)
 #' pll_gamma <- emfrail_pll(.data =  dat,
 #'                          .formula = Surv(time, status) ~  rx + sex + cluster(litter),
 #'                          .values = 1/fr_var )
+#'  plot(fr_var, pll_gamma,
+#'      type = "l",
+#'      xlab = "Frailty variance",
+#'      ylab = "Profile log-likelihood")
 #'
+#' \dontrun{
 #' # The same can be done with coxph, where variance is refered to as "theta"
 #' pll_cph <- sapply(fr_var, function(fr)
 #'   coxph(data =  dat, formula = Surv(time, status) ~ rx + sex + frailty(litter, theta = fr),
@@ -146,7 +151,7 @@
 #'        lty = 1,
 #'        x = 0,
 #'        y = (maxy + miny)/2)
-#'
+#' }
 #' # Recurrent events
 #' mod_rec <- emfrail(bladder1, Surv(start, stop, status) ~ treatment + cluster(id))
 #' # The warnings appear from the Surv object, they also appear in coxph.
@@ -158,6 +163,7 @@
 #' hist_frail(mod_rec)
 #'
 #' # or, with ggplot:
+#' \dontrun{
 #' library(ggplot2)
 #' sum_mod_rec <- summary(mod_rec)
 #'
@@ -184,6 +190,7 @@
 #' # How do we know which id is which one now?
 #' # We can make an interactive plot with ggplotly
 #' # To add text to elements we add id in aes()
+#'
 #' library(plotly)
 #' ggplotly(
 #'   ggplot(sum_mod_rec$frail[ord,], aes(x = ordering, y = z)) +
@@ -191,7 +198,7 @@
 #'     ggtitle("Estimated frailties") +
 #'     geom_errorbar(aes(ymin = lower_q, ymax = upper_q, id = id))
 #' )
-#'
+#'}
 #'
 #' # Plot marginal and conditional curves
 #' # For recurrent events, the survival is not very meaningful
@@ -203,6 +210,9 @@
 #'
 #' # Left truncation
 #'
+#' # N.B. This code takes a longer time to run
+#'
+#' \dontrun{
 #' # We simulate some data with truncation times
 #' set.seed(1)
 #' x <- sample(c(0,1), 5 * 300, TRUE)
@@ -242,6 +252,7 @@
 #' summary(mod_1)
 #' summary(mod_2)
 #' summary(mod_3)
+#' }
 
 
 emfrail <- function(.data,

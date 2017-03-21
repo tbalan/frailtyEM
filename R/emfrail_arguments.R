@@ -30,6 +30,7 @@
 #' emfrail_control()
 #' emfrail_control(eps = 10e-7)
 #'
+#' \dontrun{
 #' # A data set with very small heterogeneity
 #' set.seed(10)
 #' x <- sample(c(0,1/2), 500, TRUE)
@@ -58,7 +59,7 @@
 #' m_ft_08 <- emfrail(dat, Surv(tstart, tstop, status) ~ x + cluster(id),
 #'                    .control = emfrail_control(zerotol = 1e-8))
 #' # This gives a more precise estimate, 5845410 so frailty variance 1/5845410 = 1.71e-07
-#'
+#' }
 emfrail_control <- function(eps = 0.0001, maxit = Inf, opt_fit = TRUE, verbose = FALSE, fast_fit = TRUE,
                             zerotol = 1e-4, se_fit = TRUE, se_adj = TRUE, ca_test = TRUE, only_ca_test = FALSE,
                             opt_control = list(method = "bobyqa",

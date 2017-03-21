@@ -53,6 +53,7 @@ the gamma / pvf distribution, a frailty variance below \code{1e-04} can not be d
 emfrail_control()
 emfrail_control(eps = 10e-7)
 
+\dontrun{
 # A data set with very small heterogeneity
 set.seed(10)
 x <- sample(c(0,1/2), 500, TRUE)
@@ -81,7 +82,7 @@ m_ft
 m_ft_08 <- emfrail(dat, Surv(tstart, tstop, status) ~ x + cluster(id),
                    .control = emfrail_control(zerotol = 1e-8))
 # This gives a more precise estimate, 5845410 so frailty variance 1/5845410 = 1.71e-07
-
+}
 }
 \seealso{
 \code{\link{emfrail}}, \code{\link{emfrail_distribution}}, \code{\link{emfrail_pll}}
