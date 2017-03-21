@@ -15,15 +15,16 @@ em_fit <- function(logfrailtypar, dist, pvfm,
   #nev_tp <- tapply(X = Y[,3], INDEX = Y[,2], sum)
 
   .pars <- dist_to_pars(dist, logfrailtypar, pvfm)
-
-  if(logfrailtypar < -100) stop("theta virtually 0; try another starting value")
-
   if (isTRUE(.control$verbose)) {
     print(paste0(#"dist=", .pars$dist,
       "logfrailtypar= ", logfrailtypar,
       " / alpha=", .pars$alpha,
       " / bbeta=", .pars$bbeta))
   }
+
+  if(logfrailtypar < -100) stop("theta virtually 0; try another starting value")
+
+
   #print("hello im in em_fit")
 
   if(length(Xmat)==0) {
