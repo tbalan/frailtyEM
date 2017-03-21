@@ -1,3 +1,6 @@
+# frailtyEM 0.5.1
+Improved compatibility with R-devel 3.4.0. Registered C++ files to get rid of an R CMD check NOTE. Small modifications in the C++ file - for some reason a segfault started happening out of nowhere, think it's fixed now.
+
 # frailtyEM 0.5.0
 Added vignette, fixed small things for R CMD check
 R CMD check: PASS, 0 warnings, 1 note / about new developer, that's ok.

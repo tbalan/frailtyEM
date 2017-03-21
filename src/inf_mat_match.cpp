@@ -18,7 +18,8 @@ NumericVector inf_mat_match(NumericVector left, NumericVector right, NumericVect
   NumericVector x(maxlength, 0.0);
   unsigned int nrow = left.size();
 
-  unsigned int upto = max(right); // this could be the length of the out vector
+  unsigned int upto = maxlength; // this could be the length of the out vector
+
   for(unsigned int i = 1; i <= upto; i++) {
     for(unsigned int j = 0; j < nrow; j++) {
       if((left[j] < i) && (i <= right[j]))
@@ -56,5 +57,6 @@ NumericVector inf_mat_match(NumericVector left, NumericVector right, NumericVect
 //
 
 /*** R
-
+# for example,
+try(inf_mat_match(c(0,2,4), c(2,5, 7), rnorm(10), 100))
 */

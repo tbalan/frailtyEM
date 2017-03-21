@@ -10,7 +10,7 @@ emfrail_distribution(dist = "gamma", theta, pvfm = -1/2,
 \arguments{
 \item{dist}{One of 'gamma', 'stable' or 'pvf'.}
 
-\item{theta}{A starting value for the 'outer' maximization with respect to the frailty parameter \eqn{\theta}. Must be positive.}
+\item{theta}{A starting value for the 'outer' maximization with respect to the frailty parameter \eqn{\theta}. Must be >0.}
 
 \item{pvfm}{Only relevant if \code{dist = 'pvf'} is used. It determines which PVF distribution should be used. Must be  larger than -1 and not equal to 0.}
 

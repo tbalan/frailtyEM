@@ -277,7 +277,6 @@ For a quick start, one can run this:
 \label{sec:examples}
 <<test1>>=
 library(frailtyEM)
-?emfrail
 @
 The features of the package are now illustrated with two well-known data sets available in \proglang{R}.
 % Note that \pkg{frailtyEM} package is generally well-suited to work with the \pkg{tidyverse} \citep{tidyverse} tools, such as \pkg{dplyr} \citet{dplyr} and \pkg{ggplot2} \citet{ggplot2}.

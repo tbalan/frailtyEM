@@ -122,7 +122,7 @@ em_fit <- function(logfrailtypar, dist, pvfm,
       g_x <- t(matrix(rep(0, length(mcox$linear.predictors)), nrow = 1))
 
     } else {
-      lp <- mcox$linear.predictors + t(mcox$coefficients) %*% mcox$means
+      lp <- mcox$linear.predictors + as.numeric(t(mcox$coefficients) %*% mcox$means)
       g_x <- t(mcox$coefficients %*% t(Xmat))
     }
 
@@ -365,15 +365,14 @@ em_fit <- function(logfrailtypar, dist, pvfm,
   tl_ord <- findInterval(Y[,1], tev)
   tr_ord <- findInterval(Y[,2], tev, left.open = FALSE, rightmost.closed = FALSE)
 
-  dl2_dh <- inf_mat_match(
+  dl2_dh <- tryCatch(inf_mat_match(
     tl_ord,
     tr_ord,
     z_elp, #this is one dimensional!
     length(tev)
-  )
+  ))
 
-
-  # this is a list of data frames - for each individual - in each one a vector of length tev
+# this is a list of data frames - for each individual - in each one a vector of length tev
   # each thing is the sum of elp at risk at that tev from each cluster
   elp_to_tev <-  lapply(
     split.data.frame(data.frame(elp,
