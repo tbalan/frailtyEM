@@ -501,7 +501,9 @@ emfrail <- function(.data,
 
   if(isTRUE(.control$se_fit) & isTRUE(.control$se_adj)) {
 
-    h <- as.numeric(sqrt(1/(attr(outer_m, "details")[[3]]))/2)
+    # absolute value should be redundant. but sometimes the "hessian" might be 0.
+    # in that case it might appear negative; this happened only on Linux...
+    h <- as.numeric(sqrt(abs(1/(attr(outer_m, "details")[[3]])))/2)
     lfp_minus <- max(outer_m$p1 - h , outer_m$p1 - 5)
     lfp_plus <- min(outer_m$p1 + h , outer_m$p1 + 5)
 
