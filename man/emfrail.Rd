@@ -73,7 +73,8 @@ dat <- survival::rats
 m1 <- emfrail(.data =  dat,
               .formula = Surv(time, status) ~  rx + sex + cluster(litter))
 m1
-
+summary(m1)
+\dontrun{
 # for the Inverse Gaussian distribution
 m2 <- emfrail(.data =  dat,
               .formula = Surv(time, status) ~  rx + sex + cluster(litter),
@@ -91,7 +92,7 @@ m4 <- emfrail(.data =  dat,
               .formula = Surv(time, status) ~  rx + sex + cluster(litter),
               .distribution = emfrail_distribution(dist = "stable"))
 m4
-
+}
 # Compare marginal log-likelihoods
 \dontrun{
 models <- list(m1, m2, m3, m4)
