@@ -1,3 +1,6 @@
+# frailtyEM 0.5.2
+Further improved compatibility with CRAN policies and added a bunch of stuff in the examples in `\dontrun` statements (now they should be less than 5 seconds runtime)
+
 # frailtyEM 0.5.1
 Improved compatibility with R-devel 3.4.0. Registered C++ files to get rid of an R CMD check NOTE. Small modifications in the C++ file - for some reason a segfault started happening out of nowhere, think it's fixed now.
 
