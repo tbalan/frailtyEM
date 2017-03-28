@@ -41,10 +41,11 @@
 #' The marginal hazard is obtained as \deqn{\bar \Lambda(t) = - \log \bar S(t).}
 #'
 #' The only standard errors that are available from \code{emfrail} are those for \eqn{\lambda_0(t)}. From this,
-#' standard errors of \eqn{\Lambda(t)} may be calculated. They have the following two issues: (1) the linear predictor is taken as fixed,
-#' i.e. the variability in the estimation of the regression coefficient is not taken into account and (2) the confidence intervals
-#' are based on asymptotic normality and are symmetric, which may lead in some situations to confidence intervals containing negative values.
-#' In this case, the lower bound for the cumulative hazard (or upper bound, for the survival) is truncated at 0 (or 1, for the survival).
+#' standard errors of \eqn{\log \Lambda(t)} may be calculated. On this scale, the symmetric confidence intervals are built, and then
+#' moved to the desired scale.
+#' The following two issues arise: (1) the linear predictor is taken as fixed,
+#' i.e. the variability in the estimation of the regression coefficient is not taken into account and (2) this construction of the confidence intervals
+#' is a bit dodgy, in the sense that this is not what happens in the survival package. Several options will be added in future versions.
 #'
 #'
 #'
