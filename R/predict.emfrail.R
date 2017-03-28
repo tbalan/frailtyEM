@@ -140,27 +140,56 @@ predict.emfrail <- function(object,
   est_dist <- fit$.distribution
   est_dist$frailtypar <- exp(fit$outer_m$p1)
 
+
   ncoef <- length(fit$inner_m$coef)
   varH <-   fit$inner_m$Vcov[(ncoef + 1): nrow(fit$inner_m$Vcov), (ncoef+ 1): nrow(fit$inner_m$Vcov)]
   varH_adj <- fit$vcov_adj[(ncoef + 1): nrow(fit$vcov_adj), (ncoef+ 1): nrow(fit$vcov_adj)]
 
-  varH_time <- numeric(nrow(varH))
-  for(i in 1:nrow(varH)) {
-    varH_time[i] = sum(varH[1:i, 1:i])
-  }
 
-  varH_adj_time <- numeric(nrow(varH))
-  for(i in 1:nrow(varH)) {
-    varH_adj_time[i] = sum(varH_adj[1:i, 1:i])
-  }
+  loghaz <- log(fit$inner_m$haz)
 
-  # The "core" is to calculate the cumulative hazard and the confidence band for it
+
 
   time <- fit$inner_m$tev
   cumhaz <- cumsum(fit$inner_m$haz)
 
-  se_chz <- sqrt(varH_time)
-  se_chz_adj <- sqrt(varH_adj_time)
+  xs <- lapply(seq_along(fit$inner_m$haz), function(x) text1 <- paste0("x", x))
+  for(i in 2:length(xs)) {
+    xs[[i]] = paste0(xs[[i-1]], " + ", xs[[i]])
+  }
+  forms <- lapply(xs, function(x) as.formula(paste0("~log(", x, ")")))
+
+  # These are the SE of log cumulative hazard
+  se_logH <- msm::deltamethod(g = forms,
+                   mean = fit$inner_m$haz,
+                   cov = varH,
+                   ses = TRUE)
+
+  se_logH_adj <- msm::deltamethod(g = forms,
+                                   mean = fit$inner_m$haz,
+                                   cov = varH_adj,
+                                   ses = TRUE)
+
+  # these are the variances at every time point
+  # varH_time <- numeric(nrow(varH))
+  # for(i in 1:nrow(varH)) {
+  #   varH_time[i] = sum(varH[1:i, 1:i])
+  # }
+  #
+  # varH_adj_time <- numeric(nrow(varH))
+  # for(i in 1:nrow(varH)) {
+  #   varH_adj_time[i] = sum(varH_adj[1:i, 1:i])
+  # }
+
+  # dodgy stuff: get the
+
+  # The "core" is to calculate the cumulative hazard and the confidence band for it
+
+
+
+  # se_chz <- sqrt(varH_time)
+  # se_chz_adj <- sqrt(varH_adj_time)
+
   # lower_chz <- pmax(0, cumhaz - 1.96*se_chz)
   # upper_chz <- cumhaz + 1.96*se_chz
   #
@@ -173,14 +202,27 @@ predict.emfrail <- function(object,
   mintime <- max(0, c(min(time)-1))
 
   #row.names(lp_all) <- NULL
-    ret <- do.call(rbind,
+
+  ret <- do.call(rbind,
                  lapply(split(lp_all, 1:nrow(lp_all)), function(x) cbind(time = c(mintime,time),
-                                              cumhaz = c(0, cumhaz * exp(x$lp)),
-                                              se_chz = c(0, exp(x$lp) * se_chz),
-                                              se_chz_adj = c(0, exp(x$lp) * se_chz_adj),
-                                              x,
-                                              row.names = NULL))
-                 )
+                                                                         cumhaz = c(0, cumhaz*exp(x$lp)),
+                                                                         se_logchz = c(0, se_logH),
+                                                                         se_logchz_adj = c(0, se_logH_adj),
+                                                                         x,
+                                                                         row.names = NULL))
+  )
+  ret
+
+
+
+  # ret <- do.call(rbind,
+  #                lapply(split(lp_all, 1:nrow(lp_all)), function(x) cbind(time = c(mintime,time),
+  #                                             cumhaz = c(0, cumhaz * exp(x$lp)),
+  #                                             se_chz = c(0, exp(x$lp) * se_chz),
+  #                                             se_chz_adj = c(0, exp(x$lp) * se_chz_adj),
+  #                                             x,
+  #                                             row.names = NULL))
+  #                )
 
 
   chz_to_surv <- function(x) exp(-x)
@@ -199,14 +241,14 @@ predict.emfrail <- function(object,
   if(length(conf_int) > 0) {
     if("regular" %in% conf_int) {
       bounds <- c(bounds, "cumhaz_l", "cumhaz_r")
-      ret$cumhaz_l <- pmax(0, ret$cumhaz - 1.96*ret$se_chz)
-      ret$cumhaz_r <- ret$cumhaz + 1.96*ret$se_chz
+      ret$cumhaz_l <- pmax(0, exp(log(ret$cumhaz) - 1.96*ret$se_logchz))
+      ret$cumhaz_r <- exp(log(ret$cumhaz) + 1.96*ret$se_logchz)
     }
 
     if("adjusted" %in% conf_int) {
       bounds <- c(bounds, "cumhaz_l_a", "cumhaz_r_a")
-        ret$cumhaz_l_a <- pmax(0, ret$cumhaz - 1.96*ret$se_chz_adj)
-        ret$cumhaz_r_a <- ret$cumhaz + 1.96*ret$se_chz_adj
+        ret$cumhaz_l_a <- pmax(0, exp(log(ret$cumhaz) - 1.96*ret$se_logchz_adj))
+        ret$cumhaz_r_a <- exp(log(ret$cumhaz) + 1.96*ret$se_logchz_adj)
     }
   }
 
