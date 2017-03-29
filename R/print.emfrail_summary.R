@@ -1,13 +1,13 @@
 #' @export
 #' @keywords internal
-print.emfrail_summary <- function(x, ...) {
+print.emfrail_summary <- function(x,...) {
 
   obj <- x
   cat("Summary of emfrail fit\n")
 
   if(!is.null(obj$coefmat)) {
     cat("Regression coefficients:\n")
-    printCoefmat(obj$coefmat, P.values = TRUE, has.Pvalue = TRUE)
+    printCoefmat(obj$coefmat, ...)
   }
 
   cat("Estimated distribution:", obj$est_dist$dist, "/ left truncation:", obj$est_dist$left_truncation,"\n")
