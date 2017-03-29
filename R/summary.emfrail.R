@@ -98,11 +98,15 @@ summary.emfrail <- function(object, ...) {
                                     mean = p1,
                                     cov = 1/attr(fit$outer_m, "details")[[3]]))
 
+
   # CI is symmetric on log(theta)
   ci_theta_low <- exp(with(fit, outer_m$p1 - 1.96 * sqrt(1/attr(outer_m, "details")[[3]])))
   ci_theta_high <- exp(with(fit, outer_m$p1 + 1.96 * sqrt(1/attr(outer_m, "details")[[3]])))
 
-
+  if(theta > 9000) {
+    ci_theta_low <- theta
+    ci_theta_high <- Inf
+  }
   # for gamma and pvf theta is 1/variance
   # for stable the L.T. is exp(- c^(1 - theta / (theta + 1)))
 
