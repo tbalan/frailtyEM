@@ -1,6 +1,6 @@
 #' Predicted hazard and survival curves from an \code{emfrail} object
 #'
-#' @importFrom stats .getXlevels delete.response drop.terms
+#' @importFrom stats .getXlevels delete.response drop.terms as.formula
 #' @param object An \code{emfrail} fit object
 #' @param lp A vector of linear predictor values at which to calculate the curves. Default is 0 (baseline).
 #' @param newdata A data frame with the same variable names as those that appear in the \code{emfrail} formula, used to calculate the \code{lp} (optional).
