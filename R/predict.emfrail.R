@@ -71,8 +71,7 @@
 #' plot_pred(m1,
 #'           newdata = data.frame(sex = "female", age = mean(kidney$age)),
 #'           quantity = "survival", conf_int = "none")
-#'
-#'
+#'\dontrun{
 #' # Plot cumulative hazard with confidence intervals, ggplot2
 #' library(ggplot2)
 #' ggplot(pred, aes(x = time, y = cumhaz)) +
@@ -112,6 +111,7 @@
 #'
 #' # Or easier, in this way:
 #' plot_hr(m1, newdata = data.frame(sex = c("female", "male"), age = c(44, 44)))
+#' }
 #' @seealso \code{\link{plot_pred}}, \code{\link{plot_hr}}
 predict.emfrail <- function(object,
                             lp = c(0),
