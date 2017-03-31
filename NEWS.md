@@ -1,3 +1,6 @@
+# frailtyEM 0.5.4
+Minor bug fixes 
+
 # frailtyEM 0.5.3
 Some big changes in how the confidence intervals are constructed in predict.emfrail. Now - they are first constructed with the delta method for the log(cumulative hazard) and then exponentiated, so they do not have to be truncated at 0 or 1 any more. 
 
