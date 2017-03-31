@@ -3,6 +3,7 @@
 
 #' Perform the E step calculations
 #'
+#' @importFrom Rcpp evalCpp
 #' This is an inner wrapper for the C++ functions which perform the E step and is not intended to be used directly.
 #' This function does not check the input.
 #' For a data set with \code{K} clusters,
