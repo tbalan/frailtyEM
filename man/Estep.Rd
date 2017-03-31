@@ -25,6 +25,8 @@ and the denominators of the frailty fraction (without the Laplace transform) and
 last column is the log(denominator) + log-Laplace transform, i.e. the log-likelihood contribution
 }
 \description{
-Perform the E step calculations
+This is an inner wrapper for the C++ functions which perform the E step and is not intended to be used directly.
+This function does not check the input.
+For a data set with \code{K} clusters,
 }
 \keyword{internal}

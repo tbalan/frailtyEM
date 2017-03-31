@@ -237,6 +237,7 @@ double wrap_integral(int n, const double& alpha, const double &bbeta, const doub
 //' @return A \code{K x 3} matrix where the first column and the second column are the numerators
 //' and the denominators of the frailty fraction (without the Laplace transform) and the
 //' last column is the log(denominator) + log-Laplace transform, i.e. the log-likelihood contribution
+//' @importFrom Rcpp evalCpp
 //' @keywords internal
 // [[Rcpp::export]]
 NumericMatrix Estep(NumericVector c, NumericVector c_lt, IntegerVector delta, double alpha, double bbeta,
