@@ -110,6 +110,7 @@ names(logliks) <- lapply(models,
 logliks
 }
 # Draw the profile log-likelihood
+\dontrun{
 fr_var <- seq(from = 0.01, to = 1.4, length.out = 20)
 
 # For gamma the variance is 1/theta (see parametrizations)
@@ -120,7 +121,7 @@ pll_gamma <- emfrail_pll(.data =  dat,
      type = "l",
      xlab = "Frailty variance",
      ylab = "Profile log-likelihood")
-
+}
 \dontrun{
 # The same can be done with coxph, where variance is refered to as "theta"
 pll_cph <- sapply(fr_var, function(fr)

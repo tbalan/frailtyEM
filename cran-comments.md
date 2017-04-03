@@ -5,9 +5,7 @@
 
 ## R CMD check results
 
-0 errors | 0 warnings | 1 note
-
-* This is a new release. This is the first time I submit a package to CRAN. 
+0 errors | 0 warnings | 0 notes
 
 ## Reverse dependencies
 

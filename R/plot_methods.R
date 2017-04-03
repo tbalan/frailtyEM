@@ -36,9 +36,11 @@
 #'
 #' # hazard ratio between an individual with 0 and with 2 recurrences at baseline
 #' # the marginal hazard ratio is "pulled" towards 1:
+#'
 #' plot_hr(mod_rec, newdata = data.frame(treatment = "placebo", number = c(0, 2)))
 #'
 #' # hazard ratio with the stable distribution:
+#' \dontrun{
 #' mod_rec_stab <- emfrail(bladder1,
 #'                         Surv(start, stop, status) ~ treatment + number + cluster(id),
 #'                         .distribution = emfrail_distribution(dist = "stable"))
@@ -47,7 +49,7 @@
 #'
 #' # histogram of frailty estimates
 #' hist_frail(mod_rec_stab)
-#'
+#' }
 NULL
 
 #' \code{plot_pred} plots predicted cumulative hazard or survival curves, marginal and / or conditional, with or without confidence intervals.
