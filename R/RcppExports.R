@@ -16,6 +16,7 @@
 #' @return A \code{K x 3} matrix where the first column and the second column are the numerators
 #' and the denominators of the frailty fraction (without the Laplace transform) and the
 #' last column is the log(denominator) + log-Laplace transform, i.e. the log-likelihood contribution
+#' @importFrom Rcpp evalCpp
 #' @keywords internal
 Estep <- function(c, c_lt, delta, alpha, bbeta, pvfm, dist) {
     .Call('frailtyEM_Estep', PACKAGE = 'frailtyEM', c, c_lt, delta, alpha, bbeta, pvfm, dist)
