@@ -90,7 +90,8 @@ print.emfrail_summary <- function(x,...) {
         "\n",
         sep = "")
   }
-
+  if(isTRUE(x$lik_ci)) cat("Confidence intervals based on the likelihood function") else
+    cat("Confidence intervals based on the delta method")
 
   cat("\n")
 

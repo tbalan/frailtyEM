@@ -515,7 +515,7 @@ emfrail <- function(.data,
 
   # likelihood-based confidence intervals
   theta_low <- theta_high <- NULL
-  if(isTRUE(.control$ci_based_intervals)) {
+  if(isTRUE(.control$lik_ci)) {
   theta_low <- uniroot(function(x, ...) outer_m$objective - em_fit(x, ...) + 1.92,
           interval = c(.control$opt_control$interval[1], outer_m$minimum),
           dist = .distribution$dist,

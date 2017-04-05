@@ -12,7 +12,7 @@
 #' @param se_adj Logical. Whether to calculate the adjusted variance / covariance matrix (needs \code{se_fit == TRUE})
 #' @param ca_test Logical. Should the Commenges-Andersen test be calculated?
 #' @param only_ca_test Logical. Should ONLY the Commenges-Andersen test be calculated?
-#' @param ci_based_intervals Logical. Should likelihood-based confidence interval be calculated for the frailty parametr?
+#' @param lik_ci Logical. Should likelihood-based confidence interval be calculated for the frailty parameter?
 #' @param opt_control A list with arguments to be sent to the maximizer. As of 0.5.5, that is optimize(), so the list should only contain a length 2 vector \code{interval}
 #'
 #' @return An object of the type \code{emfrail_control}.
@@ -34,7 +34,7 @@
 
 emfrail_control <- function(eps = 0.0001, maxit = Inf, opt_fit = TRUE, verbose = FALSE, fast_fit = TRUE,
                             se_fit = TRUE, se_adj = TRUE, ca_test = TRUE, only_ca_test = FALSE,
-                            ci_based_intervals = TRUE,
+                            lik_ci = TRUE,
                             opt_control = list(interval = c(-7, 10))) {
     # calculate SE as well
 
@@ -55,7 +55,7 @@ emfrail_control <- function(eps = 0.0001, maxit = Inf, opt_fit = TRUE, verbose =
                 se_adj = se_adj,
                 ca_test = ca_test,
                 only_ca_test = only_ca_test,
-                ci_based_intervals = ci_based_intervals,
+                lik_ci = lik_ci,
                 opt_control = opt_control)
     attr(res, "class") <- c("emfrail_control")
     res

@@ -1,6 +1,7 @@
 #' Summary for \code{emfrail} objects
 #'
 #' @param object An object of class \code{emfrail}
+#' @param lik_ci Logical. Should the confidence intervals for the frailty parameter be calculated based on the likelihood? If not, they are calculated with the delta method.
 #' @param ... Ignored
 #'
 #' @return An object of class \code{emfrail_summary},
@@ -79,7 +80,7 @@
 #' zph2
 #' # the p-values are even larger; the frailty "corrects" for proportionality.
 
-summary.emfrail <- function(object, ...) {
+summary.emfrail <- function(object, lik_ci = TRUE, ...) {
 
   # Calculate the following: estimated distribution of the frailty at time 0
   fit <- object
@@ -110,10 +111,11 @@ summary.emfrail <- function(object, ...) {
   }
 
   # likelihood based confidence intervals
-  if(isTRUE(object$.control$ci_based_intervals)) {
-    ci_theta_low <- exp(object$outer_m$ltheta_low)
-    ci_theta_high <- exp(object$outer_m$ltheta_high)
-  }
+  if(isTRUE(lik_ci))
+    if(!isTRUE(object$.control$lik_ci)) warning("emfrail not called with lik_ci = TRUE") else {
+      ci_theta_low <- exp(object$outer_m$ltheta_low)
+      ci_theta_high <- exp(object$outer_m$ltheta_high)
+    }
 
   # for gamma and pvf theta is 1/variance
   # for stable the L.T. is exp(- c^(1 - theta / (theta + 1)))
@@ -223,6 +225,7 @@ summary.emfrail <- function(object, ...) {
   ret <- list(est_dist = est_dist,
        loglik = loglik,
        ca_test = object$ca_test,
+       lik_ci = lik_ci,
        theta = c(theta = theta,
                  se_theta = se_theta,
                  ci_theta_low = ci_theta_low,

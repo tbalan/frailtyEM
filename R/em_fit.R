@@ -14,6 +14,7 @@ em_fit <- function(logfrailtypar, dist, pvfm,
   # no events/time point, needed for the likelihood calculation
   #nev_tp <- tapply(X = Y[,3], INDEX = Y[,2], sum)
 
+
   .pars <- dist_to_pars(dist, logfrailtypar, pvfm)
   if (isTRUE(.control$verbose)) {
     print(paste0(#"dist=", .pars$dist,

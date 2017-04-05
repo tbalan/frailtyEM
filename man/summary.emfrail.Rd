@@ -4,10 +4,12 @@
 \alias{summary.emfrail}
 \title{Summary for \code{emfrail} objects}
 \usage{
-\method{summary}{emfrail}(object, ...)
+\method{summary}{emfrail}(object, lik_ci = TRUE, ...)
 }
 \arguments{
 \item{object}{An object of class \code{emfrail}}
+
+\item{lik_ci}{Logical. Should the confidence intervals for the frailty parameter be calculated based on the likelihood? If not, they are calculated with the delta method.}
 
 \item{...}{Ignored}
 }

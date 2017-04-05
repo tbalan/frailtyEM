@@ -6,7 +6,7 @@
 \usage{
 emfrail_control(eps = 1e-04, maxit = Inf, opt_fit = TRUE,
   verbose = FALSE, fast_fit = TRUE, se_fit = TRUE, se_adj = TRUE,
-  ca_test = TRUE, only_ca_test = FALSE, ci_based_intervals = TRUE,
+  ca_test = TRUE, only_ca_test = FALSE, lik_ci = TRUE,
   opt_control = list(interval = c(-7, 10)))
 }
 \arguments{
@@ -29,7 +29,7 @@ If \code{FALSE}, then the frailty parameter is treated as fixed and the \code{em
 
 \item{only_ca_test}{Logical. Should ONLY the Commenges-Andersen test be calculated?}
 
-\item{ci_based_intervals}{Logical. Should likelihood-based confidence interval be calculated for the frailty parametr?}
+\item{lik_ci}{Logical. Should likelihood-based confidence interval be calculated for the frailty parameter?}
 
 \item{opt_control}{A list with arguments to be sent to the maximizer. As of 0.5.5, that is optimize(), so the list should only contain a length 2 vector \code{interval}}
 

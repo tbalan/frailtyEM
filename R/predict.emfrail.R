@@ -139,7 +139,7 @@ predict.emfrail <- function(object,
 
   fit <- object
   est_dist <- fit$.distribution
-  est_dist$frailtypar <- exp(fit$outer_m$p1)
+  est_dist$frailtypar <- exp(fit$outer_m$minimum)
 
 
   ncoef <- length(fit$inner_m$coef)
