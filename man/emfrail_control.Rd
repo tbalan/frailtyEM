@@ -5,9 +5,9 @@
 \title{Control parameters for emfrail}
 \usage{
 emfrail_control(eps = 1e-04, maxit = Inf, opt_fit = TRUE,
-  verbose = FALSE, fast_fit = TRUE, zerotol = 1e-04, se_fit = TRUE,
-  se_adj = TRUE, ca_test = TRUE, only_ca_test = FALSE,
-  opt_control = list(interval = c(-7, 13)))
+  verbose = FALSE, fast_fit = TRUE, se_fit = TRUE, se_adj = TRUE,
+  ca_test = TRUE, only_ca_test = FALSE, ci_based_intervals = TRUE,
+  opt_control = list(interval = c(-7, 10)))
 }
 \arguments{
 \item{eps}{Convergence criterion for the inner loops (the EM algorithm) for fixed frailty parameters}
@@ -21,9 +21,6 @@ If \code{FALSE}, then the frailty parameter is treated as fixed and the \code{em
 
 \item{fast_fit}{Logical. Whether to try to calculate the E step directly, when possible. See details.}
 
-\item{zerotol}{Lower limit for 1/frailtypar (variance in case of gamma / pvf). Below this value, the variance is taken to be 0 and the
-EM is not actually performed. The log-likelihood returned to the maximizer is that for the Cox model.}
-
 \item{se_fit}{Logical. Whether to calculate the variance / covariance matrix.}
 
 \item{se_adj}{Logical. Whether to calculate the adjusted variance / covariance matrix (needs \code{se_fit == TRUE})}
@@ -32,7 +29,12 @@ EM is not actually performed. The log-likelihood returned to the maximizer is th
 
 \item{only_ca_test}{Logical. Should ONLY the Commenges-Andersen test be calculated?}
 
-\item{opt_control}{A list with arguments to be sent to the maximizer.}
+\item{ci_based_intervals}{Logical. Should likelihood-based confidence interval be calculated for the frailty parametr?}
+
+\item{opt_control}{A list with arguments to be sent to the maximizer. As of 0.5.5, that is optimize(), so the list should only contain a length 2 vector \code{interval}}
+
+\item{zerotol}{Lower limit for 1/frailtypar (variance in case of gamma / pvf). Below this value, the variance is taken to be 0 and the
+EM is not actually performed. The log-likelihood returned to the maximizer is that for the Cox model.}
 }
 \value{
 An object of the type \code{emfrail_control}.
@@ -53,36 +55,6 @@ the gamma / pvf distribution, a frailty variance below \code{1e-04} can not be d
 emfrail_control()
 emfrail_control(eps = 10e-7)
 
-\dontrun{
-# A data set with very small heterogeneity
-set.seed(10)
-x <- sample(c(0,1/2), 500, TRUE)
-tstart <- rep(0, 500)
-tstop <- rexp(1 * exp(x))
-status <- rep(1, 500)
-id <- rep(1:100, each = 5)
-dat <- data.frame(id, tstart, tstop, status, x)
-
-# What coxph does:
-library(survival)
-m_cph <- coxph(Surv(tstart, tstop, status) ~ x + frailty(id), dat, ties = "breslow")
-m_cph$history
-# For the frailty variance, the program tries: 0, 1, 0.5, 0.005, 0.00005, etc. Stops at 5e-7.
-
-m_ft <- emfrail(dat, Surv(tstart, tstop, status) ~ x + cluster(id))
-m_ft
-
-# The algorithm gives as frailty parameter 10587.88,
-# which means frailty variance 1/10587.88 = 9.44e-05
-# That is because by default, zerotol = 1e-04,
-# which is the point where the algorithm decides that the frailty is 0.
-
-# If you want the exact value of the estimate,
-# increase the precision so the point stays somewhat interior to the parameter space:
-m_ft_08 <- emfrail(dat, Surv(tstart, tstop, status) ~ x + cluster(id),
-                   .control = emfrail_control(zerotol = 1e-8))
-# This gives a more precise estimate, 5845410 so frailty variance 1/5845410 = 1.71e-07
-}
 }
 \seealso{
 \code{\link{emfrail}}, \code{\link{emfrail_distribution}}, \code{\link{emfrail_pll}}

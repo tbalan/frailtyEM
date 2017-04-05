@@ -18,7 +18,7 @@ print.emfrail <- function(x, ...) {
   # print(obj$outer_m)
 
   cat("log-likelihood:", -obj$outer_m$objective, "\n")
-  cat("theta:", obj$outer_m$minimum, "\n")
+  cat("theta:", exp(obj$outer_m$minimum), "\n")
   cat("\n")
   if(length(obj$inner_m$coef) > 0) {
     coefmat <- list(

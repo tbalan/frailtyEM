@@ -12,7 +12,8 @@
 #' @param se_adj Logical. Whether to calculate the adjusted variance / covariance matrix (needs \code{se_fit == TRUE})
 #' @param ca_test Logical. Should the Commenges-Andersen test be calculated?
 #' @param only_ca_test Logical. Should ONLY the Commenges-Andersen test be calculated?
-#' @param opt_control A list with arguments to be sent to the maximizer.
+#' @param ci_based_intervals Logical. Should likelihood-based confidence interval be calculated for the frailty parametr?
+#' @param opt_control A list with arguments to be sent to the maximizer. As of 0.5.5, that is optimize(), so the list should only contain a length 2 vector \code{interval}
 #'
 #' @return An object of the type \code{emfrail_control}.
 #' @export
@@ -30,54 +31,31 @@
 #' emfrail_control()
 #' emfrail_control(eps = 10e-7)
 #'
-#' \dontrun{
-#' # A data set with very small heterogeneity
-#' set.seed(10)
-#' x <- sample(c(0,1/2), 500, TRUE)
-#' tstart <- rep(0, 500)
-#' tstop <- rexp(1 * exp(x))
-#' status <- rep(1, 500)
-#' id <- rep(1:100, each = 5)
-#' dat <- data.frame(id, tstart, tstop, status, x)
-#'
-#' # What coxph does:
-#' library(survival)
-#' m_cph <- coxph(Surv(tstart, tstop, status) ~ x + frailty(id), dat, ties = "breslow")
-#' m_cph$history
-#' # For the frailty variance, the program tries: 0, 1, 0.5, 0.005, 0.00005, etc. Stops at 5e-7.
-#'
-#' m_ft <- emfrail(dat, Surv(tstart, tstop, status) ~ x + cluster(id))
-#' m_ft
-#'
-#' # The algorithm gives as frailty parameter 10587.88,
-#' # which means frailty variance 1/10587.88 = 9.44e-05
-#' # That is because by default, zerotol = 1e-04,
-#' # which is the point where the algorithm decides that the frailty is 0.
-#'
-#' # If you want the exact value of the estimate,
-#' # increase the precision so the point stays somewhat interior to the parameter space:
-#' m_ft_08 <- emfrail(dat, Surv(tstart, tstop, status) ~ x + cluster(id),
-#'                    .control = emfrail_control(zerotol = 1e-8))
-#' # This gives a more precise estimate, 5845410 so frailty variance 1/5845410 = 1.71e-07
-#' }
+
 emfrail_control <- function(eps = 0.0001, maxit = Inf, opt_fit = TRUE, verbose = FALSE, fast_fit = TRUE,
-                            zerotol = 1e-4, se_fit = TRUE, se_adj = TRUE, ca_test = TRUE, only_ca_test = FALSE,
-                            opt_control = list(interval = c(-7, 13))) {
+                            se_fit = TRUE, se_adj = TRUE, ca_test = TRUE, only_ca_test = FALSE,
+                            ci_based_intervals = TRUE,
+                            opt_control = list(interval = c(-7, 10))) {
     # calculate SE as well
 
     # Here some checks
 
   if(isTRUE(only_ca_test) & !isTRUE(ca_test)) stop("control: if only_ca_test is TRUE then ca_test must be TRUE as well")
+  if(is.null(opt_control$interval)) stop("opt_control must be a list which contains a named element interval")
+  if(length(opt_control$interval) != 2) stop("interval must be of length 2")
+  if(opt_control$interval[1] < -7 | opt_control$interval[2] > 10) warning("extreme values for interval,
+                                                                          there might be some numerical trouble")
+
     res <- list(eps = eps,
                 maxit = maxit,
                 opt_fit = opt_fit,
-                zerotol = zerotol,
                 verbose = verbose,
                 fast_fit = fast_fit,
                 se_fit = se_fit,
                 se_adj = se_adj,
                 ca_test = ca_test,
                 only_ca_test = only_ca_test,
+                ci_based_intervals = ci_based_intervals,
                 opt_control = opt_control)
     attr(res, "class") <- c("emfrail_control")
     res

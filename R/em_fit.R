@@ -33,8 +33,8 @@ em_fit <- function(logfrailtypar, dist, pvfm,
     g_x <- t(mcox$coefficients %*% t(Xmat))
   }
 
-  # if the logfrailtypar is large, i.e. frailtypar is large, i.e. fr. variance close to 0, then
-  if(!(dist %in% c("stable", "stable2")) & logfrailtypar > log(1/.control$zerotol)) {
+  # if the logfrailtypar is large (i.e. frailty variance 0) then just return the Cox likelihood
+  if(!(dist %in% c("stable", "stable2")) & logfrailtypar > .control$opt_control$interval[2]) {
     #message("Frailty parameter very large, frailty variance close to 0")
     loglik <- mcox$loglik[length(mcox$loglik)]
     # loglik <- sum((log(basehaz_line) + g_x)[Y[,3] == 1]) +

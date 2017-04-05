@@ -493,8 +493,10 @@ emfrail <- function(.data,
   #              Cvec_lt = Cvec_lt,
   #              .control = .control)
 
+  # add a bit to the interval so that it gets to the Cox likelihood, if it is at that end of the parameter space
   outer_m <- optimize(f = em_fit,
-                      interval = .control$opt_control$interval, dist = .distribution$dist, pvfm = .distribution$pvfm,
+                      interval = .control$opt_control$interval + c(0, 0.1),
+                      dist = .distribution$dist, pvfm = .distribution$pvfm,
            Y = Y, Xmat = X, atrisk = atrisk, basehaz_line = basehaz_line,
            mcox = list(coefficients = g, loglik = mcox$loglik),  # a "fake" cox model
            Cvec = Cvec, lt = .distribution$left_truncation,
@@ -511,6 +513,43 @@ emfrail <- function(.data,
           .control = .control)
 
 
+  # likelihood-based confidence intervals
+  theta_low <- theta_high <- NULL
+  if(isTRUE(.control$ci_based_intervals)) {
+  theta_low <- uniroot(function(x, ...) outer_m$objective - em_fit(x, ...) + 1.92,
+          interval = c(.control$opt_control$interval[1], outer_m$minimum),
+          dist = .distribution$dist,
+          pvfm = .distribution$pvfm,
+          Y = Y, Xmat = X, atrisk = atrisk, basehaz_line = basehaz_line,
+          mcox = list(coefficients = g, loglik = mcox$loglik),  # a "fake" cox model
+          Cvec = Cvec, lt = .distribution$left_truncation,
+          Cvec_lt = Cvec_lt,
+          .control = .control)$root
+
+  # if it is an interior point, then I can also look the other way...
+  if(outer_m$minimum < .control$opt_control$interval[2] - 0.5)
+    theta_high <- uniroot(function(x, ...) outer_m$objective - em_fit(x, ...) + 1.92,
+                         interval = c(outer_m$minimum, .control$opt_control$interval[2]),
+                         dist = .distribution$dist,
+                         pvfm = .distribution$pvfm,
+                         Y = Y, Xmat = X, atrisk = atrisk, basehaz_line = basehaz_line,
+                         mcox = list(coefficients = g, loglik = mcox$loglik),  # a "fake" cox model
+                         Cvec = Cvec, lt = .distribution$left_truncation,
+                         Cvec_lt = Cvec_lt,
+                         .control = .control)$root
+  else theta_high <- Inf
+  }
+
+
+  # outer_m$minimum
+  # em_fit(0.45,
+  #        dist = .distribution$dist,
+  #        pvfm = .distribution$pvfm,
+  #        Y = Y, Xmat = X, atrisk = atrisk, basehaz_line = basehaz_line,
+  #        mcox = list(coefficients = g, loglik = mcox$loglik),  # a "fake" cox model
+  #        Cvec = Cvec, lt = .distribution$left_truncation,
+  #        Cvec_lt = Cvec_lt,
+  #        .control = .control)
 
   #message("Calculating final fit with information matrix...")
 
@@ -570,7 +609,9 @@ emfrail <- function(.data,
 
   res <- list(outer_m = list(objective = outer_m$objective,
                              minimum = outer_m$minimum,
-                             hess = hess),
+                             hess = hess,
+                             ltheta_low = theta_low,
+                             ltheta_high = theta_high),
               inner_m = inner_m,
               loglik_null = mcox$loglik[length(mcox$loglik)],
               # mcox = mcox,

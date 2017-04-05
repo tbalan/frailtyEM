@@ -1,3 +1,10 @@
+# frailtyEM 0.5.6
+Likelihood based confidence intervals are here! 
+
+# frailtyEM 0.5.5
+Removed the maximization by `optimx` and doing it with `optimize()`, since it's one dimensional. 
+A hessian estimate is obtained from `numDeriv()`.
+
 # frailtyEM 0.5.4
 Minor bug fixes 
 
