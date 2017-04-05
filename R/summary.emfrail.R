@@ -134,7 +134,7 @@ summary.emfrail <- function(object, ...) {
                                     mean = p1,
                                     cov = 1/attr(fit$outer_m, "details")[[3]]))
 
-    attenuation <- 1 - theta  # this is the gamma of the distribution as well
+    attenuation <- 1 - theta / (theta + 1)  # this is the gamma of the distribution as well
 
     ci_tau_low_stab <- ci_theta_high / (1 + ci_theta_high)
     ci_tau_high_stab <- ci_theta_low / (1 + ci_theta_low)
