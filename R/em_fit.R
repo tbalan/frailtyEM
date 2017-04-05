@@ -22,7 +22,7 @@ em_fit <- function(logfrailtypar, dist, pvfm,
       " / bbeta=", .pars$bbeta))
   }
 
-  if(logfrailtypar < -100) stop("theta virtually 0; try another starting value")
+  if(logfrailtypar < -100) warning("theta virtually 0; try another starting value")
 
 
   #print("hello im in em_fit")
@@ -34,8 +34,8 @@ em_fit <- function(logfrailtypar, dist, pvfm,
   }
 
   # if the logfrailtypar is large, i.e. frailtypar is large, i.e. fr. variance close to 0, then
-  if(!(dist %in% c("stable", "stable2")) &logfrailtypar > log(1/.control$zerotol)) {
-    message("Frailty parameter very large, frailty variance close to 0")
+  if(!(dist %in% c("stable", "stable2")) & logfrailtypar > log(1/.control$zerotol)) {
+    #message("Frailty parameter very large, frailty variance close to 0")
     loglik <- mcox$loglik[length(mcox$loglik)]
     # loglik <- sum((log(basehaz_line) + g_x)[Y[,3] == 1]) +
     #    sum(Y[,3]) - sum(nev_tp * log(nev_tp))

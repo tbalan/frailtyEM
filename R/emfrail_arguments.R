@@ -62,8 +62,7 @@
 #' }
 emfrail_control <- function(eps = 0.0001, maxit = Inf, opt_fit = TRUE, verbose = FALSE, fast_fit = TRUE,
                             zerotol = 1e-4, se_fit = TRUE, se_adj = TRUE, ca_test = TRUE, only_ca_test = FALSE,
-                            opt_control = list(method = "bobyqa",
-    itnmax = NULL, control = list())) {
+                            opt_control = list(interval = c(-7, 13))) {
     # calculate SE as well
 
     # Here some checks

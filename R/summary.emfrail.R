@@ -84,24 +84,24 @@ summary.emfrail <- function(object, ...) {
   # Calculate the following: estimated distribution of the frailty at time 0
   fit <- object
   est_dist <- fit$.distribution
-  est_dist$frailtypar <- exp(fit$outer_m$p1)
+  est_dist$frailtypar <- exp(fit$outer_m$minimum)
 
   loglik <- c(L0 = fit$loglik_null,
-              L = -fit$outer_m$value[1],
-              LRT = 2 * (-fit$outer_m$value[1] - fit$loglik_null),
-              pval = pchisq(2 * (-fit$outer_m$value[1] - fit$loglik_null), df = 1, lower.tail = FALSE)/2)
+              L = -fit$outer_m$objective,
+              LRT = 2 * (-fit$outer_m$objective - fit$loglik_null),
+              pval = pchisq(2 * (-fit$outer_m$objective - fit$loglik_null), df = 1, lower.tail = FALSE)/2)
 
   # this is the frailtypar actually.
-  theta <- with(fit$outer_m, exp(p1))
+  theta <- with(fit$outer_m, exp(minimum))
   se_theta <- with(fit$outer_m,
                    msm::deltamethod(~exp(x1),
-                                    mean = p1,
-                                    cov = 1/attr(fit$outer_m, "details")[[3]]))
+                                    mean = minimum,
+                                    cov = 1/hess))
 
 
   # CI is symmetric on log(theta)
-  ci_theta_low <- exp(with(fit, outer_m$p1 - 1.96 * sqrt(1/attr(outer_m, "details")[[3]])))
-  ci_theta_high <- exp(with(fit, outer_m$p1 + 1.96 * sqrt(1/attr(outer_m, "details")[[3]])))
+  ci_theta_low <- exp(with(fit, outer_m$minimum - 1.96 * sqrt(1/outer_m$hess)))
+  ci_theta_high <- exp(with(fit, outer_m$minimum + 1.96 * sqrt(1/outer_m$hess)))
 
   if(theta > 9000) {
     ci_theta_low <- theta
@@ -120,8 +120,8 @@ summary.emfrail <- function(object, ...) {
     fr_var <- 1/ theta
     se_fr_var <- with(fit$outer_m,
                       msm::deltamethod(~1/exp(x1),
-                                       mean = p1,
-                                       cov = 1/attr(fit$outer_m, "details")[[3]]))
+                                       mean = minimum,
+                                       cov = 1/hess))
     ci_frvar_low <- 1/ci_theta_high
     ci_frvar_high <- 1/ci_theta_low
   } else {
@@ -131,8 +131,8 @@ summary.emfrail <- function(object, ...) {
 
     se_tau_stab <- with(fit$outer_m,
                    msm::deltamethod(~exp(x1) / (exp(x1) + 1),
-                                    mean = p1,
-                                    cov = 1/attr(fit$outer_m, "details")[[3]]))
+                                    mean = minimum,
+                                    cov = 1/hess))
 
     attenuation <- 1 - theta / (theta + 1)  # this is the gamma of the distribution as well
 
@@ -168,8 +168,8 @@ summary.emfrail <- function(object, ...) {
 
     se_tau <- with(fit$outer_m,
                    msm::deltamethod(~1 / (1 + 2 * exp(x1)),
-                                    mean = p1,
-                                    cov = 1/attr(fit$outer_m, "details")[[3]]))
+                                    mean = minimum,
+                                    cov = 1/hess))
     ci_tau_low <- 1 / (1 + 2 * ci_theta_low)
     ci_tau_high <- 1 / (1 + 2 * ci_theta_high)
 

@@ -9,14 +9,16 @@ print.emfrail <- function(x, ...) {
       ")\n",
       sep = "")
 
-  names(obj$outer_m)[1] <- "theta"
-  obj$outer_m[1] <- exp(obj$outer_m[1])
+  # names(obj$outer_m)[1] <- "theta"
+  # obj$outer_m[1] <- exp(obj$outer_m[1])
+  #
+  # names(obj$outer_m)[2] <- "loglik"
+  # obj$outer_m[2] <- (-1) * obj$outer_m[2]
 
-  names(obj$outer_m)[2] <- "loglik"
-  obj$outer_m[2] <- (-1) * obj$outer_m[2]
+  # print(obj$outer_m)
 
-  print(obj$outer_m)
-
+  cat("log-likelihood:", -obj$outer_m$objective, "\n")
+  cat("theta:", obj$outer_m$minimum, "\n")
   cat("\n")
   if(length(obj$inner_m$coef) > 0) {
     coefmat <- list(

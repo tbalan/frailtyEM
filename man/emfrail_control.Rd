@@ -7,7 +7,7 @@
 emfrail_control(eps = 1e-04, maxit = Inf, opt_fit = TRUE,
   verbose = FALSE, fast_fit = TRUE, zerotol = 1e-04, se_fit = TRUE,
   se_adj = TRUE, ca_test = TRUE, only_ca_test = FALSE,
-  opt_control = list(method = "bobyqa", itnmax = NULL, control = list()))
+  opt_control = list(interval = c(-7, 13)))
 }
 \arguments{
 \item{eps}{Convergence criterion for the inner loops (the EM algorithm) for fixed frailty parameters}

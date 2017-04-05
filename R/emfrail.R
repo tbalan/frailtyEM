@@ -4,6 +4,7 @@
 #' @importFrom stats approx coef model.frame model.matrix pchisq printCoefmat
 #' @importFrom magrittr "%>%"
 #' @importFrom Rcpp evalCpp
+#' @importFrom numDeriv hessian
 #' @useDynLib frailtyEM, .registration=TRUE
 #' @include em_fit.R
 #' @include emfrail_aux.R
@@ -480,21 +481,40 @@ emfrail <- function(.data,
 
 
   # otherwise, the maximizer
-  outer_m <- optimx::optimx(par = log(.distribution$theta), fn = em_fit,
-               hessian = TRUE,
-               #lower = -10000, upper = 10000,
-               method = .control$opt_control$method, #control = .control$opt_control$control,
-               #control = list(trace = 10, save.failures = TRUE),
-               dist = .distribution$dist, pvfm = .distribution$pvfm,
-               Y = Y, Xmat = X, atrisk = atrisk, basehaz_line = basehaz_line,
-               mcox = list(coefficients = g, loglik = mcox$loglik),  # a "fake" cox model
-               Cvec = Cvec, lt = .distribution$left_truncation,
-               Cvec_lt = Cvec_lt,
-               .control = .control)
+  # outer_m <- optimx::optimx(par = log(.distribution$theta), fn = em_fit,
+  #              hessian = TRUE,
+  #              #lower = -10000, upper = 10000,
+  #              method = .control$opt_control$method, #control = .control$opt_control$control,
+  #              #control = list(trace = 10, save.failures = TRUE),
+  #              dist = .distribution$dist, pvfm = .distribution$pvfm,
+  #              Y = Y, Xmat = X, atrisk = atrisk, basehaz_line = basehaz_line,
+  #              mcox = list(coefficients = g, loglik = mcox$loglik),  # a "fake" cox model
+  #              Cvec = Cvec, lt = .distribution$left_truncation,
+  #              Cvec_lt = Cvec_lt,
+  #              .control = .control)
+
+  outer_m <- optimize(f = em_fit,
+                      interval = .control$opt_control$interval, dist = .distribution$dist, pvfm = .distribution$pvfm,
+           Y = Y, Xmat = X, atrisk = atrisk, basehaz_line = basehaz_line,
+           mcox = list(coefficients = g, loglik = mcox$loglik),  # a "fake" cox model
+           Cvec = Cvec, lt = .distribution$left_truncation,
+           Cvec_lt = Cvec_lt,
+           .control = .control)
+
+  hess <- numDeriv::hessian(func = em_fit,
+          x = outer_m$minimum,
+          dist = .distribution$dist, pvfm = .distribution$pvfm,
+          Y = Y, Xmat = X, atrisk = atrisk, basehaz_line = basehaz_line,
+          mcox = list(coefficients = g, loglik = mcox$loglik),  # a "fake" cox model
+          Cvec = Cvec, lt = .distribution$left_truncation,
+          Cvec_lt = Cvec_lt,
+          .control = .control)
+
+
 
   #message("Calculating final fit with information matrix...")
 
-  inner_m <- em_fit(logfrailtypar = outer_m$p1,
+  inner_m <- em_fit(logfrailtypar = outer_m$minimum,
                       dist = .distribution$dist, pvfm = .distribution$pvfm,
                       Y = Y, Xmat = X, atrisk = atrisk, basehaz_line = basehaz_line,
                       mcox = list(coefficients = g, loglik = mcox$loglik),  # a "fake" cox model
@@ -506,9 +526,10 @@ emfrail <- function(.data,
 
     # absolute value should be redundant. but sometimes the "hessian" might be 0.
     # in that case it might appear negative; this happened only on Linux...
-    h <- as.numeric(sqrt(abs(1/(attr(outer_m, "details")[[3]])))/2)
-    lfp_minus <- max(outer_m$p1 - h , outer_m$p1 - 5)
-    lfp_plus <- min(outer_m$p1 + h , outer_m$p1 + 5)
+    # h <- as.numeric(sqrt(abs(1/(attr(outer_m, "details")[[3]])))/2)
+    h<- as.numeric(sqrt(abs(1/hess))/2)
+    lfp_minus <- max(outer_m$min - h , outer_m$min - 5)
+    lfp_plus <- min(outer_m$min + h , outer_m$min + 5)
 
     message("Calculating adjustment for information matrix...")
 
@@ -540,13 +561,16 @@ emfrail <- function(.data,
 
     #adj_se <- sqrt(diag(deta_dtheta %*% (1/(attr(opt_object, "details")[[3]])) %*% t(deta_dtheta)))
 
-    vcov_adj = inner_m$Vcov + deta_dtheta %*% (1/(attr(outer_m, "details")[[3]])) %*% t(deta_dtheta)
+    # vcov_adj = inner_m$Vcov + deta_dtheta %*% (1/(attr(outer_m, "details")[[3]])) %*% t(deta_dtheta)
+    vcov_adj = inner_m$Vcov + deta_dtheta %*% (1/hess) %*% t(deta_dtheta)
 
   } else vcov_adj = matrix(NA, nrow(inner_m$Vcov), nrow(inner_m$Vcov))
   # that the hessian
 
 
-  res <- list(outer_m = outer_m,
+  res <- list(outer_m = list(objective = outer_m$objective,
+                             minimum = outer_m$minimum,
+                             hess = hess),
               inner_m = inner_m,
               loglik_null = mcox$loglik[length(mcox$loglik)],
               # mcox = mcox,
