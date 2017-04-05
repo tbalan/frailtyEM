@@ -27,7 +27,7 @@ Distribution parameters for emfrail
 The \code{theta} argument must be positive. In the case of gamma or PVF, this is the inverse of
  the frailty variance, i.e. the larger the \code{theta} is,
  the closer the model is to a Cox model. For the positive stable distribution, the \eqn{\gamma} parameter of the Laplace trnasform is
- \eqn{1 - \theta / (1 + \theta)}, with the \eqn{alpha} parameter fixed to 1.
+ \eqn{\theta / (1 + \theta)}, with the \eqn{alpha} parameter fixed to 1.
 }
 \examples{
 emfrail_distribution()

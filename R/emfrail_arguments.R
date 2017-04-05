@@ -6,14 +6,16 @@
 #' If \code{FALSE}, then the frailty parameter is treated as fixed and the \code{emfrail} function returns only log-likelihood. See details.
 #' @param verbose Logical. Whether to print out information about what is going on during maximization.
 #' @param fast_fit Logical. Whether to try to calculate the E step directly, when possible. See details.
-#' @param zerotol Lower limit for 1/frailtypar (variance in case of gamma / pvf). Below this value, the variance is taken to be 0 and the
-#' EM is not actually performed. The log-likelihood returned to the maximizer is that for the Cox model.
 #' @param se_fit Logical. Whether to calculate the variance / covariance matrix.
 #' @param se_adj Logical. Whether to calculate the adjusted variance / covariance matrix (needs \code{se_fit == TRUE})
 #' @param ca_test Logical. Should the Commenges-Andersen test be calculated?
 #' @param only_ca_test Logical. Should ONLY the Commenges-Andersen test be calculated?
 #' @param lik_ci Logical. Should likelihood-based confidence interval be calculated for the frailty parameter?
-#' @param opt_control A list with arguments to be sent to the maximizer. As of 0.5.5, that is optimize(), so the list should only contain a length 2 vector \code{interval}
+#' @param opt_control A list with arguments to be sent to the maximizer.
+#' As of 0.5.5, that is optimize(), so the list should only contain a length 2 vector \code{interval}. Another field
+#' has been added in 0.5.6, \code{interval_stable} that overrides \code{interval} for the positive stable distribution;
+#' the reason behind this is that the algorithm tends to choke for small values, even if the maximum likelihood is
+#' really far away.
 #'
 #' @return An object of the type \code{emfrail_control}.
 #' @export
@@ -35,7 +37,8 @@
 emfrail_control <- function(eps = 0.0001, maxit = Inf, opt_fit = TRUE, verbose = FALSE, fast_fit = TRUE,
                             se_fit = TRUE, se_adj = TRUE, ca_test = TRUE, only_ca_test = FALSE,
                             lik_ci = TRUE,
-                            opt_control = list(interval = c(-7, 10))) {
+                            opt_control = list(interval = c(-7, 20),
+                                               interval_stable = c(0, 20))) {
     # calculate SE as well
 
     # Here some checks
@@ -43,8 +46,7 @@ emfrail_control <- function(eps = 0.0001, maxit = Inf, opt_fit = TRUE, verbose =
   if(isTRUE(only_ca_test) & !isTRUE(ca_test)) stop("control: if only_ca_test is TRUE then ca_test must be TRUE as well")
   if(is.null(opt_control$interval)) stop("opt_control must be a list which contains a named element interval")
   if(length(opt_control$interval) != 2) stop("interval must be of length 2")
-  if(opt_control$interval[1] < -7 | opt_control$interval[2] > 10) warning("extreme values for interval,
-                                                                          there might be some numerical trouble")
+  if(opt_control$interval[1] < -7 | opt_control$interval[2] > 20) warning("extreme values for interval, there might be some numerical trouble")
 
     res <- list(eps = eps,
                 maxit = maxit,
@@ -79,7 +81,7 @@ emfrail_control <- function(eps = 0.0001, maxit = Inf, opt_fit = TRUE, verbose =
 #' @details The \code{theta} argument must be positive. In the case of gamma or PVF, this is the inverse of
 #'  the frailty variance, i.e. the larger the \code{theta} is,
 #'  the closer the model is to a Cox model. For the positive stable distribution, the \eqn{\gamma} parameter of the Laplace trnasform is
-#'  \eqn{1 - \theta / (1 + \theta)}, with the \eqn{alpha} parameter fixed to 1.
+#'  \eqn{\theta / (1 + \theta)}, with the \eqn{alpha} parameter fixed to 1.
 #'
 #' @seealso \code{\link{emfrail}, \link{emfrail_control}}
 #' @examples

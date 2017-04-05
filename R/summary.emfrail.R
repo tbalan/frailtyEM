@@ -137,19 +137,25 @@ summary.emfrail <- function(object, lik_ci = TRUE, ...) {
   } else {
 
     # Kendall's tau
-    tau_stab <- theta / (theta + 1)
+    tau_stab <- 1 - theta / (theta + 1)
 
     se_tau_stab <- with(fit$outer_m,
-                   msm::deltamethod(~exp(x1) / (exp(x1) + 1),
+                   msm::deltamethod(~ 1 - (exp(x1) / (exp(x1) + 1)),
                                     mean = minimum,
                                     cov = 1/hess))
 
-    attenuation <- 1 - theta / (theta + 1)  # this is the gamma of the distribution as well
+    attenuation <- theta / (theta + 1)
 
-    ci_tau_low_stab <- ci_theta_high / (1 + ci_theta_high)
-    ci_tau_high_stab <- ci_theta_low / (1 + ci_theta_low)
+    ci_tau_high_stab <- ifelse(ci_theta_high == Inf,
+                              0,
+                              1 - ci_theta_high / (1 + ci_theta_high))
 
-    e_log_y <-  (-1) * (1 / (1-theta) - 1) * digamma(1)
+    ci_tau_low_stab <- 1 - ci_theta_low / (1 + ci_theta_low)
+
+
+    # this has to be fixed
+    e_log_y <- NaN
+    #e_log_y <-  (-1) * (1 / (1-theta) - 1) * digamma(1)
 
   }
 

@@ -7,7 +7,7 @@
 emfrail_control(eps = 1e-04, maxit = Inf, opt_fit = TRUE,
   verbose = FALSE, fast_fit = TRUE, se_fit = TRUE, se_adj = TRUE,
   ca_test = TRUE, only_ca_test = FALSE, lik_ci = TRUE,
-  opt_control = list(interval = c(-7, 10)))
+  opt_control = list(interval = c(-7, 20), interval_stable = c(0, 20)))
 }
 \arguments{
 \item{eps}{Convergence criterion for the inner loops (the EM algorithm) for fixed frailty parameters}
@@ -31,7 +31,11 @@ If \code{FALSE}, then the frailty parameter is treated as fixed and the \code{em
 
 \item{lik_ci}{Logical. Should likelihood-based confidence interval be calculated for the frailty parameter?}
 
-\item{opt_control}{A list with arguments to be sent to the maximizer. As of 0.5.5, that is optimize(), so the list should only contain a length 2 vector \code{interval}}
+\item{opt_control}{A list with arguments to be sent to the maximizer.
+As of 0.5.5, that is optimize(), so the list should only contain a length 2 vector \code{interval}. Another field
+has been added in 0.5.6, \code{interval_stable} that overrides \code{interval} for the positive stable distribution;
+the reason behind this is that the algorithm tends to choke for small values, even if the maximum likelihood is
+really far away.}
 
 \item{zerotol}{Lower limit for 1/frailtypar (variance in case of gamma / pvf). Below this value, the variance is taken to be 0 and the
 EM is not actually performed. The log-likelihood returned to the maximizer is that for the Cox model.}

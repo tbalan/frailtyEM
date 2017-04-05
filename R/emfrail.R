@@ -1,7 +1,7 @@
 #' Fitting shared frailty models with the EM algorithm
 #'
 #' @importFrom survival Surv
-#' @importFrom stats approx coef model.frame model.matrix pchisq printCoefmat
+#' @importFrom stats approx coef model.frame model.matrix pchisq printCoefmat optimize uniroot
 #' @importFrom magrittr "%>%"
 #' @importFrom Rcpp evalCpp
 #' @importFrom numDeriv hessian
@@ -275,15 +275,21 @@ emfrail <- function(.data,
       #message("fast_fit option only available for gamma and pvf with m=-1/2 distributions")
       .control$fast_fit <- FALSE
     }
-    if(.distribution$dist == "pvf" & (.distribution$pvfm != -1/2)) {
-      #message("fast_fit option only available for gamma and pvf with m=-1/2 distributions")
-      .control$fast_fit <- FALSE
-    }
 
-    if(.distribution$dist == "pvf" & (.distribution$pvfm == -1/2) & .distribution$left_truncation ) {
-      #message("fast_fit option not available with left truncation for the Inverse Gaussian")
+    # version 0.5.6, the IG fast fit gets super sensitive at small frailty variance...
+    if(.distribution$dist == "pvf")
       .control$fast_fit <- FALSE
-    }
+
+
+    # if(.distribution$dist == "pvf" & (.distribution$pvfm != -1/2)) {
+    #   #message("fast_fit option only available for gamma and pvf with m=-1/2 distributions")
+    #   .control$fast_fit <- FALSE
+    # }
+    #
+    # if(.distribution$dist == "pvf" & (.distribution$pvfm == -1/2) & .distribution$left_truncation ) {
+    #   #message("fast_fit option not available with left truncation for the Inverse Gaussian")
+    #   .control$fast_fit <- FALSE
+    # }
   }
 
 
@@ -493,7 +499,15 @@ emfrail <- function(.data,
   #              Cvec_lt = Cvec_lt,
   #              .control = .control)
 
+  # With the stable distribution, a problem pops up for small values, i.e. very large association (tau large)
+  # So there is another interval...
+  if(.distribution$dist == "stable") {
+    .control$opt_control$interval <- .control$opt_control$interval_stable
+  }
+
   # add a bit to the interval so that it gets to the Cox likelihood, if it is at that end of the parameter space
+
+
   outer_m <- optimize(f = em_fit,
                       interval = .control$opt_control$interval + c(0, 0.1),
                       dist = .distribution$dist, pvfm = .distribution$pvfm,
@@ -526,20 +540,28 @@ emfrail <- function(.data,
           Cvec_lt = Cvec_lt,
           .control = .control)$root
 
-  # if it is an interior point, then I can also look the other way...
-  if(outer_m$minimum < .control$opt_control$interval[2] - 0.5)
-    theta_high <- uniroot(function(x, ...) outer_m$objective - em_fit(x, ...) + 1.92,
-                         interval = c(outer_m$minimum, .control$opt_control$interval[2]),
-                         dist = .distribution$dist,
-                         pvfm = .distribution$pvfm,
-                         Y = Y, Xmat = X, atrisk = atrisk, basehaz_line = basehaz_line,
-                         mcox = list(coefficients = g, loglik = mcox$loglik),  # a "fake" cox model
-                         Cvec = Cvec, lt = .distribution$left_truncation,
-                         Cvec_lt = Cvec_lt,
-                         .control = .control)$root
-  else theta_high <- Inf
-  }
+  upper_llik <- em_fit(.control$opt_control$interval[2],
+         dist = .distribution$dist,
+         pvfm = .distribution$pvfm,
+         Y = Y, Xmat = X, atrisk = atrisk, basehaz_line = basehaz_line,
+         mcox = list(coefficients = g, loglik = mcox$loglik),  # a "fake" cox model
+         Cvec = Cvec, lt = .distribution$left_truncation,
+         Cvec_lt = Cvec_lt,
+         .control = .control)
 
+  # this says that if I can't get a significant difference on the right side then screw this it's infinity
+  if(upper_llik  - outer_m$objective < 1.92) theta_high <- Inf else
+    theta_high <- uniroot(function(x, ...) outer_m$objective - em_fit(x, ...) + 1.92,
+                          interval = c(outer_m$minimum, .control$opt_control$interval[2]),
+                          extendInt = c("downX"),
+                          dist = .distribution$dist,
+                          pvfm = .distribution$pvfm,
+                          Y = Y, Xmat = X, atrisk = atrisk, basehaz_line = basehaz_line,
+                          mcox = list(coefficients = g, loglik = mcox$loglik),  # a "fake" cox model
+                          Cvec = Cvec, lt = .distribution$left_truncation,
+                          Cvec_lt = Cvec_lt,
+                          .control = .control)$root
+  }
 
   # outer_m$minimum
   # em_fit(0.45,

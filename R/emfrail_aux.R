@@ -24,7 +24,8 @@ dist_to_pars <- function(dist, logfrailtypar, pvfm) {
       # theta <- exp(logfrailtypar) + 1 # so theta >1
       # bbeta <- 1 - 1/theta
       alpha <- 1
-      bbeta <- 1 - exp(logfrailtypar) / (exp(logfrailtypar) + 1)
+      #bbeta <- 1 - exp(logfrailtypar) / (exp(logfrailtypar) + 1)
+      bbeta <- exp(logfrailtypar) / (exp(logfrailtypar) + 1)
       dist_id <- 1L
     }
 

@@ -1,3 +1,18 @@
+# frailtyEM 0.5.7
+
+- The optimization now is regulated by search intervals described in the `emfrail_control()` and the `.control` argument. 
+- The parametrization of the stable distribution has been changed, just removed the $1-$ in the beginning (why did I have that there again?)
+- There are different intervals for the gamma/pvf and stable distributions. That's roughly because the stable chokes with small values of `theta`. This should be tuned somehow in the future. The problem lies in the M step where `agreg.fit` can't deal with large offset values.
+- Likelihood confidence based intervals now do the correct thing when the estimate is close to the parameter space but not quite there
+- Eliminated the fast fit for the inverse gaussian, this also seems to choke (the fast E step, can't figure out why), while the slow fit in C++ works fine...
+- A slight update in documentation. 
+
+TODO: 
+- recover lost features in this update: measures of dependence in `summary.emfrail`, first of all
+- bring back the fast fit for inverse gaussian or... who knows, maybe now
+- document `emfrail_control` properly
+- update vignette
+
 # frailtyEM 0.5.6
 Likelihood based confidence intervals are here! 
 
