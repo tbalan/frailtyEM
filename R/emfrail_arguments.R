@@ -25,9 +25,6 @@
 #' automatically be changed to FALSE. When the number of events in a cluster / individual is not very small, the cases for which
 #' fast fitting is available will show an improvement in performance.
 #'
-#' The \code{zerotol} option defaults to \code{1e-04}, which in practical terms means, for example, that for
-#' the gamma / pvf distribution, a frailty variance below \code{1e-04} can not be detected.
-#'
 #' @seealso \code{\link{emfrail}}, \code{\link{emfrail_distribution}}, \code{\link{emfrail_pll}}
 #' @examples
 #' emfrail_control()
