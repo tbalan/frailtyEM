@@ -36,9 +36,6 @@ As of 0.5.5, that is optimize(), so the list should only contain a length 2 vect
 has been added in 0.5.6, \code{interval_stable} that overrides \code{interval} for the positive stable distribution;
 the reason behind this is that the algorithm tends to choke for small values, even if the maximum likelihood is
 really far away.}
-
-\item{zerotol}{Lower limit for 1/frailtypar (variance in case of gamma / pvf). Below this value, the variance is taken to be 0 and the
-EM is not actually performed. The log-likelihood returned to the maximizer is that for the Cox model.}
 }
 \value{
 An object of the type \code{emfrail_control}.
@@ -51,9 +48,6 @@ The \code{fast_fit} option make a difference when the distribution is gamma (wit
 inverse Gaussian, i.e. pvf with m = -1/2 (without left truncation). For all the other scenarios, the fast_fit option will
 automatically be changed to FALSE. When the number of events in a cluster / individual is not very small, the cases for which
 fast fitting is available will show an improvement in performance.
-
-The \code{zerotol} option defaults to \code{1e-04}, which in practical terms means, for example, that for
-the gamma / pvf distribution, a frailty variance below \code{1e-04} can not be detected.
 }
 \examples{
 emfrail_control()
