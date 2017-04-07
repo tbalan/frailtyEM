@@ -31,7 +31,8 @@ Suggests:
     statmod,
     plotly,
     frailtySurv,
-    parfm
+    parfm,
+    gridExtra
 Collate: 
     'RcppExports.R'
     'ca_test.R'

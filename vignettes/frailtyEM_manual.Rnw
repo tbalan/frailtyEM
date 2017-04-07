@@ -77,9 +77,9 @@ For Cox model, the computational advantage comes from the fact that the semi-par
  \citep{coxme}. The second way is via h-likelihood with the \pkg{frailtyHL} \citep{do2012frailtyhl} package, and the the third way is via a pseudo full likelihood approach \pkg{frailtySurv} package \citep{frailtySurv, gorfine2006prospective}. Finally, a Monte Carlo EM-type estimation is available in the \pkg{phmm} \cite{phmm1, phmm2, phmm3}. Several other options are available for parametric modeling: \pkg{parfm} \citep{munda2012parfm} for fully parametric models and \pkg{frailtypack} \citep{frailtypack1, frailtypack2} for models where the baseline is fully parametric or spline-approximated. The latter is comparable in flexibility with semi-parametric models, where the baseline hazard is unspecified.
 
 % what it does new the short version
-The \pkg{frailtyEM} package estimates semi-parametric shared frailty models that may be used for recurrent events data in Andersen-Gill and gaptime formulation, clustered failures and clustered failures with left truncation. The supported family of distributions for the random effect includes gamma, IG, PS and the PVF family. The results of the estimation can be easily visualized. Point estimates for regression coefficients are provided with confidence intervals that take into account the estimation of the frailty distribution, and plot methods may be used to visualize both conditional and marginal survival and cumulative hazard curves wiht 95\% confidence bands, marginal covariate effects, and empirical Bayes estimates of the random effects. A comparison between \pkg{frailtyEM} and other \proglang{R} packages is provided in Table \ref{table1}.
+The \pkg{frailtyEM} package estimates semi-parametric shared frailty models that may be used for recurrent events data in Andersen-Gill and gaptime formulation, clustered failures and clustered failures with left truncation. The supported family of distributions for the random effect includes gamma, IG, PS and the PVF family. The results of the estimation can be easily visualized. Point estimates for regression coefficients are provided with confidence intervals that take into account the estimation of the frailty distribution, and plot methods may be used to visualize both conditional and marginal survival and cumulative hazard curves wiht 95\% confidence bands, marginal covariate effects, and empirical Bayes estimates of the random effects. A comparison between \pkg{frailtyEM} and other \proglang{R} packages is provided in table~\ref{table1}.
 
-The rest of this paper is structured as follows. In section \ref{sec:model} we present a brief overview the semi-parametric shared frailty model, and the implications of left truncation. In section \ref{sec:Estimation} we discuss the estimation method used and how this is implemented. In section \ref{sec:examples} we illustrate the usage of the functions from the \pkg{frailtyEM} package on two classical data sets available in \proglang{R}.
+The rest of this paper is structured as follows. In section~\ref{sec:model} we present a brief overview the semi-parametric shared frailty model, and the implications of left truncation. In section~\ref{sec:Estimation} we discuss the estimation method used and how this is implemented. In section~\ref{sec:examples} we illustrate the usage of the functions from the \pkg{frailtyEM} package on two classical data sets available in \proglang{R}.
 
 \begin{sidewaystable}[]
 \centering
@@ -206,7 +206,7 @@ For each $\theta$, denote $\hat\beta(\theta)$ and $\hat\lambda_0(\theta)$ the va
 \subsection{The inner problem}
 For the inner problem the EM algorithm is used. This has been first proposed for the gamma frailty model in \cite{nielsen1992counting} and \cite{klein1992semiparametric}, and a generalization is discussed in \cite{hougaard2012analysis}.
 
-Most ideas from \cite{nielsen1992counting} are used here. The crucial observations are that the E step involves calculating the empirical Bayes estimates of the frailties $\widehat{z}_i = E[Z_i | data]$.
+Most ideas from \cite{nielsen1992counting} are used here. The crucial observations are that the E step involves calculating the empirical Bayes estimates of the frailties $\widehat{z}_i = \mathrm{E}[Z_i | data]$.
 The expectation is taken with respect to the ``posterior'' distribution of the random effect. Afterwards, the M step is essentially a proportional hazards model with the $\log \widehat{z}_i$ as offset for each cluster.
 
 \paragraph{The E step}
@@ -227,7 +227,7 @@ The E step is generally the expensive operation of the EM algorithm. In very few
 
 \paragraph{The M step}
 With the same argument as made in \cite{nielsen1992counting}, the M step is equivalent to a regular proportional hazards model with
-$\log \widehat{z_i}$ added as an offset for all the cases in $z_i$. This is done via the \code{agreg.fit()} function in the \pkg{survival} package. Estimates of $\beta$ are directly obtained from this, while estimates for $\lambda_0$ and the subsequent calculations of $\tilde\Lambda_i$  (and, eventually $\tilde \Lambda_{L,i}$) require a careful calculation of subjects at risk and the respective linear predictors at every event and entry time point. The ordering required for determining these ``at risk'' sets is cached in \code{emfrail()}.
+$\log \widehat{z_i}$ added as an offset for all the cases in $z_i$. This is done via the \code{agreg.fit()} function in the \pkg{survival} package. Estimates of $\beta$ are directly obtained from this, while estimates for $\lambda_0$ and the subsequent calculations of $\tilde\Lambda_i$  (and, eventually $\tilde \Lambda_{L,i}$, in the case of left truncation) require a careful calculation of subjects at risk and the respective linear predictors at every event and entry time point. The ordering required for determining these ``at risk'' sets is cached in \code{emfrail()}.
 
 The EM algorithm stops after the marginal log-likelihood has converged, i.e., when difference in $\widehat{L}(\theta)$ is smaller than $\varepsilon$ between two consecutive iterations. The value of $\varepsilon$ can be set with the \code{.control} argument of \code{emfrail}.
 %
@@ -271,7 +271,7 @@ The maximizer used is \code{optimize} from the \pkg{stats} library. This require
 \label{sec:return}
 
 After the maximizer has converged and the outer maximization is finished and $\hat \theta$ has been obtained, the Hessian is approximated numerically with the functions available in the \pkg{numDeriv} package \citep{numDeriv}.
-By inverting this value, the variance of $\widehat{\log \theta}$ is obtained. A symmetric 95\% confidence interval is built on that scale, and translated for all the other derived quantities described in \ref{sec:goodness}.
+By inverting this value, the variance of $\widehat{\log \theta}$ is obtained. A symmetric 95\% confidence interval is built on that scale, and translated for all the other derived quantities described in~\ref{sec:goodness}.
 Furthermore, the delta method is used to provide standard errors for these parameters as well, by using the \code{deltamethod()} implementation in the \pkg{msm} \citep{msm} package.
 
 A method which is more stable, yet also more computationally intensive, for quantifying this uncertainty in the estimates, is through likelihood-based confidence intervals. This requires finding the $\theta$ values for which the difference between the maximum likelihood and the specific profile maximum likelihood values at $\theta$ equals a critical value, calculated from the $\chi^2(1)$ distribution, and is discussed din Appendix A2. This can be achieved with a root-finding routine such as the \code{uniroot()} function in the \pkg{stats} package.
@@ -283,7 +283,7 @@ The standard error of the estimates for $\beta$ and $\lambda_0(\cdot)$ are calcu
 \subsection{Output, summary and prediction}
 The return object type is \code{emfrail}, which is essentially a list that contains the results of the ``outer'' maximization, the results of the ``inner'' maximization at this estimate, and a few other fields which are used for different methods. The object type is documented in \code{?emfrail}. Some options to obtain only part of this object as an output are available via the \code{.control} argument.
 
-By itself, an \code{emfrail} object prints the call, a summary of ``outer'' optimization, the estimates of the covariates and the $p$value of the Commenges-Andersen test. A more user-readable summary of an \code{emfrail} object is provided by the \code{summary.emfrail()} method. This returns an object of the class \code{emfrail_summary} that contains general fit information, covariate estimates and several distribution-specific measures of fit and dispersion described in section \ref{sec:goodness}. Arguments to \code{summary.emfrail()} may be used to show confidence intervals either likelihood based or delta method based, as described in section \ref{sec:return}.
+By itself, an \code{emfrail} object prints the call, a summary of ``outer'' optimization, the estimates of the covariates and the $p$value of the Commenges-Andersen test. A more user-readable summary of an \code{emfrail} object is provided by the \code{summary.emfrail()} method. This returns an object of the class \code{emfrail_summary} that contains general fit information, covariate estimates and several distribution-specific measures of fit and dispersion described in section~\ref{sec:goodness}. Arguments to \code{summary.emfrail()} may be used to show confidence intervals either likelihood based or delta method based, as described in section~\ref{sec:return}.
 
 A method for predicting cumulative hazard and survival curves, both conditional and marginal, exists in \code{predict.emfrail()}. Confidence bands are based on the asymptotic normality of the estimated $\lambda_0$, and available both for adjusted and un-adjusted for the uncertainty of $\theta$. The user can specify which quantities to obtain and values of the linear predictor at which to calculate these curves. The function returns a data frame from which several plots can be easily created.
 
@@ -297,7 +297,7 @@ An additional function is provided to calculate the marginal log-likelihood for 
 For a quick start, one can run this:
 \label{sec:examples}
 <<test1>>=
-library(frailtyEM)
+library("frailtyEM")
 @
 The features of the package are now illustrated with two well-known data sets available in \proglang{R}.
 % Note that \pkg{frailtyEM} package is generally well-suited to work with the \pkg{tidyverse} \citep{tidyverse} tools, such as \pkg{dplyr} \citet{dplyr} and \pkg{ggplot2} \citet{ggplot2}.
@@ -305,7 +305,7 @@ The features of the package are now illustrated with two well-known data sets av
 \subsection{cgd}
 The data are from a placebo controlled trial of gamma interferon in chronic granulotomous disease (CGD). It contains the time to recurrence of serious infections observed through end of study for each patient.
 <<bladder1>>==
-data(cgd)
+data("cgd")
 @
 The variables of interest here are: \code{tstart}, \code{tstop} and \code{status} determine the outcome. The individual is identified by the variable \code{id}. For the purpose of illustration, we will use `treat` (treatment or placebo) and `sex` (female or male) as covariates, althought a larger number of variables are recorded in the data set.
 
@@ -319,7 +319,7 @@ The arguments of \code{emfrail} visible above are \code{.data} and \code{.formul
 str(emfrail_distribution())
 @
 The \code{emfrail_distribution} objects have 4 fields: \code{dist} describes the distribution of the frailty (here, a gamma distribution), \code{theta} is the frailty parameter and the starting value for the optimization. The parametrizations are described in Appendix A1. The \code{pvfm} field only plays a role when \code{dist=="pvf"}, and describes which PVF family distribution should be used. Finally, \code{left_truncation} is a logical variable, on whether to treat an observation as left truncated or not.
-For example, in the case of recurrent events in Andersen-Gill format, this should be \code{FALSE}, because the \code{start} column does not refer to ascertainment, and the frailty must not be taken conditional on not having had an event before that time point. The adjustment that happens if left truncation is present is described in section \ref{sec:Ascertainment}.
+For example, in the case of recurrent events in Andersen-Gill format, this should be \code{FALSE}, because the \code{start} column does not refer to ascertainment, and the frailty must not be taken conditional on not having had an event before that time point. The adjustment that happens if left truncation is present is described in section~\ref{sec:Ascertainment}.
 
 The \code{emfrail} object has a minimal print method that prints a summary of the maximum likelihood estimates.
 <<distribution>>==
@@ -330,7 +330,7 @@ The \code{theta} field is not very informative: for the gamma and PVF distributi
 sm1 <- summary(m1, lik_ci = TRUE)
 sm1
 @
-The first two parts of this output, about regression coefficients and fit summary, exist regardless of the frailty distributions. The last part, ``frailty summary'', provides a useful output according to the distribution. The calculations behind this section are described for each distribution in Appendix A1. Since only $\log \theta$ is actually estimated in the ``outer'' step, the delta method is employed to obtain standard errors for all derived quantities. The confidence intervals may be obtained either likelihood-based or delta method-based, see Appendix A4 for details.The delta method based confidence intervals are shown if \code{lik_ci = FALSE}. We found the profile likelihood confidence intervals more reliable, especially when the parameter estimates approach the edges of the parameter space.
+The first two parts of this output, about regression coefficients and fit summary, exist regardless of the frailty distributions. The last part, ``frailty summary'', provides a useful output according to the distribution. The calculations behind this section are described for each distribution in Appendix A1. Since only $\log \theta$ is actually estimated in the ``outer'' step, the delta method is employed to obtain standard errors for all derived quantities. The confidence intervals may be obtained either likelihood-based or delta method-based, see Appendix A3 for details.The delta method based confidence intervals are shown if \code{lik_ci = FALSE}. We found the profile likelihood confidence intervals more reliable, especially when the parameter estimates approach the edges of the parameter space.
 
 Both the Commenges-Andersen test for heterogeneity and the one-sided likelihood ratio test deems the random effect highly significant. This is also suggested by the confidence interval for the frailty variance, which is far from 0.
 
@@ -342,7 +342,9 @@ m_cph <- coxph(Surv(tstart, tstop, status) ~ sex + treat + frailty(id),
 m_cph
 @
 
-The empirical Bayes frailty estimates are also identical for the two ways of fitting the model.
+The empirical Bayes frailty estimates are also identical for the two ways of fitting the model, as seen in figure~\ref{fig:frailtyestimates}.
+\begin{figure}
+\begin{center}
 <<bladder2_frailtyestimates, fig=TRUE>>==
 plot(exp(m_cph$frail),
      sm1$frail$z,
@@ -350,43 +352,63 @@ plot(exp(m_cph$frail),
      ylab = "frailty estimates (emfrail)")
 abline(0,1)
 @
+\label{fig:frailtyestimates}
+\caption{Scatterplot of the empirical Bayes frailty estimates from \code{emfrail()} versus those from \code{coxph()}}
+\end{center}
+\end{figure}
 
-To look at predicted cumulative hazard curves we take two individuals, one from the treatment arm and one from the placebo arm, both males.
+To illustrate the predicted cumulative hazard curves we take two individuals, one from the treatment arm and one from the placebo arm, both males. The two are shown in figure~\ref{fig:plot_pred}
+\begin{figure}
+\begin{center}
 <<bladder2_cumhaz, fig=TRUE>>==
-par(mfrow=c(1,2))
-plot_pred(m1,
-          newdata = data.frame(sex = "male", treat = "rIFN-g"),
-          ylim = c(0,2),
-          main = "treatment")
-plot_pred(m1,
-          newdata = data.frame(sex = "male", treat = "placebo"),
-          ylim = c(0,2),
-          main = "placebo")
+library("ggplot2")
+p1 <- ggplot_pred(m1,
+          newdata = data.frame(sex = "male", treat = "rIFN-g")) +
+  ggtitle("rIFN-g") + ylim(c(0, 2)) +
+  theme_minimal()
+p2 <- ggplot_pred(m1,
+          newdata = data.frame(sex = "male", treat = "placebo")) +
+    ggtitle("placebo") + ylim(c(0, 2)) +
+    theme_minimal()
+
+gridExtra::grid.arrange(p1, p2, nrow = 1)
 @
+\label{fig:plot_pred}
+\caption{Predicted conditional and marginal cumulative hazards for males, one from the treatment arm and one from the placebo arm}
+\end{center}
+\end{figure}
 
 The cumulative hazard in this case can be interpreted as the expected number of events at a certain time. It can be seen that the frailty ``drags down'' the marginal hazard. This is a well-known effect observed in frailty models, as described in \citet[ch.~7]{aalen2008survival}.
 
 A similar model can be fitted with the positive stable distribution:
 <<bladder2_stable>>==
-
 m2 <- emfrail(.data = cgd,
               .formula = Surv(tstart, tstop, status) ~ treat + sex + cluster(id),
               .distribution = emfrail_distribution(dist = "stable"))
 summary(m2)
 @
 
-The coefficient estimates are similar with those of \code{m1}. The ``frailty summary'' part is quite different though. The positive stable distribution has infinite expectation. However, Kendall's $\tau$ is easily obtained, and in this case it is smaller than in the gamma frailty model. Unlike the gamma or PVF distributions, the positive stable frailty predicts a marginal model with proportional hazards where the marginal hazard ratios are an attenuated version of the conditional hazard ratios shown in the output. The attenuation factor, shown in the output, is calculated as described in Appendix A1. This is discussed at length in \cite{hougaard2012analysis} and it can be easily visualized with \code{emfrail}.
+The coefficient estimates are similar with those of \code{m1}. The ``frailty summary'' part is quite different though. The positive stable distribution has infinite expectation. However, Kendall's $\tau$ is easily obtained, and in this case it is smaller than in the gamma frailty model. Unlike the gamma or PVF distributions, the positive stable frailty predicts a marginal model with proportional hazards where the marginal hazard ratios are an attenuated version of the conditional hazard ratios shown in the output. The attenuation factor, shown in the output, is calculated as described in Appendix A1. This is discussed at length in \cite{hougaard2012analysis} and it can be easily visualized with \code{emfrail}, as shown in figure~\ref{fig:hr}.
+
+\begin{figure}
+\begin{center}
 <<bladder2_hazardratios, fig=TRUE>>==
-par(mfrow=c(1,2))
-plot_hr(m1,
-        newdata = data.frame(treat = c("placebo", "rIFN-g"), sex = c("male", "male")),
-        main = "gamma")
+pl1 <- ggplot_hr(m1,
+        newdata = data.frame(treat = c("placebo", "rIFN-g"), sex = c("male", "male"))) +
+  ggtitle("gamma") +
+  theme_minimal()
 
-plot_hr(m2,
-        newdata = data.frame(treat = c("placebo", "rIFN-g"), sex = "male"),
-        main = "stable")
+pl2 <- ggplot_hr(m2,
+        newdata = data.frame(treat = c("placebo", "rIFN-g"), sex = "male")) +
+  ggtitle("stable") +
+  theme_minimal()
 
+gridExtra::grid.arrange(pl1, pl2, nrow = 1)
 @
+\caption{Conditional and marginal hazard ratio from the gamma and the positive stable frailty models}
+\label{fig:hr}
+\end{center}
+\end{figure}
 
 The plot shows that the marginal hazard ratio of the gamma frailty model is not time-constant, while the one from the positive stable frailty model is. This is discussed in \citet[ch.~7]{aalen2008survival}. In \cite{hougaard2012analysis} this is seen as a strength of the positive stable frailty model.
 
@@ -467,7 +489,7 @@ In this case, this is evidence that the gamma frailty corrects for proportionali
 % @
 
 \section{Conclusion}
-We have shown that the EM based approach has certain advantages in the context of frailty models. First of all, it is semiparametric, which means that it is an extension of the Cox proportional hazards model. In this way, classical results from semiparametric frailty models (for example, the data sets in section \ref{sec:examples}) can be replicated and further insight may still be obtained. Until now, the Commenges-Andersen test, positive stable and PVF family, have not all been implemented in a consistent way in an \proglang{R} package.
+We have shown that the EM based approach has certain advantages in the context of frailty models. First of all, it is semiparametric, which means that it is an extension of the Cox proportional hazards model. In this way, classical results from semiparametric frailty models (for example, the data sets in section~\ref{sec:examples}) can be replicated and further insight may still be obtained. Until now, the Commenges-Andersen test, positive stable and PVF family, have not all been implemented in a consistent way in an \proglang{R} package.
 
 Several options not discussed in this paper include the left truncation adjustment. There is no available data set to illustrate this option, however the peroforming of a larger simulation study to assess the effects of left truncation in clustered failure data is now possible.
 
@@ -493,7 +515,7 @@ We now consider how $\alpha$ and $\gamma$ can be represented as a function of a 
 \paragraph{The gamma distribution}
 For $Y$ a gamma distributed random variable, $\psi(c;\gamma) = \log(\gamma + c) - \log(\gamma)$, the derivatives of which are
 $$\psi^{(k)} (c; \gamma) = (-1)^{k-1} (k-1)! (\gamma + c)^{-k}.$$
-For identifiability, the restriction $E[Y] = 1$ is imposed; this leads to $\alpha = \gamma$.
+For identifiability, the restriction $\mathrm{E}Y = 1$ is imposed; this leads to $\alpha = \gamma$.
 The distribution is parametrized with $\theta >0$, $\theta = \alpha = \gamma$.
 The variance of $Y$ is  $\mathrm{Var} Y = \theta^{-1}$.
 Kendall's $\tau$ is then $\tau = \frac{1}{1 + 2 \theta}$ and the median concordance is
@@ -507,7 +529,7 @@ $\psi(c;\gamma) = c^\gamma$ with $\gamma \in (0,1)$, the derivatives of which ar
 $$
 \psi^{(k)}(c; \gamma) = \frac{\Gamma(k - \beta)}{\Gamma(1 - \gamma)} (-1)^{k - 1} c^{\gamma - 1}.
 $$
-For identifiability, the restriction $\alpha = 1$ is made; $E[Y]$ is undefined and $\mathrm{Var}Y = \infty$.
+For identifiability, the restriction $\alpha = 1$ is made; $\mathrm{E}Y$ is undefined and $\mathrm{Var}Y = \infty$.
 The distribution is parametrized with  $\theta >0$, $\gamma = \frac{\theta}{\theta + 1}$.
 
 % This parametrization is equivalent to that of \cite{munda2012parfm}. In \cite{hougaard2012analysis}, the parameter
@@ -610,7 +632,16 @@ $$
 We implemented a recursive algorithm in \proglang{C++} which resides in the \code{emfrail_estep.cpp} which loops through these partitions, calculates the corresponding derivatives of $\psi$ and the coefficients.
 
 \section*{Appendix A3: Standard errors}
-Denote the vector of parameters $\eta = (\beta, \lambda_0(\cdot))$. The information matrix for $(\theta, \eta)$ can be written as follows:
+The outer maximization of $\widehat{L}(\theta)$ is carried out on the log-scale, as described in section~\ref{sec:Estimation}, and the numeric hessian is used to obtain $\mathrm{Var}(\widehat\theta)$.
+Afterwards, the delta method is employed to derive standard errors for $\theta$ and the other functionals of $\theta$ described in Appendix A1. However, the standard error is not very meaningul for parameters with skewed distributions. Confidence intervals are constructed in two ways.
+
+The first type of confidence intervals provided by \pkg{frailtyEM} are based on the the asymptotic normality of $\widehat{\log\theta}$, by constructing a 95\% symmetric confidence interval on the log-scale, and then translating it to the other functionals of $\theta$.
+
+The second type are likelihood-based confidence intervals. Under the null hypothesis, the likelihood ratio test statistic follows a $\chi^2(0) + \chi^2(1)$ distribution. The critical value associated with this test statistic is approximately $1.92$. Using the root-finding algorithm implemented in the \code{uniroot()} function in the \pkg{stats} package, a confidence interval is obtained from the values of $\theta$ with the property that $\widehat{L}(\theta) = \widehat{L}(\widehat{\theta}) - 1.92$. This confidence interval is then translated to the functionals of $\theta$.
+
+The likelihood-based confidence intervals are the default in \code{emfrail()} because the coverage is guaranteed to be the same for all transformations of $\theta$.
+
+Considering the vector of parameters $\eta = (\beta, \lambda_0(\cdot))$, the information matrix for $(\theta, \eta)$ can be written as follows:
 \[
 \mathcal{I}=
   \begin{bmatrix}
@@ -618,14 +649,10 @@ Denote the vector of parameters $\eta = (\beta, \lambda_0(\cdot))$. The informat
     \mathcal{I}_{\eta, \theta} & \mathcal{I}_{\eta, \eta}
   \end{bmatrix}.
 \]
-From this, $\mathcal{I}_{\theta, \theta}$ is approximated numerically as the Hessian of the ``outer'' maximization. The part corresponding to $\eta$, $\mathcal{I}_{\eta,\eta}$ is calculated using Louis' formula, which has been commonly employed to obtain this quantity from EM algorithms \cite{louis1982finding}. It only requires the first and second derivatives of $\log \widehat L(\eta)$.
+ The part corresponding to $\eta$, $\mathcal{I}_{\eta,\eta}$ is calculated using Louis' formula, which has been commonly employed to obtain this quantity from EM algorithms \cite{louis1982finding}. This is done under the assumption of $\theta$ fixed to the maximum likelihood estimate $\hat\theta$. This leads to an underestimate of the standard errors, as is noted also in \citet[sec. 9.5]{survival-book}.
+ The calculation of the variance-covariance matrix $\mathcal{I}^{-1}$ in this case involves approximating $\mathcal{I}_{\eta, \theta}$ and adjusting $\mathcal{I}_{\eta, \eta}$, as described in \citet[Appendix B.3]{hougaard2012analysis} and \cite{putter2015dynamic}.
 
-By inverting $\mathcal{I}_{\theta, \theta}$ and $\mathcal{I}_{\eta,\eta}$, two variance-covariance matrices are obtained: $\mathrm{Var}(\theta)$ and $\mathrm{Var}(\eta | \theta = \widehat\theta)$. The latter matrix is the variance-covariance for $\eta$ under fixed $\theta$; from this, the standard errors are calculated, for example, in the \pkg{survival} package. This leads to an under-estimation of the standard errors, the extent of which, to our knowledge, has not been yet studied.
-
-The calculation of the variance-covariance matrix $\mathcal{I}^{-1}$ in this case has been described in \citet[Appendix B.3]{hougaard2012analysis} and \cite{putter2015dynamic}.
-
-\section*{Appendix A4: confidence intervals for the frailty parameters}
-The former relies on constructing a (non-symmetric) 95\% confidence interval for $\log \theta$ on the profile log-likelihood scale \eqref{eq:profilelik} while the delta method-based is based on constructing a symmetric 95\% confidence interval for $\log \theta$ on the profile log-likelihood scale based on the asymptotic normality of the estimate.
+Confidence intervals for the conditional cumulative hazard are obtained from the part of the variance-covariance matrix corresponding to $\lambda_0(\cdot)$, and confidence intervals for $\Lambda_0(t) = \sum_{s\leq t} \lambda_0(t)$ are obtained with the usual formula. For confidence intervals, the delta method is used to calculate a symmetric confidence interval for $\log \Lambda_0(t)$ for all $t$, which is then exponentiated.
 
 %\bibliographystyle{jss}
 
