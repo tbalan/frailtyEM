@@ -12,7 +12,7 @@ knitr::opts_chunk$set(
 )
 ```
 
-Hi! This is an R package for fitting semiparametric shared frailty models with the EM algorithm.
+This is an R package for fitting semiparametric shared frailty models with the EM algorithm.
 To install, use:
 ```{r, eval=FALSE}
 devtools::install_github("teddybalan/frailtyEM")
@@ -23,6 +23,7 @@ Where to start? Well, try this:
 library(frailtyEM)
 ?emfrail
 ```
+
 
 Although the package is currently stable, weekly improvements are still being made and bugs may still exist. So... update often!
 

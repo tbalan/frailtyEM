@@ -182,13 +182,16 @@ where $\tilde\psi(c; \Lambda_{L,i}, \gamma) = \psi(c + \Lambda_{L,i}; \gamma) - 
 Note that, in general, the ascertainment scheme does not have a simple description and $P(A_i | Z_i = z_i)$ may or may not be available in closed form. For example, in family studies, the families may be selected only when a number of individuals live long enough \citep{rodriguez2016survival}. In this case, \eqref{eq:left_trunc1} does not hold. In the case of registry data on recurrent events, individuals (clusters) may be selected only if they have at least one event during a certain time window \citep{balan2016ascertainment}. These specific cases are not currently accommodated by \pkg{frailtyEM}.
 
 
-\subsection{Goodness of fit}
-The first question when fitting random effect models is whether there is evidence for heterogeneity. To answer this \it a priori \rm, the score test of \cite{commenges1995score} may be used, and is referred in \pkg{frailtyEM} as the Commenges-Andersen test. In general, score tests are attractive because they only require estimating the model under the null hypothesis. In this case, that is an ordinary proportional hazards model. In this spirit, the assumption of the censoring being non-informative on the frailty \citep{nielsen1992counting} may be easily tested as described in \cite{balan2016score}.
+\subsection{Goodness of fit and measures of dependence}
+\label{sec:goodness}
+A reasonable question when fitting random effect models is whether there is evidence for heterogeneity.
+To answer this \it a priori \rm, the Commenges-Andersen score test may be used \citep{commenges1995score}. This test is  referred in \pkg{frailtyEM} as the Commenges-Andersen test, and is performed before the actual estimation of the model \eqref{eq:intensity}. This test does not depend on the frailty distribution. The user may opt to skip this, or to just estimate the test without fitting the shared frailty model in the \code{.control} argument of \code{emfrail()}.
 
-After fitting the model, the likelihood ratio test may be used to assess whether the model with the frailty is a better fit than a model without frailty. For the gamma and PVF distributions, this is equivalent to testing the hypothesis that $\mathrm{Var}(Z) = 0$ versus the alternative $\mathrm{Var}(Z) > 0$. Simulation studies for the gamma frailty suggest that the asymptotic distribution of the likelhood ratio test statistic follows a $\chi^2(0) + \chi^2(1)$ distribution \citep{lrtstatistic}.
+After fitting the model, the likelihood ratio test may be used to assess whether the model with the frailty is a better fit than a model without frailty. In this case, the null model is the model without frailty. With the parametrizations described in Appendix A1, this test lies at the edge of the parameter space, and the asymptotic distribution of the test statsitic under the null hypothesis is approximately a mixture of $\chi^2(0)$ and $\chi^2(1)$ distribution \citep{lrtstatistic}.
 
-Several measures of dispersion such as the estimated variance of the random effect, Kendall's tau or the median concordance are discussed in \cite{hougaard2012analysis} and are implemented in \pkg{frailtyEM}.
+An explicit assumption of model \eqref{eq:intensity} is that the censoring is non-informative on the frailty. This assumption is usually difficult to test. A correlation score test is implemented for the gamma distribution, following \cite{balan2016score}. This can also be used, for example, for testing whether a recurrent event event process and a terminal event are associated.
 
+Several measures of dependence have been discussed in the literature, and may be used for comparing different distributions of the random effect. The first is the variance of the estimated frailty distribution $Z$, which is useful for the gamma and the PVF family. The variance of $\log Z$ is also useful for the positive stable distribution for which the variance is infinite. Other measures of associtaion include Kendall's $\tau$ and the median concordance. A thorough discussion and comparison of these measures can be found in \cite{hougaard2012analysis}.
 
 \section{Estimation}
 \label{sec:Estimation}
@@ -243,8 +246,14 @@ The EM algorithm stops after the marginal log-likelihood has converged, i.e., wh
 
 
 \subsection{Outer problem}
-The ``outer'' problem refers to finding $\widehat \theta$ which maximizes $\widehat L(\theta)$. The resulting $\widehat \theta$ is the maximum likelihood estimator and the maximum likelihood is obtained at $\widehat L(\widehat \theta)$.
-All the infinite divisible distributions in this library involve only a one-dimensional $\theta$. The maximizer of choice may be one of those from the \pkg{optimx} package \citep{optimx1, optimx2}, and it defaults to \code{bobyqa}. The results of this maximization are returned in the final object and are accessible to the user.
+The ``outer'' problem refers to finding $\widehat \theta$ which maximizes the profile likelihood $\widehat L(\theta)$. The resulting $\widehat \theta$ is the maximum likelihood estimator and the maximum likelihood is obtained at $\widehat L(\widehat \theta)$. For the infinitely divisible distributions in \pkg{frailtyEM}, $\theta$ is one dimensional.
+
+In the maximization procedure, $\theta$ is introduced on the log-scale. That is for numerical stability (the interval for searching for the maximum likelihood is ``stretched'' to the real numbers) and for asymptotic normality. Although maximum likelihood estimates are asymptotically normal, the likelihood is likely to be skewed, especially if the maximum likelihood is close to the edge of the parameter space. In this case, the standard error of the estimate may be difficult to interpret for constructing confidence intervals. It has been shown that symmetric confidence intervals of $\log \theta$, translated to the scale of $\theta$, provide good coverage \cite{balan2016ascertainment}.
+
+The maximizer used is \code{optimize} from the \pkg{stats} library. This requires the specification of an interval to search for a maximum. The default search intervals, described by \code{emrail_control()}, may be overriden by the user. Larger intervals provide more precision, however numeric problems may occur when the EM algorithm is ran in stranger parts of the parameter space. For instance, if the frailty variance of the gamma distribution is allowed to take very large values.
+
+%
+% The maximizer of choice may be one of those from the \pkg{optimx} package \citep{optimx1, optimx2}, and it defaults to \code{bobyqa}. The results of this maximization are returned in the final object and are accessible to the user.
 
 
 % For a fixed $\theta$, the ``complete-data'' log-likelihood is given by
@@ -258,10 +267,18 @@ All the infinite divisible distributions in this library involve only a one-dime
 
 
 
-\subsection{Return object and standard errors}
-After the maximizer has converged and the outer maximization is done, a number of calls to the internal \code{em_fit()} are performed at $\hat \theta$ and $\hat \theta \pm \varepsilon $, this time returning a complete list of results including the variance-covariance matrix of $(\beta, \lambda_0)$. These results are used for general output, and also for calculating an adjusted variance-covariance matrix accounting for the uncertainty in estimating $\theta$. The idea is described in Appendix A3.
+\subsection{Standard errors and return object}
+\label{sec:return}
 
-In general, the return object type is \code{emfrail}, which is essentially a list that contains the results of the ``outer'' maximization as returned by \code{optimx()}, the results of the ``inner'' maximization at the estimate, and a few other fields which are used for different methods. The object type is documented in \code{?emfrail}. Some options to obtain only part of the results are available via the \code{.control} argument.
+After the maximizer has converged and the outer maximization is finished and $\hat \theta$ has been obtained, the Hessian is approximated numerically with the functions available in the \pkg{numDeriv} package \citep{numDeriv}.
+By inverting this value, the variance of $\widehat{\log \theta}$ is obtained. A symmetric 95\% confidence interval is built on that scale, and translated for all the other derived quantities described in \ref{sec:goodness}.
+Furthermore, the delta method is used to provide standard errors for these parameters as well, by using the \code{deltamethod()} implementation in the \pkg{msm} \citep{msm} package.
+
+A method which is more stable, yet also more computationally intensive, for quantifying this uncertainty in the estimates, is through likelihood-based confidence intervals. This requires finding the $\theta$ values for which the difference between the maximum likelihood and the specific profile maximum likelihood values at $\theta$ equals a critical value, calculated from the $\chi^2(1)$ distribution, and is discusse din Appendix A2. This can be achieved with a root-finding routine such as the \code{uniroot()} function in the \pkg{stats} package.
+
+The standard error of the estimates for $\beta$ and $\lambda_0(\cdot)$ are calculated with Louis' formula \citep{louis1982finding}, for $\theta$ fixed to the maximum likelihood estimate. The corresponding information matrix leads to an underestimate of the standard errors, because it does not take into account the uncertainty in estimating $\theta$. An adjustment is performed by calculating the information matrix for $\beta$ and $\lambda_0$ also at $\hat \theta \pm \varepsilon $. The details of this are described in Appendix A3.
+
+The return object type is \code{emfrail}, which is essentially a list that contains the results of the ``outer'' maximization, the results of the ``inner'' maximization at this estimate, and a few other fields which are used for different methods. The object type is documented in \code{?emfrail}. Some options to obtain only part of this object as an output are available via the \code{.control} argument.
 %This was suggested inand \cite{putter2015dynamic}.
 
 \subsection{Output, summary and prediction}
@@ -301,16 +318,18 @@ str(emfrail_distribution())
 The \code{emfrail_distribution} objects have 4 fields: \code{dist} describes the distribution of the frailty (here, a gamma distribution), \code{theta} is the frailty parameter and the starting value for the optimization. The parametrizations are described in Appendix A1. The \code{pvfm} field only plays a role when \code{dist=="pvf"}, and describes which PVF family distribution should be used. Finally, \code{left_truncation} is a logical variable, on whether to treat an observation as left truncated or not.
 For example, in the case of recurrent events in Andersen-Gill format, this should be \code{FALSE}, because the \code{start} column does not refer to ascertainment, and the frailty must not be taken conditional on not having had an event before that time point. The adjustment that happens if left truncation is present is described in section \ref{sec:Ascertainment}.
 
-The \code{emfrail} object prints a slightly modified version of the output from the ``outer'' maximization, which is the same as one from \code{optimx}, with a few additions.
+The \code{emfrail} object has a minimal print method that prints a summary of the maximum likelihood estimates.
 <<distribution>>==
 m1
 @
-A more interesting output is obtained by calling \code{summary()}:
+The \code{theta} field is not very informative: for the gamma and PVF distributions, this is the inverse of the variance of the frailty, often of interest. For the positive stable this is more difficult to interpret. A more useful output is obtained by calling \code{summary()}:
 <<summary>>==
-sm1 <- summary(m1)
+sm1 <- summary(m1, lik_ci = TRUE)
 sm1
 @
-The first two parts of this output, about regression coefficients and fit summary, exist regardless of the frailty distributions. The last part, ``frailty summary'', depends on the distribution at hand. The frailty variance is estimated as 0.82 in this case. Both the Commenges-Andersen test for heterogeneity and the one-sided likelihood ratio test deems the random effect highly significant. This is also suggested by the confidence interval for the frailty variance, which is far from 0.
+The first two parts of this output, about regression coefficients and fit summary, exist regardless of the frailty distributions. The last part, ``frailty summary'', provides a useful output according to the distribution. The calculations behind this section are described for each distribution in Appendix A1. Since only $\log \theta$ is actually estimated in the ``outer'' step, the delta method is employed to obtain standard errors for all derived quantities. The confidence intervals may be obtained either likelihood-based or delta method-based, see Appendix A4 for details.The delta method based confidence intervals are shown if \code{lik_ci = FALSE}. We found the profile likelihood confidence intervals more reliable, especially when the parameter estimates approach the edges of the parameter space.
+
+Both the Commenges-Andersen test for heterogeneity and the one-sided likelihood ratio test deems the random effect highly significant. This is also suggested by the confidence interval for the frailty variance, which is far from 0.
 
 The results are almost identical to a gamma frailty fit from \code{coxph}. The marginal log-likelihood in the \code{emfrail} object is slightly higher, that is because the estimation of the frailty distribution is more precise. In addition, \code{emfrail} also provides a 95\% confidence interval for the frailty variance.
 <<bladder2_asd>>==
@@ -464,57 +483,62 @@ In the current landscape for modeling random effects in survival analysis, \pkg{
 \section*{Appendix A1: Results for the Laplace transforms}
 We consider distributions from the infinitely divisible family \cite[ch 8.5]{ash2014real} with the Laplace transform
 $$
-\mathcal{L}(c) = \exp(-\alpha \psi(c;\gamma)).
+\mathcal{L}_Y(c) = \exp(-\alpha \psi(c;\gamma)).
 $$
 We now consider how $\alpha$ and $\gamma$ can be represented as a function of a positive parameter $\theta$.
 
 \paragraph{The gamma distribution}
-For the gamma distribution, $\psi(c;\gamma) = \log(\gamma + c) - \log(\gamma)$.
-We have
+For $Y$ a gamma distributed random variable, $\psi(c;\gamma) = \log(\gamma + c) - \log(\gamma)$, the derivatives of which are
 $$\psi^{(k)} (c; \gamma) = (-1)^{k-1} (k-1)! (\gamma + c)^{-k}.$$
-
-For identifiability, the natural parametrization would be
-$\alpha = \gamma$.
-Then, we have for a $\theta >0$, $\theta = \alpha = \gamma$, which implies mean 1 and variance $\theta^{-1}$.
+For identifiability, the restriction $E[Y] = 1$ is imposed; this leads to $\alpha = \gamma$.
+The distribution is parametrized with $\theta >0$, $\theta = \alpha = \gamma$.
+The variance of $Y$ is  $\mathrm{Var} Y = \theta^{-1}$.
+Kendall's $\tau$ is then $\tau = \frac{1}{1 + 2 \theta}$ and the median concordance is
+$\kappa = 4 \left( 2^{1 + 1 / \theta} - 1 \right)^{-\theta} - 1$. Furthermore,
+$\mathrm{E} \log Y = \psi(\theta) - \log \theta$ and
+$\mathrm{Var} \log Y = \psi'(\theta)$ where $\psi$ and $\psi'$ are the digamma and trigamma functions.
 
 \paragraph{The positive stable distribution}
-For the positive stable distribution,
-$\psi(c;\gamma) = c^\gamma$ with $\gamma \in (0,1)$.
+For $Y$ a positive stable random variable,
+$\psi(c;\gamma) = c^\gamma$ with $\gamma \in (0,1)$, the derivatives of which are
 $$
 \psi^{(k)}(c; \gamma) = \frac{\Gamma(k - \beta)}{\Gamma(1 - \gamma)} (-1)^{k - 1} c^{\gamma - 1}.
 $$
-For identifiability, we take $\alpha = 1$.
-Then, we have for a  $\theta >0$, $\gamma = 1 - \frac{\theta}{\theta + 1}$.
-This parametrization is equivalent to that of \cite{munda2012parfm}. In \cite{hougaard2012analysis}, the parameter
-$\alpha_{H} = \gamma$. Kendall's $\tau$ is then
-$\tau = \frac{\theta}{\theta + 1}$ and the median concordance is
-$\kappa = 2^{2 - 2^{1 - \frac{\theta}{\theta + 1}}} - 1$.
-In the case of the PS distribution, the marginal hazard ratio is an attenuated version of the conditional hazard ratio which is equal to $\gamma$.
+For identifiability, the restriction $\alpha = 1$ is made; $E[Y]$ is undefined and $\mathrm{Var}Y = \infty$.
+The distribution is parametrized with  $\theta >0$, $\gamma = \frac{\theta}{\theta + 1}$.
+
+% This parametrization is equivalent to that of \cite{munda2012parfm}. In \cite{hougaard2012analysis}, the parameter
+% $\alpha_{H} = \gamma$.
+Kendall's $\tau$ is then
+$\tau = 1 - \frac{\theta}{\theta + 1}$ and the median concordance is
+$\kappa = 2^{2 - 2^{\frac{\theta}{\theta + 1}}} - 1$.
+Furthermore, $\mathrm{E} \log Y = - (\gamma^{-1} - 1) \psi(1)$ and
+$\mathrm{Var} \log Y = \left( \left\{\frac{\theta}{1 + \theta} \right\}^{-2} - 1 \right) \psi'(1)$.
+
+In the case of the PS distribution, the marginal hazard ratio is an attenuated version of the conditional hazard ratio. If the conditional log-hazard ratio is $\beta$, the marginal hazard ratio  is equal to $\beta \frac{\theta}{\theta + 1}$.
 
 
 \paragraph{The PVF distributions}
-For the PVF distribution, with fixed parameter $m \in \mathbb{R}$, $m > -1$ and $m \neq 0$,
+For $Y$ a PVF distribution with fixed parameter $m \in \mathbb{R}$, $m > -1$ and $m \neq 0$,
 $$
 \psi(c; \gamma) = \mathrm{sign}(m) (1 - \gamma^m (\gamma + c)^{-m})
 $$
-where $\mathrm{sign}$ denotes the sign. This is the same parametrizaion as in \cite{aalen2008survival}. To exhibit the tie-in with that
-of \cite{hougaard2012analysis}, it would be $m = -\alpha_H$, $\gamma = \theta_H$, $\alpha = \vert \delta_H/m \gamma^{-m} \vert$
-.
+where $\mathrm{sign}$ denotes the sign. This is the same parametrizaion as in \cite{aalen2008survival}. The parameters from  \cite{hougaard2012analysis} are defined by the correspondences $m = -\alpha_H$, $\gamma = \theta_H$, $\alpha = \vert \delta_H/m \gamma^{-m} \vert$.
 We have
 $$
 \psi^{(k)}(c; \gamma) = \mathrm{sign}(m) (-\gamma)^m (\gamma + c)^{-m-k} (-1)^{k+1} \frac{\Gamma(m + k)}{\Gamma(m)}.
 $$
 It can be seen that the expectation of this distribution is minus the first derivative of the Laplace transform calculated in 0, i.e.,
 $$
-E(Z) = \alpha \psi'(0;\gamma) \mathcal{L}(0;\alpha, \gamma) = \frac{\alpha}{\gamma} m.
+\mathrm{E} Y = \alpha \psi'(0;\gamma) \mathcal{L}(0;\alpha, \gamma) = \frac{\alpha}{\gamma} m.
 $$
 The second moment of the distribution can be calculated as the second derivative of the Laplace transform at 0,
 $$
-EZ^2 = \alpha^2 \psi'^2(0) -\alpha \psi''(0) = \frac{\alpha^2}{\gamma^2}m^2 + \frac{\alpha}{\gamma^2} m(m+1).
+\mathrm{E} Y^2 = \alpha^2 \psi'^2(0) -\alpha \psi''(0) = \frac{\alpha^2}{\gamma^2}m^2 + \frac{\alpha}{\gamma^2} m(m+1).
 $$
-For identifiability, we set the mean to 1. For a $\theta >0$, we write
+For identifiability, we set the $\mathrm{E} Y = 1$. The parametrization is, for a parameter $\theta >0$,
 $\gamma = (m + 1) \theta$ and
-$\alpha = \frac{m + 1}{m} \theta$. This results in the variance of the frailty equal to $\theta^{-1}$.
+$\alpha = \frac{m + 1}{m} \theta$. This results in $\mathrm{Var} Y = \theta^{-1}$.
 
 \subsection*{Left truncation}
 To determine the Laplace transform under left truncation, we determine $\tilde \psi$ from \eqref{eq:laplace_ascertainment}.
@@ -596,6 +620,9 @@ From this, $\mathcal{I}_{\theta, \theta}$ is approximated numerically as the Hes
 By inverting $\mathcal{I}_{\theta, \theta}$ and $\mathcal{I}_{\eta,\eta}$, two variance-covariance matrices are obtained: $\mathrm{Var}(\theta)$ and $\mathrm{Var}(\eta | \theta = \widehat\theta)$. The latter matrix is the variance-covariance for $\eta$ under fixed $\theta$; from this, the standard errors are calculated, for example, in the \pkg{survival} package. This leads to an under-estimation of the standard errors, the extent of which, to our knowledge, has not been yet studied.
 
 The calculation of the variance-covariance matrix $\mathcal{I}^{-1}$ in this case has been described in \citet[Appendix B.3]{hougaard2012analysis} and \cite{putter2015dynamic}.
+
+\section*{Appendix A4: confidence intervals for the frailty parameters}
+The former relies on constructing a (non-symmetric) 95\% confidence interval for $\log \theta$ on the profile log-likelihood scale \eqref{eq:profilelik} while the delta method-based is based on constructing a symmetric 95\% confidence interval for $\log \theta$ on the profile log-likelihood scale based on the asymptotic normality of the estimate.
 
 %\bibliographystyle{jss}
 
