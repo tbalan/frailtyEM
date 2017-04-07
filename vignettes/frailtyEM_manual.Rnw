@@ -267,28 +267,31 @@ The maximizer used is \code{optimize} from the \pkg{stats} library. This require
 
 
 
-\subsection{Standard errors and return object}
+\subsection{Standard errors}
 \label{sec:return}
 
 After the maximizer has converged and the outer maximization is finished and $\hat \theta$ has been obtained, the Hessian is approximated numerically with the functions available in the \pkg{numDeriv} package \citep{numDeriv}.
 By inverting this value, the variance of $\widehat{\log \theta}$ is obtained. A symmetric 95\% confidence interval is built on that scale, and translated for all the other derived quantities described in \ref{sec:goodness}.
 Furthermore, the delta method is used to provide standard errors for these parameters as well, by using the \code{deltamethod()} implementation in the \pkg{msm} \citep{msm} package.
 
-A method which is more stable, yet also more computationally intensive, for quantifying this uncertainty in the estimates, is through likelihood-based confidence intervals. This requires finding the $\theta$ values for which the difference between the maximum likelihood and the specific profile maximum likelihood values at $\theta$ equals a critical value, calculated from the $\chi^2(1)$ distribution, and is discusse din Appendix A2. This can be achieved with a root-finding routine such as the \code{uniroot()} function in the \pkg{stats} package.
+A method which is more stable, yet also more computationally intensive, for quantifying this uncertainty in the estimates, is through likelihood-based confidence intervals. This requires finding the $\theta$ values for which the difference between the maximum likelihood and the specific profile maximum likelihood values at $\theta$ equals a critical value, calculated from the $\chi^2(1)$ distribution, and is discussed din Appendix A2. This can be achieved with a root-finding routine such as the \code{uniroot()} function in the \pkg{stats} package.
 
 The standard error of the estimates for $\beta$ and $\lambda_0(\cdot)$ are calculated with Louis' formula \citep{louis1982finding}, for $\theta$ fixed to the maximum likelihood estimate. The corresponding information matrix leads to an underestimate of the standard errors, because it does not take into account the uncertainty in estimating $\theta$. An adjustment is performed by calculating the information matrix for $\beta$ and $\lambda_0$ also at $\hat \theta \pm \varepsilon $. The details of this are described in Appendix A3.
 
-The return object type is \code{emfrail}, which is essentially a list that contains the results of the ``outer'' maximization, the results of the ``inner'' maximization at this estimate, and a few other fields which are used for different methods. The object type is documented in \code{?emfrail}. Some options to obtain only part of this object as an output are available via the \code{.control} argument.
-%This was suggested inand \cite{putter2015dynamic}.
+
 
 \subsection{Output, summary and prediction}
-By itself, an \code{emfrail} object prints the call, a summary of ``outer'' optimization, the estimates of the covariates and the $p$value of the Commenges-Andersen test. A more user-readable summary of an \code{emfrail} object is provided by the \code{summary.emfrail()} method. This returns an object of the class \code{emfrail_summary} that contains general fit information, covariate estimates and several distribution-specific measures of fit and dispersion. Since most of these depend on estimated parameters, the Delta method as implemented in \code{deltamethod} from the package \pkg{msm} \citep{msm} is used.
+The return object type is \code{emfrail}, which is essentially a list that contains the results of the ``outer'' maximization, the results of the ``inner'' maximization at this estimate, and a few other fields which are used for different methods. The object type is documented in \code{?emfrail}. Some options to obtain only part of this object as an output are available via the \code{.control} argument.
+
+By itself, an \code{emfrail} object prints the call, a summary of ``outer'' optimization, the estimates of the covariates and the $p$value of the Commenges-Andersen test. A more user-readable summary of an \code{emfrail} object is provided by the \code{summary.emfrail()} method. This returns an object of the class \code{emfrail_summary} that contains general fit information, covariate estimates and several distribution-specific measures of fit and dispersion described in section \ref{sec:goodness}. Arguments to \code{summary.emfrail()} may be used to show confidence intervals either likelihood based or delta method based, as described in section \ref{sec:return}.
 
 A method for predicting cumulative hazard and survival curves, both conditional and marginal, exists in \code{predict.emfrail()}. Confidence bands are based on the asymptotic normality of the estimated $\lambda_0$, and available both for adjusted and un-adjusted for the uncertainty of $\theta$. The user can specify which quantities to obtain and values of the linear predictor at which to calculate these curves. The function returns a data frame from which several plots can be easily created.
 
-A few simple plot functions have been created for convenience, although more flexibility may be achieved with \pkg{ggplot2} (this is described in the documentation of \code{predict.emfrail}). An overview of the plots is available with \code{?plot_emfrail}. For obtaining a histogram of the empirical Bayes estimates of the frailties, \code{hist_frail()} may be used. For plotting predicted cumulative hazard or survival curves \code{plot_pred()} may be used, and to plot the marginal and conditional estimated hazard ratios \code{plot_hr()} may be used.
+A few simple plot functions have been created for convenience, both using the base plot engines from the \pkg{graphics} package and the \pkg{ggplot2} package. An overview of the available plots may be found in \code{?plot_emfrail} and \code{?ggplot_emfrail}. These include \code{plot_pred()} for plotting marginal and conditional cumulative hazard or survival curves, \code{plot_hr()} for plotting marginal and conditional estimated hazard ratios, and \code{hist_frail()} for a histogram of the posterior estimates of the frailties.
+The same plots may be obtained with the \pkg{ggplot2} engine by adding the prefix \code{gg} to these functions.
+Furthermore, a scatter plot of the posterior estimates of the frailties may be obtained with \code{ggplot_frail()}, which also includes quantiles of the posterior distribution in the case of the gamma distribution.
 
-An additional function, \code{emfrail_pll()} is provided to calculate the marginal log-likelihood for a vector of values of $\theta$, without actually performing the outer optimizaion. This may be useful for visualizing the profile log-likelihood or when debugging (e.g.,if the maximum likelihood estimate of $\theta$ lies on the boundary).
+An additional function is provided to calculate the marginal log-likelihood for a vector of values of $\theta$, \code{emfrail_pll()}, without actually performing the outer optimizaion. This may be useful for visualizing the profile log-likelihood or when debugging (e.g.,if the maximum likelihood estimate of $\theta$ lies on the boundary).
 
 \section{Illustration}
 For a quick start, one can run this:

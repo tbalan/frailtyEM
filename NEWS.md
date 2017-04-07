@@ -1,3 +1,9 @@
+# frailtyEM 0.5.9
+- `ggplot_emfrail()`  added! Now the same plots (and more) can be done with the good looking `ggplot2` engine. 
+
+# frailtyEM 0.5.8
+- `summary.emfrail()` now has a new argument `print_opts` that is used in `print.emfrail_summary()`; if the output becomes too big, then some parts of the output may be ommitted
+
 # frailtyEM 0.5.7
 
 - The optimization now is regulated by search intervals described in the `emfrail_control()` and the `.control` argument. 

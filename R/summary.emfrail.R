@@ -2,6 +2,7 @@
 #'
 #' @param object An object of class \code{emfrail}
 #' @param lik_ci Logical. Should the confidence intervals for the frailty parameter be calculated based on the likelihood? If not, they are calculated with the delta method.
+#' @param print_opts A list with argumnets that are passed as attributes to the return object; these are used to determine what is printed when the object is accessed.
 #' @param ... Ignored
 #'
 #' @return An object of class \code{emfrail_summary},
@@ -80,7 +81,13 @@
 #' zph2
 #' # the p-values are even larger; the frailty "corrects" for proportionality.
 
-summary.emfrail <- function(object, lik_ci = TRUE, ...) {
+summary.emfrail <- function(object,
+                            lik_ci = TRUE,
+                            print_opts = list(coef = TRUE,
+                                              dist = TRUE,
+                                              fit = TRUE,
+                                              frailty = TRUE),
+                            ...) {
 
   # Calculate the following: estimated distribution of the frailty at time 0
   fit <- object
@@ -256,6 +263,7 @@ summary.emfrail <- function(object, lik_ci = TRUE, ...) {
        )
 
   #attr(ret, "class") <- "emfrail_summary"
+  attr(ret, "print_opts") <-  print_opts
   class(ret) <- "emfrail_summary"
   ret
 }

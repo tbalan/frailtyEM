@@ -12,11 +12,9 @@
 #' @param ... Parameters passed on to plot functions
 #'
 #' @details These functions exist mostly for conveince. They are in fact simple wrappers that use \code{predict.emfrail} or \code{summary.emfrail} on
-#' \code{object}, and extract some quantities of interest. Nicer plots can be obtained manually;
-#' in the documentation of \code{emfrail}, \code{emfrail_pll}, \code{summary.emfrail}, \code{predict.emfrail}
-#' several examples can be found.
+#' \code{object}, extract some quantities of interest, and plot them.
 #'
-#' @seealso \code{\link{predict.emfrail}}, \code{\link{summary.emfrail}}.
+#' @seealso \code{\link{predict.emfrail}}, \code{\link{summary.emfrail}}, \code{\link{ggplot_emfrail}}.
 #' @return Nothing.
 #' @importFrom graphics abline hist legend lines plot
 #' @examples

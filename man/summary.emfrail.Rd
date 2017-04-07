@@ -4,12 +4,15 @@
 \alias{summary.emfrail}
 \title{Summary for \code{emfrail} objects}
 \usage{
-\method{summary}{emfrail}(object, lik_ci = TRUE, ...)
+\method{summary}{emfrail}(object, lik_ci = TRUE, print_opts = list(coef =
+  TRUE, dist = TRUE, fit = TRUE, frailty = TRUE), ...)
 }
 \arguments{
 \item{object}{An object of class \code{emfrail}}
 
 \item{lik_ci}{Logical. Should the confidence intervals for the frailty parameter be calculated based on the likelihood? If not, they are calculated with the delta method.}
+
+\item{print_opts}{A list with argumnets that are passed as attributes to the return object; these are used to determine what is printed when the object is accessed.}
 
 \item{...}{Ignored}
 }
