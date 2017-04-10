@@ -1,6 +1,3 @@
-# This does a gamma frailty EM for fixed frailtypar
-
-
 em_fit <- function(logfrailtypar, dist, pvfm,
                    Y, Xmat, # id,  # this is some data stuff
                    atrisk, # a list with a shit load of things that will not change with the EM
@@ -88,13 +85,6 @@ em_fit <- function(logfrailtypar, dist, pvfm,
     loglik <- sum((log(basehaz_line) + g_x)[Y[,3] == 1]) +
      sum(e_step_val[,3]) + sum(Y[,3]) - sum((atrisk$nevent * log(atrisk$nevent))[atrisk$nevent > 0])# +  sum(nev_id * lp_individual)
 
-    #
-    # this is actually identical value, for the gamma
-    # loglik <- sum((log(basehaz_line) + t(mcox$coefficients %*% t(Xmat)))[Y[,3] == 1]) +
-    #   sum(.pars$alpha * log(.pars$alpha) + lgamma(.pars$alpha + nev_id) - lgamma(.pars$alpha) -
-    #         (.pars$alpha + nev_id) * log(.pars$alpha + Cvec)) +
-    # sum(Y[,3]) - sum(nev_tp * log(nev_tp))# +  sum(nev_id * lp_individual)
-    #
     if(loglik - loglik_old < 0) warning(paste0("likelihood decrease of ", loglik - loglik_old ))
     if((loglik - loglik_old) < .control$eps) break
 
@@ -113,16 +103,11 @@ em_fit <- function(logfrailtypar, dist, pvfm,
     # NOTE: this ids what linear.predictors actually is:
     # exp(mcox$coefficients * (Xmat - mean(Xmat)) + logz)
 
-    #cur <- survfit(cc1, newdata= data.frame(x = 0, logz = 0))
-
-    #cur$cumhaz
-
     # How I calculate the cumulative hazard corresponding to each line in the data set...
 
     if(length(Xmat)==0) {
       lp <- mcox$linear.predictors
       g_x <- t(matrix(rep(0, length(mcox$linear.predictors)), nrow = 1))
-
     } else {
       lp <- mcox$linear.predictors + as.numeric(t(mcox$coefficients) %*% mcox$means)
       g_x <- t(mcox$coefficients %*% t(Xmat))
@@ -130,18 +115,6 @@ em_fit <- function(logfrailtypar, dist, pvfm,
 
     explp <- exp(lp)
 
-
-
-    # this is not really identical. Probably because shit is not scaled !
-    # Cvec <- (nev_id - as.vector(rowsum(mcox$residuals, id))) / (e_step_val[,1] / e_step_val[,2])
-# well funny enough this is fucking wrong
-
-    # this is really wrong for no real reason?
-    # cumhaz_line <- (Y[,3] - mcox$residuals) / exp(logz)# with covariates!
-
-
-
-    # for the baseline hazard how the fuck is that gonna happen?
     # Idea: nrisk has the sum of elp who leave later at every tstop
     # esum has the sum of elp who enter at every tstart
     # indx groups which esum is right after each nrisk;
@@ -160,65 +133,24 @@ em_fit <- function(logfrailtypar, dist, pvfm,
     basehaz_line <- haz[atrisk$time_to_stop]
     cumhaz_0_line <- cumhaz[atrisk$time_to_stop]
 
-    #cumhaz_tstop <- cumsum(haz)
-
-    # for every tstop, this is the cumulative hazard at the following entry time.
-    # indx2 <- findInterval(Y[,1], atrisk$time)
-
-
-    # c(0, atrisk$time)[indx2[1:4]+1]
-
     cumhaz_tstart <- c(0, cumhaz)[atrisk$indx2 + 1]
     cumhaz_line <- (cumhaz_0_line - cumhaz_tstart)  #* explp #/ newrisk
 
-# cumhaz_line[1:4]
-# cumhaz_line_b[1:4]
-
-
-    # finally, the cumulative hazard on each line is the difference
-    # the trick used in emfrail() at the first place (with the residuals) does not work here
-    # because agreg does something strange about scaling with offset.
-#
-#     hh <- getchz(Y, 1,  explp = exp(lp))
-# # #
-# #     hh
-# #     haz
-#     cumhaz_line_b <- sapply(X = apply(as.matrix(Y[,c(1,2)]), 1, as.list),
-#                           FUN = function(x)  sum(hh$haz_tev[x$start < hh$tev & hh$tev <= x$stop]))
-# #     #
-#
-
-
-
     if(isTRUE(lt)) {
       Cvec_lt <- rowsum(x = cumhaz_tstart * exp(g_x), atrisk$order_id )
-      # Cvec_lt <- tapply(X = cumhaz_tstart * exp(g_x),
-      #                   INDEX = id,
-      #                   FUN = sum)
     } else {
       Cvec_lt <- 0 * Cvec
     }
 
     Cvec <- rowsum( cumhaz_line * exp(g_x), atrisk$order_id)
-#
-#     Cvec_b <- tapply(X = cumhaz_line_b * exp(g_x), # * exp(g_x),
-#                    INDEX = atrisk$order_id,
-#                    FUN = sum)
-#
-
-
-
-    # .distribution does not carry around.
-
-
 
     ncycles <- ncycles + 1
     if(ncycles > .control$maxit) {
       warning(paste("did not converge in ", .control$maxit," iterations." ))
       break
     }
-
   }
+
   if(isTRUE(return_loglik)) {
     if(isTRUE(.control$verbose)) print(paste("loglik = ",loglik))
     return(-loglik)

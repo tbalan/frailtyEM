@@ -10,7 +10,10 @@ emfrail(.data, .formula, .distribution = emfrail_distribution(),
 \arguments{
 \item{.data}{A data frame in which the formula argument can be evaluated}
 
-\item{.formula}{A formula that contains on the left hand side an object of the type \code{Surv} in the Andersen-Gill format, and on the right hand side a \code{+cluster(id)} statement}
+\item{.formula}{A formula that contains on the left hand side an object of the type \code{Surv}
+and on the right hand side a \code{+cluster(id)} statement. Optionally, also a \code{+terminal()} statement
+may be added, and then a score test for association between the event process and the result in the specified
+column is performed. See details.}
 
 \item{.distribution}{An object as created by \code{\link{emfrail_distribution}}}
 
@@ -59,6 +62,13 @@ survival times or not (the default). In the \code{.control} argument, several pa
 The convergence criterion for the EM can be specified (or a maximum number of iterations). The "outer" procedure can be
 avoided altogether and then \code{emfrail} calculates only \eqn{\widehat{L}(\theta)} at the given starting value. Also,
 some parameters for \code{optimx} can be set.
+
+The Commenges-Andersen test is a score test for heterogeneity which test the null hypothesis that all
+frailties are equal to 1. This only uses the information from the initial proportional hazards model
+without frailty.
+
+The score test for dependent censoring test is detailed in Balan et al (2016). If significant, it may indicate
+that dependent censoring is present. A common scenario is when recurrent events are stopped by a terminal event.
 }
 \note{
 Some possible problems may appear when the maximum likelihood estimate lies on the border of the parameter space.

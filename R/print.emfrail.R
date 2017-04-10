@@ -40,6 +40,11 @@ print.emfrail <- function(x, ...) {
     cat("Commenges-Andersen test for heterogeneity: p-val", format(obj$ca_test[3], digits = 3))
   }
 
+  if(!is.null(obj$cens_test)) {
+    cat("\n")
+    cat("Score test for dependent censoring: p-val", format(obj$cens_test[2], digits = 3))
+  }
+
   invisible(obj)
 
 }

@@ -373,6 +373,7 @@ p2 <- ggplot_pred(m1,
 
 gridExtra::grid.arrange(p1, p2, nrow = 1)
 @
+% \includegraphics[width=12cm]{frailtyEM_manual-bladder2_cumhaz}
 \label{fig:plot_pred}
 \caption{Predicted conditional and marginal cumulative hazards for males, one from the treatment arm and one from the placebo arm}
 \end{center}
@@ -392,7 +393,7 @@ The coefficient estimates are similar with those of \code{m1}. The ``frailty sum
 
 \begin{figure}
 \begin{center}
-<<bladder2_hazardratios, fig=TRUE>>==
+<<bladder2_hazardratios, fig=TRUE, width=12>>==
 pl1 <- ggplot_hr(m1,
         newdata = data.frame(treat = c("placebo", "rIFN-g"), sex = c("male", "male"))) +
   ggtitle("gamma") +
@@ -548,12 +549,12 @@ For $Y$ a PVF distribution with fixed parameter $m \in \mathbb{R}$, $m > -1$ and
 $$
 \psi(c; \gamma) = \mathrm{sign}(m) (1 - \gamma^m (\gamma + c)^{-m})
 $$
-where $\mathrm{sign}$ denotes the sign. This is the same parametrizaion as in \cite{aalen2008survival}. The parameters from  \cite{hougaard2012analysis} are defined by the correspondences $m = -\alpha_H$, $\gamma = \theta_H$, $\alpha = \vert \delta_H/m \gamma^{-m} \vert$.
-We have
+where $\mathrm{sign}$ denotes the sign. This is the same parametrizaion as in \cite{aalen2008survival}.
+The derivatives of $\psi$ are
 $$
 \psi^{(k)}(c; \gamma) = \mathrm{sign}(m) (-\gamma)^m (\gamma + c)^{-m-k} (-1)^{k+1} \frac{\Gamma(m + k)}{\Gamma(m)}.
 $$
-It can be seen that the expectation of this distribution is minus the first derivative of the Laplace transform calculated in 0, i.e.,
+The expectation of this distribution can be calculated as minus the first derivative of the Laplace transform calculated in 0, i.e.,
 $$
 \mathrm{E} Y = \alpha \psi'(0;\gamma) \mathcal{L}(0;\alpha, \gamma) = \frac{\alpha}{\gamma} m.
 $$
@@ -561,9 +562,17 @@ The second moment of the distribution can be calculated as the second derivative
 $$
 \mathrm{E} Y^2 = \alpha^2 \psi'^2(0) -\alpha \psi''(0) = \frac{\alpha^2}{\gamma^2}m^2 + \frac{\alpha}{\gamma^2} m(m+1).
 $$
-For identifiability, we set the $\mathrm{E} Y = 1$. The parametrization is, for a parameter $\theta >0$,
+For identifiability, we set $\mathrm{E} Y = 1$. The distribution is parametrized througha parameter $\theta >0$ which is determined by
 $\gamma = (m + 1) \theta$ and
 $\alpha = \frac{m + 1}{m} \theta$. This results in $\mathrm{Var} Y = \theta^{-1}$.
+
+A slightly different parametrization is presented in \cite{hougaard2012analysis}; if these parameters are denoted with the subscript $H$, the following correspondence holds: $\alpha_H = -m$, $\theta_H = \gamma$ and $\delta_H = \gamma^{m + 1}$.
+
+The PVF family of distributions includes the gamma as a limiting case when $m \rightarrow 0$. When $\gamma \rightarrow 0$ the positive stable distribution is obtained. When $m = -1$ the distribution is degenerate, and with $m = 1$ a non-central gamma distribution is obtained. Of more interest is the case $ m = -0.5$, when the inverse Gaussian distribution is obtained.  With $m >0$, the distribution is compound Poisson with mass at 0.
+
+When $m < 0$, Kendall's $\tau$ is obtained as
+
+
 
 \subsection*{Left truncation}
 To determine the Laplace transform under left truncation, we determine $\tilde \psi$ from \eqref{eq:laplace_ascertainment}.
