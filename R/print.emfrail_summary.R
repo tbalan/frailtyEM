@@ -75,6 +75,11 @@ print.emfrail_summary <- function(x, print_opts = list(coef = TRUE,
           ", ",
           round(obj$gamma_pars[4], digits = 3),
           "]\n", sep = "")
+
+    if(!is.null(obj$cens_test)) {
+      cat("\n")
+      cat("Score test for dependent censoring: p-val", format(obj$cens_test[2], digits = 3))
+    }
     # cat("Kendall's tau:",
     #     obj$gamma_pars[[1]],
     #     "\n")
