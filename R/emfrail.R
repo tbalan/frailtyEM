@@ -1,7 +1,7 @@
 #' Fitting shared frailty models with the EM algorithm
 #'
 #' @importFrom survival Surv
-#' @importFrom stats approx coef model.frame model.matrix pchisq printCoefmat optimize uniroot
+#' @importFrom stats approx coef model.frame model.matrix pchisq printCoefmat optimize uniroot cor
 #' @importFrom magrittr "%>%"
 #' @importFrom Rcpp evalCpp
 #' @importFrom numDeriv hessian
