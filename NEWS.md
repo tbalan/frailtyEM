@@ -1,3 +1,10 @@
+# frailtyEM 0.5.11
+- added a number of dependence measures that can be compared across distributions such as Kendall's tau, median concordance. 
+- changed quite a lot in the structure of the summary object and the print method to make it more consistent and easier to develop in the future
+
+# frailtyEM 0.5.10
+- added score test for dependent censoring
+
 # frailtyEM 0.5.9
 - `ggplot_emfrail()`  added! Now the same plots (and more) can be done with the good looking `ggplot2` engine. 
 

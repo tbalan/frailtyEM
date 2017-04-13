@@ -1,5 +1,6 @@
 #' Summary for \code{emfrail} objects
 #'
+#' @importFrom expint expint_En
 #' @param object An object of class \code{emfrail}
 #' @param lik_ci Logical. Should the confidence intervals for the frailty parameter be calculated based on the likelihood? If not, they are calculated with the delta method.
 #' @param print_opts A list with argumnets that are passed as attributes to the return object; these are used to determine what is printed when the object is accessed.
@@ -127,11 +128,13 @@ summary.emfrail <- function(object,
   # for gamma and pvf theta is 1/variance
   # for stable the L.T. is exp(- c^(1 - theta / (theta + 1)))
 
+
+  gamma_pars <- stable_pars <- pvf_pars <- NULL
   fr_var <- se_fr_var <- ci_frvar_low <- ci_frvar_high <- NULL
-  tau <- tau_stab <- se_tau <- attenuation <- ci_tau_high <- ci_tau_low <- e_log_y <- NULL
-  se_tau_stab <- ci_tau_high_stab <- ci_tau_low_stab <- NULL
   coefmat <- NULL
-  mass_at_0 <- NULL
+
+
+  # Frailty variance for gamma and pvf
 
   if(est_dist$dist != "stable") {
     fr_var <- 1/ theta
@@ -141,28 +144,231 @@ summary.emfrail <- function(object,
                                        cov = 1/hess))
     ci_frvar_low <- 1/ci_theta_high
     ci_frvar_high <- 1/ci_theta_low
-  } else {
+  }
+
+
+  # gamma-specific
+  if (est_dist$dist == "gamma") {
 
     # Kendall's tau
-    tau_stab <- 1 - theta / (theta + 1)
+    tau_gamma <- list(tau = 1 / (1 + 2 * theta),
+                      se_tau =  with(fit$outer_m,
+                                     msm::deltamethod(~1 / (1 + 2 * exp(x1)),
+                                                      mean = minimum,
+                                                      cov = 1/hess)),
+                      ci_tau_low = 1 / (1 + 2 * ci_theta_high),
+                      ci_tau_high = 1 / (1 + 2 * ci_theta_low)
+                      )
 
-    se_tau_stab <- with(fit$outer_m,
-                   msm::deltamethod(~ 1 - (exp(x1) / (exp(x1) + 1)),
-                                    mean = minimum,
-                                    cov = 1/hess))
+    # the CI seems to behave quite erratic...
+    kappa_gamma <- list(kappa = 4 * (2^(1 + 1/theta) - 1)^(-theta) - 1,
+                        se_kappa = with(fit$outer_m,
+                                        msm::deltamethod(~4 * (2^(1 + 1/exp(x1)) - 1)^(-exp(x1)) - 1,
+                                                         mean = minimum,
+                                                         cov = 1/hess)),
+                        ci_kappa_low = ifelse(ci_theta_high == Inf,
+                                              0,
+                                              4 * (2^(1 + 1/ci_theta_high) - 1)^(-ci_theta_high) - 1),
+                        ci_kappa_high = 4 * (2^(1 + 1/ci_theta_low) - 1)^(-ci_theta_low) - 1
+                        )
 
-    attenuation <- theta / (theta + 1)
+    e_log_z_gamma <- list(e_log_z = digamma(theta) - log(theta),
+                          se_e_log_z = with(fit$outer_m,
+                                            msm::deltamethod(~digamma(exp(x1)) - log(exp(x1)) ,
+                                                             mean = minimum,
+                                                             cov = 1/hess)),
+                          ci_e_log_z_low = digamma(ci_theta_low) - log(ci_theta_low),
+                          ci_e_log_z_high = ifelse(ci_theta_high == Inf,
+                                                   0,
+                                                   digamma(ci_theta_high) - log(ci_theta_high))
+                          )
 
-    ci_tau_high_stab <- ifelse(ci_theta_high == Inf,
+    var_log_z_gamma <- list(var_log_z = trigamma(theta),
+                          se_var_log_z = with(fit$outer_m,
+                                            msm::deltamethod(~trigamma(exp(x1)) ,
+                                                             mean = minimum,
+                                                             cov = 1/hess)),
+                          ci_var_log_z_low = trigamma(ci_theta_high),
+                          ci_var_log_z_high = trigamma(ci_theta_low)
+                          )
+
+
+
+
+    shape <- est_dist$frailtypar + fit$inner_m$nev_id
+    rate <- est_dist$frailtypar + fit$inner_m$Cvec
+    var_z <- shape / rate^2
+    lower_q <- stats::qgamma(0.025,
+                             shape = shape,
+                             rate = rate)
+    upper_q <- stats::qgamma(0.975,
+                             shape = shape,
+                             rate = rate)
+
+    gamma_pars <- list(
+      tau = tau_gamma,
+      kappa = kappa_gamma,
+      e_log_z = e_log_z_gamma,
+      var_log_z = var_log_z_gamma,
+      shape = shape,
+      rate = rate,
+      var_z = var_z,
+      lower_q = lower_q,
+      upper_q = upper_q
+    )
+
+  }
+
+  if(est_dist$dist == "stable") {
+
+    # Kendall's tau
+    tau_stab <- list(
+      tau = 1 - theta / (theta + 1),
+      se_tau = with(fit$outer_m,
+                          msm::deltamethod(~ 1 - (exp(x1) / (exp(x1) + 1)),
+                                           mean = minimum,
+                                           cov = 1/hess)),
+      ci_tau_low = ifelse(ci_theta_high == Inf,
+                                 0,
+                                 1 - ci_theta_high / (1 + ci_theta_high)),
+      ci_tau_high = 1 - ci_theta_low / (1 + ci_theta_low)
+    )
+
+    kappa_stab <- list(
+      kappa = 2^(2 - 2^(theta / (theta + 1))) - 1,
+      se_kappa = with(fit$outer_m,
+                    msm::deltamethod(~ 2^(2 - 2^(exp(x1) / (exp(x1) + 1))) - 1,
+                                     mean = minimum,
+                                     cov = 1/hess)),
+      ci_kappa_low = ifelse(ci_theta_high == Inf,
+                            0,
+                            2^(2 - 2^(ci_theta_high / (ci_theta_high + 1))) - 1),
+      ci_kappa_high = 2^(2 - 2^(ci_theta_low / (ci_theta_low + 1))) - 1
+    )
+
+    e_log_z_stab <- list(
+      e_log_z = (-1) *  ((theta + 1) / theta - 1) * digamma(1),
+      se_e_log_z = with(fit$outer_m,
+                        msm::deltamethod(~ (-1) *  ((exp(x1) + 1) / exp(x1) - 1) * digamma(1),
+                                         mean = minimum,
+                                         cov = 1/hess)),
+      ci_e_log_z_low = ifelse(ci_theta_high == Inf,
                               0,
-                              1 - ci_theta_high / (1 + ci_theta_high))
+                              (-1) *  ((ci_theta_high + 1) / ci_theta_high - 1) * digamma(1)),
+      ci_e_log_z_high = (-1) *  ((ci_theta_low + 1) / ci_theta_low - 1) * digamma(1)
+    )
 
-    ci_tau_low_stab <- 1 - ci_theta_low / (1 + ci_theta_low)
+    var_log_z_stab <- list(
+      var_log_z = (((1 + theta) / theta)^2 - 1) * trigamma(1),
+      se_var_log_z = with(fit$outer_m,
+                          msm::deltamethod(~ (((1 + exp(x1)) / exp(x1))^2 - 1) * trigamma(1),
+                                           mean = minimum,
+                                           cov = 1/hess)),
+      ci_var_log_z_low = ifelse(ci_theta_high == Inf,
+                                0,
+                                (((1 + ci_theta_high) / ci_theta_high)^2 - 1) * trigamma(1)),
+      ci_var_log_z_high = (((1 + ci_theta_low) / ci_theta_low)^2 - 1) * trigamma(1)
+
+    )
 
 
-    # this has to be fixed
-    e_log_y <- NaN
-    #e_log_y <-  (-1) * (1 / (1-theta) - 1) * digamma(1)
+    attenuation <- list(
+      attenuation = theta / (theta + 1),
+      se_attenuation = with(fit$outer_m,
+                          msm::deltamethod(~ exp(x1) / (exp(x1) + 1),
+                                           mean = minimum,
+                                           cov = 1/hess)),
+      ci_attenuation_low = ci_theta_low / (ci_theta_low + 1),
+      ci_attenuation_high = ifelse(ci_theta_high == Inf,
+                                   1,
+                                   ci_theta_high / (ci_theta_high + 1))
+    )
+
+    stable_pars <- list(
+      tau = tau_stab,
+      kappa = kappa_stab,
+      e_log_z = e_log_z_stab,
+      var_log_z = var_log_z_stab,
+      attenuation = attenuation
+    )
+  }
+
+
+
+
+  # dist_pars <- with(est_dist, dist_to_pars(dist, log(frailtypar), pvfm))
+  if(est_dist$dist == "pvf") {
+
+    if(est_dist$pvfm > 0) {
+      pvfm <- est_dist$pvfm
+
+      mass_at_0 <-  exp(-(pvfm+1)/pvfm * theta)
+      pvf_pars <- list(mass_at_0 = mass_at_0)
+    }
+
+    if(est_dist$pvfm < 0) {
+      pvfm <- est_dist$pvfm
+
+      tau_pvf <- list(tau = (1 + pvfm) - 2 * (pvfm + 1) * theta +
+        4 * (pvfm + 1)^2 * theta^2 / (- pvfm) * exp(2 * (pvfm + 1) * theta / (- pvfm)) *
+        expint::expint_En(2 * (pvfm + 1) * theta / (-pvfm), order = 1 / (- pvfm) - 1),
+
+         # se_tau = with(fit$outer_m,
+         #               msm::deltamethod(~ (1 + pvfm) - 2 * (pvfm + 1) * exp(x1) +
+         #                                  4 * (pvfm + 1)^2 * exp(x1)^2 / (- pvfm) * exp(2 * (pvfm + 1) * exp(x1) / (- pvfm)) *
+         #                                  expint::expint_En(2 * (pvfm + 1) * exp(x1) / (-pvfm), order = 1 / (- pvfm) - 1),
+         #                                mean = minimum,
+         #                                cov = 1/hess))
+
+        se_tau = NULL,
+        ci_tau_low = ifelse(ci_theta_high == Inf,
+                            0,
+                            (1 + pvfm) - 2 * (pvfm + 1) * ci_theta_high +
+          4 * (pvfm + 1)^2 * ci_theta_high^2 / (- pvfm) * exp(2 * (pvfm + 1) * ci_theta_high / (- pvfm)) *
+          expint::expint_En(2 * (pvfm + 1) * ci_theta_high / (-pvfm), order = 1 / (- pvfm) - 1)),
+        ci_tau_high = (1 + pvfm) - 2 * (pvfm + 1) * ci_theta_low +
+          4 * (pvfm + 1)^2 * ci_theta_low^2 / (- pvfm) * exp(2 * (pvfm + 1) * ci_theta_low / (- pvfm)) *
+          expint::expint_En(2 * (pvfm + 1) * ci_theta_low / (-pvfm), order = 1 / (- pvfm) - 1)
+
+      )
+
+
+      kappa_pvf <- list(kappa = 4 * exp(
+        (-1) * (2 * ((pvfm + 1) * theta / (- pvfm) + log(2))^(-1/pvfm) -
+                  ((pvfm + 1) * theta / (-pvfm) )^(- 1 / pvfm) )^(-pvfm) +
+          (pvfm + 1) * theta / (-pvfm)
+      ) - 1,
+      se_kappa = with(fit$outer_m,
+                    msm::deltamethod(~  4 * exp(
+                      (-1) * (2 * ((pvfm + 1) * exp(x1) / (- pvfm) + log(2))^(-1/pvfm) -
+                                ((pvfm + 1) * exp(x1) / (-pvfm) )^(- 1 / pvfm) )^(-pvfm) +
+                        (pvfm + 1) * exp(x1) / (-pvfm)
+                    ) - 1,
+                                     mean = minimum,
+                                     cov = 1/hess)),
+     # se_kappa = NULL,
+      ci_kappa_low = ifelse(ci_theta_high == Inf,
+                            0,
+                            4 * exp(
+                              (-1) * (2 * ((pvfm + 1) * ci_theta_high / (- pvfm) + log(2))^(-1/pvfm) -
+                                        ((pvfm + 1) * ci_theta_high / (-pvfm) )^(- 1 / pvfm) )^(-pvfm) +
+                                (pvfm + 1) * ci_theta_high / (-pvfm)) - 1),
+      ci_kappa_high =    4 * exp(
+        (-1) * (2 * ((pvfm + 1) * ci_theta_low / (- pvfm) + log(2))^(-1/pvfm) -
+                  ((pvfm + 1) * ci_theta_low / (-pvfm) )^(- 1 / pvfm) )^(-pvfm) +
+          (pvfm + 1) * ci_theta_low / (-pvfm)) - 1)
+
+      if(est_dist$pvfm != -1/2)
+        pvf_pars <- list(tau = tau_pvf,
+                         kappa = kappa_pvf)
+
+      if(est_dist$pvfm == -1/2) {
+        # e_log_z_pvf = log(1/2 * theta) + expint::expint_E1(theta) * exp(theta)
+        pvf_pars <- list(tau = tau_pvf,
+                         kappa = kappa_pvf)
+      }
+    }
+
 
   }
 
@@ -180,39 +386,12 @@ summary.emfrail <- function(object,
   # dist_pars <- dist_to_pars(est_dist$dist, log(est_dist$frailtypar), est_dist$pvfm)
 
 
-  # For the gamma we also know the distribution
-  lower_q <- upper_q <- NULL
-
-  if (est_dist$dist == "gamma") {
-    # the EB frailties have mean z and variance...
-
-    # Kendall's tau
-    tau <- 1 / (1 + 2 * theta)
-
-    se_tau <- with(fit$outer_m,
-                   msm::deltamethod(~1 / (1 + 2 * exp(x1)),
-                                    mean = minimum,
-                                    cov = 1/hess))
-    ci_tau_low <- 1 / (1 + 2 * ci_theta_low)
-    ci_tau_high <- 1 / (1 + 2 * ci_theta_high)
-
-
-    shape <- est_dist$frailtypar + fit$inner_m$nev_id
-    rate <- est_dist$frailtypar + fit$inner_m$Cvec
-    var_z <- shape / rate^2
-    lower_q <- stats::qgamma(0.025,
-                      shape = shape,
-                      rate = rate)
-    upper_q <- stats::qgamma(0.975,
-                      shape = shape,
-                      rate = rate)
-  }
   z <- data.frame(id = rownames(fit$inner_m$nev_id),
                   z = z)
 
-  if(!is.null(lower_q)) {
-    z$lower_q <- as.numeric(lower_q)
-    z$upper_q <- as.numeric(upper_q)
+  if(!is.null(gamma_pars)) {
+    z$lower_q <- as.numeric(gamma_pars$lower_q)
+    z$upper_q <- as.numeric(gamma_pars$upper_q)
   }
 
   if(length(fit$inner_m$coef) > 0) {
@@ -228,12 +407,6 @@ summary.emfrail <- function(object,
 
 
 
-  dist_pars <- with(est_dist, dist_to_pars(dist, log(frailtypar), pvfm))
-
-  if(est_dist$dist == "pvf" & est_dist$pvfm > 0) {
-    mass_at_0 = with(dist_pars, exp(-alpha))
-  }
-
 
   ret <- list(est_dist = est_dist,
        loglik = loglik,
@@ -248,17 +421,9 @@ summary.emfrail <- function(object,
                   se_fr_var = se_fr_var,
                   ci_frvar_low = ci_frvar_low,
                   ci_frvar_high = ci_frvar_high),
-       gamma_pars = c(tau = tau,
-                      se_tau = se_tau,
-                      ci_tau_high = ci_tau_high,
-                      ci_tau_low = ci_tau_low),
-       pvf_pars = c(mass_at_0 = mass_at_0),
-       stable_pars = c(tau = tau_stab,
-                       se_tau = se_tau_stab,
-                       ci_tau_high = ci_tau_high_stab,
-                       ci_tau_low = ci_tau_low_stab,
-                       attenuation = attenuation,
-                       e_log_y = e_log_y),
+       gamma_pars = gamma_pars,
+       pvf_pars = pvf_pars,
+       stable_pars = stable_pars,
        coefmat = do.call(cbind,coefmat),
        frail = z
        )

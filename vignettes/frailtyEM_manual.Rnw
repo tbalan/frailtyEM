@@ -538,7 +538,7 @@ The distribution is parametrized with  $\theta >0$, $\gamma = \frac{\theta}{\the
 Kendall's $\tau$ is then
 $\tau = 1 - \frac{\theta}{\theta + 1}$ and the median concordance is
 $\kappa = 2^{2 - 2^{\frac{\theta}{\theta + 1}}} - 1$.
-Furthermore, $\mathrm{E} \log Y = - (\gamma^{-1} - 1) \psi(1)$ and
+Furthermore, $\mathrm{E} \log Y = - \left(\left\{\frac{\theta}{1 + \theta}\right\}^{-1} - 1\right) \psi(1)$ and
 $\mathrm{Var} \log Y = \left( \left\{\frac{\theta}{1 + \theta} \right\}^{-2} - 1 \right) \psi'(1)$.
 
 In the case of the PS distribution, the marginal hazard ratio is an attenuated version of the conditional hazard ratio. If the conditional log-hazard ratio is $\beta$, the marginal hazard ratio  is equal to $\beta \frac{\theta}{\theta + 1}$.
@@ -549,7 +549,7 @@ For $Y$ a PVF distribution with fixed parameter $m \in \mathbb{R}$, $m > -1$ and
 $$
 \psi(c; \gamma) = \mathrm{sign}(m) (1 - \gamma^m (\gamma + c)^{-m})
 $$
-where $\mathrm{sign}$ denotes the sign. This is the same parametrizaion as in \cite{aalen2008survival}.
+where $\mathrm{sign}(\cdot)$ denotes the sign. This is the same parametrizaion as in \cite{aalen2008survival}.
 The derivatives of $\psi$ are
 $$
 \psi^{(k)}(c; \gamma) = \mathrm{sign}(m) (-\gamma)^m (\gamma + c)^{-m-k} (-1)^{k+1} \frac{\Gamma(m + k)}{\Gamma(m)}.
@@ -562,16 +562,16 @@ The second moment of the distribution can be calculated as the second derivative
 $$
 \mathrm{E} Y^2 = \alpha^2 \psi'^2(0) -\alpha \psi''(0) = \frac{\alpha^2}{\gamma^2}m^2 + \frac{\alpha}{\gamma^2} m(m+1).
 $$
-For identifiability, we set $\mathrm{E} Y = 1$. The distribution is parametrized througha parameter $\theta >0$ which is determined by
+For identifiability, we set $\mathrm{E} Y = 1$. The distribution is parametrized through a parameter $\theta >0$ which is determined by
 $\gamma = (m + 1) \theta$ and
-$\alpha = \frac{m + 1}{m} \theta$. This results in $\mathrm{Var} Y = \theta^{-1}$.
+$\alpha = \mathrm{sign}(m) \frac{m + 1}{m} \theta$. This results in $\mathrm{Var} Y = \theta^{-1}$.
 
-A slightly different parametrization is presented in \cite{hougaard2012analysis}; if these parameters are denoted with the subscript $H$, the following correspondence holds: $\alpha_H = -m$, $\theta_H = \gamma$ and $\delta_H = \gamma^{m + 1}$.
+A slightly different parametrization is presented in \cite{hougaard2012analysis}, dependent on the parameter $\eta_H$. The tie-in is obtained by setting $\eta_H = (m+1) \theta$.
 
-The PVF family of distributions includes the gamma as a limiting case when $m \rightarrow 0$. When $\gamma \rightarrow 0$ the positive stable distribution is obtained. When $m = -1$ the distribution is degenerate, and with $m = 1$ a non-central gamma distribution is obtained. Of more interest is the case $ m = -0.5$, when the inverse Gaussian distribution is obtained.  With $m >0$, the distribution is compound Poisson with mass at 0.
+The PVF family of distributions includes the gamma as a limiting case when $m \rightarrow 0$. When $\gamma \rightarrow 0$ the positive stable distribution is obtained. When $m = -1$ the distribution is degenerate, and with $m = 1$ a non-central gamma distribution is obtained. Of more interest is the case $ m = -0.5$, when the inverse Gaussian distribution is obtained.  With $m >0$, the distribution is compound Poisson with mass at 0. In this case, $P(Y = 0) = \exp(- \frac{m+1}{m} \theta)$.
 
-When $m < 0$, Kendall's $\tau$ is obtained as
-
+For $m < 0$, closed forms for Kendall's $\tau$ and median concordance are given in \citet[section 7.5]{hougaard2012analysis}.
+% For the inverse Gaussian, also $\mathrm{E} \log Y$ and $\mathrm{Var} \log Y$ are available.
 
 
 \subsection*{Left truncation}
