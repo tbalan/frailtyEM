@@ -493,7 +493,8 @@ emfrail <- function(.data,
           mcox = list(coefficients = g, loglik = mcox$loglik),  # a "fake" cox model
           Cvec = Cvec, lt = .distribution$left_truncation,
           Cvec_lt = Cvec_lt,
-          .control = .control)$root
+          .control = .control,
+          maxiter = 100)$root
 
   upper_llik <- em_fit(.control$opt_control$interval[2],
          dist = .distribution$dist,
