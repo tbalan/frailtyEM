@@ -1,4 +1,7 @@
 # frailtyEM 0.5.11
+- moved from `optimize` + `numDeriv` to `nlm`
+
+# frailtyEM 0.5.11
 - added a number of dependence measures that can be compared across distributions such as Kendall's tau, median concordance. 
 - changed quite a lot in the structure of the summary object and the print method to make it more consistent and easier to develop in the future
 

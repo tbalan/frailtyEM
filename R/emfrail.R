@@ -1,10 +1,9 @@
 #' Fitting shared frailty models with the EM algorithm
 #'
 #' @importFrom survival Surv
-#' @importFrom stats approx coef model.frame model.matrix pchisq printCoefmat optimize uniroot cor
+#' @importFrom stats approx coef model.frame model.matrix pchisq printCoefmat nlm uniroot cor
 #' @importFrom magrittr "%>%"
 #' @importFrom Rcpp evalCpp
-#' @importFrom numDeriv hessian
 #' @useDynLib frailtyEM, .registration=TRUE
 #' @include em_fit.R
 #' @include emfrail_aux.R
@@ -462,39 +461,48 @@ emfrail <- function(.data,
 
   # Maybe try nlm as well. Looks alright!
 
-  outer_m <- optimize(f = em_fit,
-                      interval = .control$opt_control$interval + c(0, 0.1),
-                      dist = .distribution$dist, pvfm = .distribution$pvfm,
-           Y = Y, Xmat = X, atrisk = atrisk, basehaz_line = basehaz_line,
-           mcox = list(coefficients = g, loglik = mcox$loglik),  # a "fake" cox model
-           Cvec = Cvec, lt = .distribution$left_truncation,
-           Cvec_lt = Cvec_lt,
-           .control = .control)
+  # outer_m <- optimize(f = em_fit,
+  #                     interval = .control$opt_control$interval + c(0, 0.1),
+  #                     dist = .distribution$dist, pvfm = .distribution$pvfm,
+  #          Y = Y, Xmat = X, atrisk = atrisk, basehaz_line = basehaz_line,
+  #          mcox = list(coefficients = g, loglik = mcox$loglik),  # a "fake" cox model
+  #          Cvec = Cvec, lt = .distribution$left_truncation,
+  #          Cvec_lt = Cvec_lt,
+  #          .control = .control)
 
   # Hessian
-  hess <- numDeriv::hessian(func = em_fit,
-          x = outer_m$minimum,
-          dist = .distribution$dist, pvfm = .distribution$pvfm,
-          Y = Y, Xmat = X, atrisk = atrisk, basehaz_line = basehaz_line,
-          mcox = list(coefficients = g, loglik = mcox$loglik),  # a "fake" cox model
-          Cvec = Cvec, lt = .distribution$left_truncation,
-          Cvec_lt = Cvec_lt,
-          .control = .control)
+  # hess <- numDeriv::hessian(func = em_fit,
+  #         x = outer_m$minimum,
+  #         dist = .distribution$dist, pvfm = .distribution$pvfm,
+  #         Y = Y, Xmat = X, atrisk = atrisk, basehaz_line = basehaz_line,
+  #         mcox = list(coefficients = g, loglik = mcox$loglik),  # a "fake" cox model
+  #         Cvec = Cvec, lt = .distribution$left_truncation,
+  #         Cvec_lt = Cvec_lt,
+  #         .control = .control)
+
+  outer_m <- nlm(f = em_fit,
+                 p = .distribution$theta, hessian = TRUE,
+                 dist = .distribution$dist, pvfm = .distribution$pvfm,
+                 Y = Y, Xmat = X, atrisk = atrisk, basehaz_line = basehaz_line,
+                 mcox = list(coefficients = g, loglik = mcox$loglik),  # a "fake" cox model
+                 Cvec = Cvec, lt = .distribution$left_truncation,
+                 Cvec_lt = Cvec_lt,
+                 .control = .control)
 
 
-  # likelihood-based confidence intervals
+
+    # likelihood-based confidence intervals
   theta_low <- theta_high <- NULL
   if(isTRUE(.control$lik_ci)) {
-  theta_low <- uniroot(function(x, ...) outer_m$objective - em_fit(x, ...) + 1.92,
-          interval = c(.control$opt_control$interval[1], outer_m$minimum),
-          dist = .distribution$dist,
-          pvfm = .distribution$pvfm,
-          Y = Y, Xmat = X, atrisk = atrisk, basehaz_line = basehaz_line,
-          mcox = list(coefficients = g, loglik = mcox$loglik),  # a "fake" cox model
-          Cvec = Cvec, lt = .distribution$left_truncation,
-          Cvec_lt = Cvec_lt,
-          .control = .control,
-          maxiter = 100)$root
+
+  lower_llik <- em_fit(.control$opt_control$interval[1],
+                       dist = .distribution$dist,
+                       pvfm = .distribution$pvfm,
+                       Y = Y, Xmat = X, atrisk = atrisk, basehaz_line = basehaz_line,
+                       mcox = list(coefficients = g, loglik = mcox$loglik),  # a "fake" cox model
+                       Cvec = Cvec, lt = .distribution$left_truncation,
+                       Cvec_lt = Cvec_lt,
+                       .control = .control)
 
   upper_llik <- em_fit(.control$opt_control$interval[2],
          dist = .distribution$dist,
@@ -505,10 +513,25 @@ emfrail <- function(.data,
          Cvec_lt = Cvec_lt,
          .control = .control)
 
-  # this says that if I can't get a significant difference on the right side then screw this it's infinity
-  if(upper_llik  - outer_m$objective < 1.92) theta_high <- Inf else
-    theta_high <- uniroot(function(x, ...) outer_m$objective - em_fit(x, ...) + 1.92,
-                          interval = c(outer_m$minimum, .control$opt_control$interval[2]),
+  theta_low <- uniroot(function(x, ...) outer_m$minimum - em_fit(x, ...) + 1.92,
+                       interval = c(.control$opt_control$interval[1], outer_m$estimate),
+                       f.lower = outer_m$minimum - lower_llik + 1.92, f.upper = 1.92,
+                       dist = .distribution$dist,
+                       pvfm = .distribution$pvfm,
+                       Y = Y, Xmat = X, atrisk = atrisk, basehaz_line = basehaz_line,
+                       mcox = list(coefficients = g, loglik = mcox$loglik),  # a "fake" cox model
+                       Cvec = Cvec, lt = .distribution$left_truncation,
+                       Cvec_lt = Cvec_lt,
+                       .control = .control,
+                       maxiter = 100)$root
+
+
+  # this says that if I can't get a significant difference on the right side
+  # then screw this it's infinity
+  if(upper_llik  - outer_m$minimum < 1.92) theta_high <- Inf else
+    theta_high <- uniroot(function(x, ...) outer_m$minimum - em_fit(x, ...) + 1.92,
+                          interval = c(outer_m$estimate, .control$opt_control$interval[2]),
+                          f.lower = 1.92, f.upper = outer_m$minimum - upper_llik + 1.92,
                           extendInt = c("downX"),
                           dist = .distribution$dist,
                           pvfm = .distribution$pvfm,
@@ -545,7 +568,7 @@ emfrail <- function(.data,
     # absolute value should be redundant. but sometimes the "hessian" might be 0.
     # in that case it might appear negative; this happened only on Linux...
     # h <- as.numeric(sqrt(abs(1/(attr(outer_m, "details")[[3]])))/2)
-    h<- as.numeric(sqrt(abs(1/hess))/2)
+    h<- as.numeric(sqrt(abs(1/outer_m$hessian))/2)
     lfp_minus <- max(outer_m$min - h , outer_m$min - 5)
     lfp_plus <- min(outer_m$min + h , outer_m$min + 5)
 
@@ -580,7 +603,7 @@ emfrail <- function(.data,
     #adj_se <- sqrt(diag(deta_dtheta %*% (1/(attr(opt_object, "details")[[3]])) %*% t(deta_dtheta)))
 
     # vcov_adj = inner_m$Vcov + deta_dtheta %*% (1/(attr(outer_m, "details")[[3]])) %*% t(deta_dtheta)
-    vcov_adj = inner_m$Vcov + deta_dtheta %*% (1/hess) %*% t(deta_dtheta)
+    vcov_adj = inner_m$Vcov + deta_dtheta %*% (1/outer_m$hessian) %*% t(deta_dtheta)
 
   } else vcov_adj = matrix(NA, nrow(inner_m$Vcov), nrow(inner_m$Vcov))
 
@@ -613,9 +636,9 @@ emfrail <- function(.data,
     cens_test = c(tstat = tr, pval = p.cor)
   } else cens_test = NULL
 
-  res <- list(outer_m = list(objective = outer_m$objective,
-                             minimum = outer_m$minimum,
-                             hess = hess,
+  res <- list(outer_m = list(objective = outer_m$minimum,
+                             minimum = outer_m$estimate,
+                             hess = outer_m$hessian,
                              ltheta_low = theta_low,
                              ltheta_high = theta_high),
               inner_m = inner_m,
