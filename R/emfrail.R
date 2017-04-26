@@ -516,6 +516,7 @@ emfrail <- function(.data,
   theta_low <- uniroot(function(x, ...) outer_m$minimum - em_fit(x, ...) + 1.92,
                        interval = c(.control$opt_control$interval[1], outer_m$estimate),
                        f.lower = outer_m$minimum - lower_llik + 1.92, f.upper = 1.92,
+                       tol = .Machine$double.eps^0.1,
                        dist = .distribution$dist,
                        pvfm = .distribution$pvfm,
                        Y = Y, Xmat = X, atrisk = atrisk, basehaz_line = basehaz_line,
@@ -554,7 +555,7 @@ emfrail <- function(.data,
 
   #message("Calculating final fit with information matrix...")
 
-  inner_m <- em_fit(logfrailtypar = outer_m$minimum,
+  inner_m <- em_fit(logfrailtypar = outer_m$estimate,
                       dist = .distribution$dist, pvfm = .distribution$pvfm,
                       Y = Y, Xmat = X, atrisk = atrisk, basehaz_line = basehaz_line,
                       mcox = list(coefficients = g, loglik = mcox$loglik),  # a "fake" cox model
@@ -569,8 +570,8 @@ emfrail <- function(.data,
     # in that case it might appear negative; this happened only on Linux...
     # h <- as.numeric(sqrt(abs(1/(attr(outer_m, "details")[[3]])))/2)
     h<- as.numeric(sqrt(abs(1/outer_m$hessian))/2)
-    lfp_minus <- max(outer_m$min - h , outer_m$min - 5)
-    lfp_plus <- min(outer_m$min + h , outer_m$min + 5)
+    lfp_minus <- max(outer_m$estimate - h , outer_m$estimate - 5)
+    lfp_plus <- min(outer_m$estimate + h , outer_m$estimate + 5)
 
     message("Calculating adjustment for information matrix...")
 
@@ -652,40 +653,6 @@ emfrail <- function(.data,
               .control = .control
               )
 
-# res <- list(outer_m = opt_object, # contains the maximization
-#             inner_m = final_fit, # the inner object
-#             mcox = mcox, # initial cox model
-#             id = unique(id),
-#             .distribution = .distribution, # the initial distribution call
-#
-#             #est_dis = est_dist,
-#               res = list(loglik = final_fit$loglik, # obsolete ?
-#                          dist = final_fit$dist, # in est_dist
-#                          pvfm = final_fit$pvfm, # in est_dist
-#                          theta = final_fit$frailtypar, # in est_dist
-#
-#                          # this should be here (the baseline at least).
-#                          haz = data.frame(time = final_fit$haz$tev,
-#                                           cumhaz = cumsum(final_fit$haz$haz_tev)),
-#                                           #se = final_fit$se[(1 + length(final_fit$coef)):length(final_fit$se)]),
-#
-#                          # this should be here as well.
-#                          z = data.frame(id = unique(id),
-#                                         nev = atrisk$nev_id,
-#                                         Lambda = final_fit$Cvec,
-#                                         z = final_fit$estep[,1] / final_fit$estep[,2] ),
-#                          # this SHOULD be here, really.
-#                                         coef = final_fit$coef,
-#
-#                          # these things happen later anyway. Maybe that should be part of a summary object.
-#                          se_coef = sqrt(diag(final_fit$Vcov)[seq_along(final_fit$coef)]),
-#                          se_coef_adj = sqrt(diag(vcov_adj)[seq_along(final_fit$coef)] )),
-#
-#             # the initial Cox model is only good to have for the loglikelihood
-#             mcox = mcox,
-#             vcov = final_fit$Vcov,
-#             vcov_adj = vcov_adj
-#                )
 
   # these are things that make the predict work
   terms_2 <- delete.response(attr(mf, "terms"))

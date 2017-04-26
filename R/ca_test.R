@@ -128,7 +128,6 @@ ca_test_fit <- function(mcox, X, atrisk, exp_g_x, cumhaz) {
     lapply(as.data.frame) %>%
     lapply(function(x) rowsum.data.frame(x, atrisk$order_id))
 
-
   theta_h <- atrisk$nevent %>%
     mapply(function(a,b,c) a * b * c, ., qi_t, theta2i_t, SIMPLIFY = FALSE) %>%
     do.call(rbind, .) %>%
