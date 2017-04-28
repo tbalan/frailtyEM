@@ -3,12 +3,9 @@
 print.emfrail <- function(x, ...) {
 
   obj <- x
-  cat("Call: \n",
-      "emfrail(",
-      format(obj$.formula),
-      ")\n",
-      sep = "")
-
+  cat("Call: \n")
+  dput(attr(obj, "call"))
+  cat("\n")
   # names(obj$outer_m)[1] <- "theta"
   # obj$outer_m[1] <- exp(obj$outer_m[1])
   #

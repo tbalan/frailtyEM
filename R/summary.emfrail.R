@@ -430,6 +430,7 @@ summary.emfrail <- function(object,
 
   #attr(ret, "class") <- "emfrail_summary"
   attr(ret, "print_opts") <-  print_opts
+  attr(ret, "call") <- attr(object, "call")
   class(ret) <- "emfrail_summary"
   ret
 }

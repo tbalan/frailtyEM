@@ -660,7 +660,7 @@ emfrail <- function(.data,
   terms <- drop.terms(terms_2, pos_cluster_2)
   myxlev <- .getXlevels(terms, mf)
   attr(res, "metadata") <- list(terms, myxlev)
-
+  attr(res, "call") <-  Call
   attr(res, "class") <- "emfrail"
 
 

@@ -1,3 +1,9 @@
+# frailtyEM 0.5.13
+- now the call is printed also when the summary is printed
+
+# frailtyEM 0.5.12
+- performance improvements. Now the likelihood-based confidence intervals should take less time as they know better where to look. 
+
 # frailtyEM 0.5.11
 - moved from `optimize` + `numDeriv` to `nlm`
 

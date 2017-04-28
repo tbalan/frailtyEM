@@ -7,7 +7,10 @@ print.emfrail_summary <- function(x, print_opts = list(coef = TRUE,
                                   ...) {
 
   obj <- x
-  cat("Summary of emfrail fit\n")
+  # cat("Summary of emfrail fit\n")
+  cat("Call: \n")
+  dput(attr(obj, "call"))
+  cat("\n")
 
   if(isTRUE(attr(x, "print_opts")$coef)) {
     if(!is.null(obj$coefmat)) {
