@@ -271,7 +271,7 @@ summary(mod_3)
 }
 }
 \seealso{
-\code{\link{plot_emfrail}} for plot functions directly available, \code{\link{emfrail_pll}} for calculating \eqn{\widehat{L}(\theta)} at specific values of \eqn{\theta},
+\code{\link{plot_emfrail}} and \code{\link{ggplot_emfrail}} for plot functions directly available, \code{\link{emfrail_pll}} for calculating \eqn{\widehat{L}(\theta)} at specific values of \eqn{\theta},
 \code{\link{summary.emfrail}} for transforming the \code{emfrail} object into a more human-readable format and for
 visualizing the frailty (empirical Bayes) estimates,
 \code{\link{predict.emfrail}} for calculating and visalizing conditional and marginal survival and cumulative
