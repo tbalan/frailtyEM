@@ -28,8 +28,9 @@
 #' ggplot_pred(mod_rec)
 #'
 #' # survival, although not very meaningful with recurrent events
+#' \dontrun{
 #' ggplot_pred(mod_rec, quantity = "survival")
-#'
+#' }
 #'
 #' # For an individual with number == 2
 #' ggplot_pred(mod_rec, newdata = data.frame(treatment = "placebo", number = 2))

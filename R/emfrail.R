@@ -67,7 +67,7 @@
 #' For small enough values of \eqn{1/\theta} the log-likelihood
 #' of the Cox model is returned to avoid such problems. This option can be tweaked in \code{emfrail_control()}.
 #'
-#' @seealso \code{\link{plot_emfrail}} for plot functions directly available, \code{\link{emfrail_pll}} for calculating \eqn{\widehat{L}(\theta)} at specific values of \eqn{\theta},
+#' @seealso \code{\link{plot_emfrail}} and \code{\link{ggplot_emfrail}} for plot functions directly available, \code{\link{emfrail_pll}} for calculating \eqn{\widehat{L}(\theta)} at specific values of \eqn{\theta},
 #' \code{\link{summary.emfrail}} for transforming the \code{emfrail} object into a more human-readable format and for
 #' visualizing the frailty (empirical Bayes) estimates,
 #' \code{\link{predict.emfrail}} for calculating and visalizing conditional and marginal survival and cumulative
@@ -654,7 +654,7 @@ emfrail <- function(.data,
               )
 
 
-  # these are things that make the predict work
+  # these are things that make the predict work and other methods
   terms_2 <- delete.response(attr(mf, "terms"))
   pos_cluster_2 <- grep("cluster", attr(terms_2, "term.labels"))
   terms <- drop.terms(terms_2, pos_cluster_2)

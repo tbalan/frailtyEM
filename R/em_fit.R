@@ -85,7 +85,7 @@ em_fit <- function(logfrailtypar, dist, pvfm,
     loglik <- sum((log(basehaz_line) + g_x)[Y[,3] == 1]) +
      sum(e_step_val[,3]) + sum(Y[,3]) - sum((atrisk$nevent * log(atrisk$nevent))[atrisk$nevent > 0])# +  sum(nev_id * lp_individual)
 
-    if(loglik - loglik_old < 0) warning(paste0("likelihood decrease of ", loglik - loglik_old ))
+    if(loglik - loglik_old < 1) warning(paste0("likelihood decrease of ", loglik - loglik_old ))
     if((loglik - loglik_old) < .control$eps) break
 
     loglik_old <- loglik
