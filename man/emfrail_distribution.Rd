@@ -4,7 +4,7 @@
 \alias{emfrail_distribution}
 \title{Distribution parameters for emfrail}
 \usage{
-emfrail_distribution(dist = "gamma", theta, pvfm = -1/2,
+emfrail_distribution(dist = "gamma", theta = 2, pvfm = -1/2,
   left_truncation = FALSE)
 }
 \arguments{

@@ -1,3 +1,6 @@
+# frailtyEM 0.6.0 (release)
+- overall, numerous improvements compared to the previous release. Key new features include likelihood based confidence interval for the frailty parameter, more measures of dependence calculated with `summary()`, plots using `ggplot2`, and numerous bug fixes. 
+
 # frailtyEM 0.5.13
 - now the call is printed also when the summary is printed
 

@@ -87,13 +87,10 @@ emfrail_control <- function(eps = 0.0001, maxit = Inf, opt_fit = TRUE, verbose =
 #' emfrail_distribution(dist = 'pvf', theta = 1.5, pvfm = 0.5)
 #' # Inverse Gaussian distribution:
 #' emfrail_distribution(dist = 'pvf')
-emfrail_distribution <- function(dist = "gamma", theta, pvfm = -1/2, left_truncation = FALSE) {
+emfrail_distribution <- function(dist = "gamma", theta = 2, pvfm = -1/2, left_truncation = FALSE) {
 
   if (!(dist %in% c("gamma", "stable", "pvf")))
     stop("frailty distribution must be one of gamma, stable, pvf")
-  if(missing(theta)) {
-    if(dist == "stable") theta <- 0.5 else theta <- 2
-  }
   if (length(theta) != 1)
     stop("specify exactly 1 parameter (theta>0) for the frailty")
   if (theta <= 0)

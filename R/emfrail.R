@@ -481,7 +481,7 @@ emfrail <- function(.data,
   #         .control = .control)
 
   outer_m <- nlm(f = em_fit,
-                 p = .distribution$theta, hessian = TRUE,
+                 p = 2, hessian = TRUE,
                  dist = .distribution$dist, pvfm = .distribution$pvfm,
                  Y = Y, Xmat = X, atrisk = atrisk, basehaz_line = basehaz_line,
                  mcox = list(coefficients = g, loglik = mcox$loglik),  # a "fake" cox model
