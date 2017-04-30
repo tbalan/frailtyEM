@@ -21,7 +21,7 @@ column is performed. See details.}
 }
 \value{
 An object of the class \code{emfrail}, that is in fact a list which contains (1) the object returned by the
-"outer maximization" from \code{optimx}, (2) the object with all the estimates returned by the "inner maximization",
+"outer maximization", (2) the object with all the estimates returned by the "inner maximization",
 (3) the log-likelihood of the Cox model without frailty, (4) the variance-covariance matrix adjusted for the uncertainty in the
 outer maximization, (5) the results of the Commenges-Andersen test for heterogeneity and (6,7,8) are copies of the original input arguments: .formula, .distribution and .control.
 Two attributes are also present, \code{class} for determining the object type and \code{metadata} which contains some information that is used to
@@ -53,15 +53,14 @@ which is done via an EM algorithm. The "outer" problem is to calculate
 The "inner" problem is solved relying on \code{agreg.fit} from the \code{survival} package in the M step
 and with an E step which is done in \code{R} when there are closed form solutions and in \code{C++} when the
 solutions are calculated with a recursive algorithm. The information matrix (given fixed \eqn{\theta}) is calculated using Louis' formula.
-The "outer" problem is solved relying on the maximizers in the \code{optimx} package, which also provides an estimate
+The "outer" problem is solved relying on the maximizers in the \code{nlm} function, which also provides an estimate
 of the Hessian matrix. The remaining elements of the information matrix are approximated numerically.
 
 Several options are available to the user. In the \code{.distribution} argument, the frailty distribution and the
 starting value for \eqn{\theta} can be specified, as well as whether the data consists of left truncated
 survival times or not (the default). In the \code{.control} argument, several parameters control the maximization.
 The convergence criterion for the EM can be specified (or a maximum number of iterations). The "outer" procedure can be
-avoided altogether and then \code{emfrail} calculates only \eqn{\widehat{L}(\theta)} at the given starting value. Also,
-some parameters for \code{optimx} can be set.
+avoided altogether and then \code{emfrail} calculates only \eqn{\widehat{L}(\theta)} at the given starting value.
 
 The Commenges-Andersen test is a score test for heterogeneity which test the null hypothesis that all
 frailties are equal to 1. This only uses the information from the initial proportional hazards model

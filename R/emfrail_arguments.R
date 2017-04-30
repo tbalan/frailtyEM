@@ -11,11 +11,10 @@
 #' @param ca_test Logical. Should the Commenges-Andersen test be calculated?
 #' @param only_ca_test Logical. Should ONLY the Commenges-Andersen test be calculated?
 #' @param lik_ci Logical. Should likelihood-based confidence interval be calculated for the frailty parameter?
-#' @param opt_control A list with arguments to be sent to the maximizer.
-#' As of 0.5.5, that is optimize(), so the list should only contain a length 2 vector \code{interval}. Another field
-#' has been added in 0.5.6, \code{interval_stable} that overrides \code{interval} for the positive stable distribution;
-#' the reason behind this is that the algorithm tends to choke for small values, even if the maximum likelihood is
-#' really far away.
+#' @param opt_control A list with arguments for the likelihood-based confidence interval and the maximizer.
+#' The list should contain two length 2 vectors \code{interval} and \code{interval_stable} that are used in calculating likelihood-based
+#' confidence intervals. These are the edges, on the scale of \eqn{\theta}, of the parameter space where to look for the
+#' ends of these confidence intervals.
 #'
 #' @return An object of the type \code{emfrail_control}.
 #' @export
