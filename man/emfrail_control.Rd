@@ -4,26 +4,19 @@
 \alias{emfrail_control}
 \title{Control parameters for emfrail}
 \usage{
-emfrail_control(eps = 1e-04, maxit = Inf, opt_fit = TRUE,
-  verbose = FALSE, fast_fit = TRUE, se_fit = TRUE, se_adj = TRUE,
+emfrail_control(opt_fit = TRUE, se = TRUE, se_adj = TRUE,
   ca_test = TRUE, only_ca_test = FALSE, lik_ci = TRUE,
-  opt_control = list(interval = c(-7, 20), interval_stable = c(0, 20)))
+  lik_ci_intervals = list(interval = c(-7, 20), interval_stable = c(0, 20)),
+  nlm_control = list(), inner_control = list(eps = 1e-04, maxit = Inf,
+  fast_fit = TRUE, verbose = FALSE, lower_tol = 20, lik_tol = 1))
 }
 \arguments{
-\item{eps}{Convergence criterion for the inner loops (the EM algorithm) for fixed frailty parameters}
-
-\item{maxit}{Maximum number of iterations in the inner loops (the EM algorithm)}
-
 \item{opt_fit}{Logical. Whether the outer optimization should be carried out.
 If \code{FALSE}, then the frailty parameter is treated as fixed and the \code{emfrail} function returns only log-likelihood. See details.}
 
-\item{verbose}{Logical. Whether to print out information about what is going on during maximization.}
+\item{se}{Logical. Whether to calculate the variance / covariance matrix.}
 
-\item{fast_fit}{Logical. Whether to try to calculate the E step directly, when possible. See details.}
-
-\item{se_fit}{Logical. Whether to calculate the variance / covariance matrix.}
-
-\item{se_adj}{Logical. Whether to calculate the adjusted variance / covariance matrix (needs \code{se_fit == TRUE})}
+\item{se_adj}{Logical. Whether to calculate the adjusted variance / covariance matrix (needs \code{se == TRUE})}
 
 \item{ca_test}{Logical. Should the Commenges-Andersen test be calculated?}
 
@@ -31,11 +24,13 @@ If \code{FALSE}, then the frailty parameter is treated as fixed and the \code{em
 
 \item{lik_ci}{Logical. Should likelihood-based confidence interval be calculated for the frailty parameter?}
 
-\item{opt_control}{A list with arguments to be sent to the maximizer.
-As of 0.5.5, that is optimize(), so the list should only contain a length 2 vector \code{interval}. Another field
-has been added in 0.5.6, \code{interval_stable} that overrides \code{interval} for the positive stable distribution;
-the reason behind this is that the algorithm tends to choke for small values, even if the maximum likelihood is
-really far away.}
+\item{lik_ci_intervals}{This list should contain two length 2 vectors \code{interval} and \code{interval_stable} that are used in calculating likelihood-based
+confidence intervals. These are the edges, on the scale of \eqn{\theta}, of the parameter space where to look for the
+ends of these confidence intervals.}
+
+\item{nlm_control}{A list of named arguments to be sent to \code{nlm} for the outer optimization.}
+
+\item{inner_control}{A list of parameters for the inner optimization. See details.}
 }
 \value{
 An object of the type \code{emfrail_control}.
@@ -44,14 +39,29 @@ An object of the type \code{emfrail_control}.
 Control parameters for emfrail
 }
 \details{
+The \code{nlm_control} argument should not overalp with \code{hessian}, \code{f} or \code{p}.
+
+The \code{inner_control} argument should be a list with the following items:
+\itemize{
+\item{\code{eps}}{ A criterion for convergence of the EM algorithm (difference between two consecutive values of the log-likelihood)}
+\item{\code{maxit}}{ The maximum number of iterations between the E step and the M step}
+\item{\code{fast_fit}}{ Logical, whether the closed form formulas should be used for the E step when available}
+\item{\code{verbose}}{ Logical, whether details of the optimization should be printed}
+\item{\code{lower_tol}}{ A "lower" bound for \eqn{\theta}; after this treshold, the algorithm returns the limiting log-likelihood of the no-frailty model. For example,
+a value of 20 means that the maximum likelihood for \eqn{\theta} will be \eqn{\exp(20)}. For a frailty variance, this is approx \eqn{2 \times 10^{-9}}}
+\item{\code{lik_tol}}{ For values higher than this, the algorithm returns a warning when the log-likelihood decreases between EM steps. Technically, this should not happen, but
+if the parameter \eqn{\theta} is somewhere really far from the maximum, numerical problems might lead in very small likelihood decreases.
+}}
 The \code{fast_fit} option make a difference when the distribution is gamma (with or without left truncation) or
 inverse Gaussian, i.e. pvf with m = -1/2 (without left truncation). For all the other scenarios, the fast_fit option will
 automatically be changed to FALSE. When the number of events in a cluster / individual is not very small, the cases for which
 fast fitting is available will show an improvement in performance.
+
+The starting value of the outer optimization may be set in the \code{.distribution} argument.
 }
 \examples{
 emfrail_control()
-emfrail_control(eps = 10e-7)
+emfrail_control(inner_control = list(eps = 1e-7))
 
 }
 \seealso{

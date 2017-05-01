@@ -250,7 +250,8 @@ The ``outer'' problem refers to finding $\widehat \theta$ which maximizes the pr
 
 In the maximization procedure, $\theta$ is introduced on the log-scale. That is for numerical stability (the interval for searching for the maximum likelihood is ``stretched'' to the real numbers) and for asymptotic normality. Although maximum likelihood estimates are asymptotically normal, the likelihood is likely to be skewed, especially if the maximum likelihood is close to the edge of the parameter space. In this case, the standard error of the estimate may be difficult to interpret for constructing confidence intervals. It has been shown that symmetric confidence intervals of $\log \theta$, translated to the scale of $\theta$, provide good coverage \citep{balan2016ascertainment}.
 
-The maximizer used is \code{optimize} from the \pkg{stats} library. This requires the specification of an interval to search for a maximum. The default search intervals, described by \code{emfrail_control()}, may be overriden by the user. Larger intervals provide more precision, however numeric problems may occur when the EM algorithm is ran in stranger parts of the parameter space. For instance, if the frailty variance of the gamma distribution is allowed to take very large values.
+% The maximizer used is \code{optimize} from the \pkg{stats} library. This requires the specification of an interval to search for a maximum.
+Several parameters may be used to regulate the outer optimization via the \code{.control} argument. These can be found in the documentation of the \code{emfrail_control()} function.
 
 %
 % The maximizer of choice may be one of those from the \pkg{optimx} package \citep{optimx1, optimx2}, and it defaults to \code{bobyqa}. The results of this maximization are returned in the final object and are accessible to the user.
@@ -391,12 +392,14 @@ The coefficient estimates are similar to those of \code{m1}. The ``Frailty summa
 \begin{center}
 <<bladder2_hazardratios, fig=TRUE, width=12>>==
 pl1 <- ggplot_hr(m1,
-        newdata = data.frame(treat = c("placebo", "rIFN-g"), sex = c("male", "male"))) +
+        newdata = data.frame(treat = c("placebo", "rIFN-g"),
+                             sex = c("male", "male"))) +
   ggtitle("gamma") +
   theme_minimal()
 
 pl2 <- ggplot_hr(m2,
-        newdata = data.frame(treat = c("placebo", "rIFN-g"), sex = c("male", "male"))) +
+        newdata = data.frame(treat = c("placebo", "rIFN-g"),
+                             sex = c("male", "male"))) +
   ggtitle("stable") +
   theme_minimal()
 

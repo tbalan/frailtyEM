@@ -4,7 +4,7 @@ em_fit <- function(logfrailtypar, dist, pvfm,
                    basehaz_line,  # need for log-likelihood
                    mcox = list(),
                    Cvec, lt = FALSE, Cvec_lt, # we need to start somewhere with the Cvec (E step comes first)
-                   .control,
+                   inner_control, se,
                    return_loglik = TRUE
 ) {
 
@@ -13,7 +13,7 @@ em_fit <- function(logfrailtypar, dist, pvfm,
 
 
   .pars <- dist_to_pars(dist, logfrailtypar, pvfm)
-  if (isTRUE(.control$verbose)) {
+  if (isTRUE(inner_control$verbose)) {
     print(paste0(#"dist=", .pars$dist,
       "logfrailtypar= ", logfrailtypar,
       " / alpha=", .pars$alpha,
@@ -32,14 +32,14 @@ em_fit <- function(logfrailtypar, dist, pvfm,
   }
 
   # if the logfrailtypar is large (i.e. frailty variance 0) then just return the Cox likelihood
-  if(logfrailtypar > .control$opt_control$interval[2]) {
+  if(logfrailtypar > inner_control$lower_tol) {
     #message("Frailty parameter very large, frailty variance close to 0")
     loglik <- mcox$loglik[length(mcox$loglik)]
     # loglik <- sum((log(basehaz_line) + g_x)[Y[,3] == 1]) +
     #    sum(Y[,3]) - sum(nev_tp * log(nev_tp))
 
     if(isTRUE(return_loglik)) {
-      if(isTRUE(.control$verbose)) print(paste("loglik = ",loglik))
+      if(isTRUE(inner_control$verbose)) print(paste("loglik = ",loglik))
       return(-loglik)
     }
 
@@ -56,7 +56,7 @@ em_fit <- function(logfrailtypar, dist, pvfm,
   convergence <- FALSE
   while(!isTRUE(convergence)) {
 
-    if(isTRUE(.control$fast_fit)) {
+    if(isTRUE(inner_control$fast_fit)) {
       e_step_val <- fast_Estep(Cvec, Cvec_lt, atrisk$nev_id, alpha = .pars$alpha, bbeta = .pars$bbeta, pvfm = pvfm, dist = .pars$dist)
     } else {
       e_step_val <- Estep(Cvec, Cvec_lt, atrisk$nev_id, alpha = .pars$alpha, bbeta = .pars$bbeta, pvfm = pvfm, dist = .pars$dist)
@@ -85,8 +85,10 @@ em_fit <- function(logfrailtypar, dist, pvfm,
     loglik <- sum((log(basehaz_line) + g_x)[Y[,3] == 1]) +
      sum(e_step_val[,3]) + sum(Y[,3]) - sum((atrisk$nevent * log(atrisk$nevent))[atrisk$nevent > 0])# +  sum(nev_id * lp_individual)
 
-    if(loglik < loglik_old - 1) warning(paste0("likelihood decrease of ", loglik - loglik_old ))
-    if((loglik - loglik_old) < .control$eps) break
+    if(loglik < loglik_old - inner_control$lik_tol)
+      warning(paste0("likelihood decrease of ", loglik - loglik_old ))
+
+    if((loglik - loglik_old) < inner_control$eps) break
 
     loglik_old <- loglik
 
@@ -145,14 +147,14 @@ em_fit <- function(logfrailtypar, dist, pvfm,
     Cvec <- rowsum( cumhaz_line * exp(g_x), atrisk$order_id)
 
     ncycles <- ncycles + 1
-    if(ncycles > .control$maxit) {
-      warning(paste("did not converge in ", .control$maxit," iterations." ))
+    if(ncycles > inner_control$maxit) {
+      warning(paste("did not converge in ", inner_control$maxit," iterations." ))
       break
     }
   }
 
   if(isTRUE(return_loglik)) {
-    if(isTRUE(.control$verbose)) print(paste("loglik = ",loglik))
+    if(isTRUE(inner_control$verbose)) print(paste("loglik = ",loglik))
     return(-loglik)
   }  # for when maximizing
 
@@ -161,7 +163,7 @@ em_fit <- function(logfrailtypar, dist, pvfm,
   haz_tev = haz[haz > 0]
 
 
-  if(!isTRUE(.control$se_fit)) {
+  if(!isTRUE(se)) {
     if(length(Xmat) == 0) {
       Vcov <- matrix(NA, length(tev), length(tev))
     } else {
@@ -169,19 +171,13 @@ em_fit <- function(logfrailtypar, dist, pvfm,
     }
 
     res = list(loglik = loglik, # this we need
-               # dist = dist, # do we need this?
-               # frailtypar = exp(logfrailtypar),
                tev = tev, # event time points
                haz = haz_tev, # the Breslow estimator for ech tev
                nev_id = atrisk$nev_id,
-               # haz = list(tev = tev,
-               #            haz_tev = haz_tev),
-               # logz = logz, estimated log frailties, we do not need
                Cvec = Cvec, #the Lambdatildei, I don't think I need that. But maybe I do?
                estep = e_step_val, # the E step object, just keep it like that.
                coef = mcox$coefficients, # the maximized coefficients. I need this.
-               Vcov = Vcov) # the Vcov matrix, yes I want it!
-    #pvfm = pvfm)
+               Vcov = Vcov) # the Vcov matrix
 
     return(res)
   }
@@ -213,7 +209,6 @@ em_fit <- function(logfrailtypar, dist, pvfm,
 
     # if(any(m_d2l_dgdg<0)) warning("negative eigen in dgdg")
 
-    # ugly as shit. this can be made faster, but it does not seem like such a problem right now.
     m_d2l_dhdg <-
       do.call(rbind,
               lapply(lapply(
@@ -254,7 +249,7 @@ em_fit <- function(logfrailtypar, dist, pvfm,
 
  #  sqrt(diag(solve(I_full))) # this are the SE's, before adjusting for the frailty
 
-  if(isTRUE(.control$fast_fit)) {
+  if(isTRUE(inner_control$fast_fit)) {
       estep_again <- fast_Estep(Cvec,
                                 Cvec_lt,
                                 atrisk$nev_id,
@@ -415,19 +410,13 @@ em_fit <- function(logfrailtypar, dist, pvfm,
   # with this one we will also need SE estimates and all the stuff
   if(!isTRUE(return_loglik)) {
     res = list(loglik = loglik, # this we need
-               # dist = dist, # do we need this?
-               # frailtypar = exp(logfrailtypar),
                tev = tev, # event time points
                haz = haz_tev, # the Breslow estimator for ech tev
                nev_id = atrisk$nev_id,
-               # haz = list(tev = tev,
-               #            haz_tev = haz_tev),
-               # logz = logz, estimated log frailties, we do not need
                Cvec = Cvec, #the Lambdatildei, I don't think I need that. But maybe I do?
                estep = e_step_val, # the E step object, just keep it like that.
                coef = mcox$coefficients, # the maximized coefficients. I need this.
-               Vcov = Vcov) # the Vcov matrix, yes I want it!
-               #pvfm = pvfm)
+               Vcov = Vcov) # the Vcov matrix
 
     res
   }

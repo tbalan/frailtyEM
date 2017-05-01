@@ -1,3 +1,6 @@
+# frailtyEM 0.6.2
+- big overhaul of the `control` argument and the `emfrail_control()` function
+
 # frailtyEM 0.6.1 
 - removed some old dependencies in the documentation and DESCRIPTION
 

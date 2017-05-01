@@ -278,26 +278,16 @@ emfrail <- function(.data,
   if(!inherits(.control, "emfrail_control"))
     stop(".control argument misspecified; see ?emfrail_control()")
 
-  if(isTRUE(.control$fast_fit)) {
+  if(isTRUE(.control$inner_control$fast_fit)) {
     if(!(.distribution$dist %in% c("gamma", "pvf"))) {
       #message("fast_fit option only available for gamma and pvf with m=-1/2 distributions")
-      .control$fast_fit <- FALSE
+      .control$inner_control$fast_fit <- FALSE
     }
 
     # version 0.5.6, the IG fast fit gets super sensitive at small frailty variance...
     if(.distribution$dist == "pvf")
-      .control$fast_fit <- FALSE
+      .control$inner_control$fast_fit <- FALSE
 
-
-    # if(.distribution$dist == "pvf" & (.distribution$pvfm != -1/2)) {
-    #   #message("fast_fit option only available for gamma and pvf with m=-1/2 distributions")
-    #   .control$fast_fit <- FALSE
-    # }
-    #
-    # if(.distribution$dist == "pvf" & (.distribution$pvfm == -1/2) & .distribution$left_truncation ) {
-    #   #message("fast_fit option not available with left truncation for the Inverse Gaussian")
-    #   .control$fast_fit <- FALSE
-    # }
   }
 
 
@@ -305,11 +295,6 @@ emfrail <- function(.data,
 
 
   if(missing(.formula)  | missing(.data)) stop("Missing arguments")
-  # if(missing(.distribution)) {
-  #   .distribution <-  emfrail_distribution()
-  #   print("default distribution")
-  # }
-  # if(missing(.control)) .control <- emfrail_control()
 
   cluster <- function(x) x
   terminal <- function(x) x
@@ -444,8 +429,8 @@ emfrail <- function(.data,
            Y = Y, Xmat = X, atrisk = atrisk, basehaz_line = basehaz_line,
            mcox = list(coefficients = g, loglik = mcox$loglik),  # a "fake" cox model
            Cvec = Cvec, lt = .distribution$left_truncation,
-           Cvec_lt = Cvec_lt,
-          .control = .control))
+           Cvec_lt = Cvec_lt, se = FALSE,
+           inner_control = .control$inner_control))
   }
 
 
@@ -453,7 +438,7 @@ emfrail <- function(.data,
   # With the stable distribution, a problem pops up for small values, i.e. very large association (tau large)
   # So there is another interval...
   if(.distribution$dist == "stable") {
-    .control$opt_control$interval <- .control$opt_control$interval_stable
+    .control$lik_ci_intervals$interval <- .control$lik_ci_intervals$interval_stable
   }
 
   # add a bit to the interval so that it gets to the Cox likelihood, if it is at that end of the parameter space
@@ -485,35 +470,40 @@ emfrail <- function(.data,
                  Y = Y, Xmat = X, atrisk = atrisk, basehaz_line = basehaz_line,
                  mcox = list(coefficients = g, loglik = mcox$loglik),  # a "fake" cox model
                  Cvec = Cvec, lt = .distribution$left_truncation,
-                 Cvec_lt = Cvec_lt,
-                 .control = .control)
+                 Cvec_lt = Cvec_lt, se = FALSE,
+                 inner_control = .control$inner_control)
 
-
+  # do.call(nlm, c(list(f = em_fit, p = 2, hessian = TRUE, dist = .distribution$dist, pvfm = .distribution$pvfm,
+  #                Y = Y, Xmat = X, atrisk = atrisk, basehaz_line = basehaz_line,
+  #                mcox = list(coefficients = g, loglik = mcox$loglik),  # a "fake" cox model
+  #                Cvec = Cvec, lt = .distribution$left_truncation,
+  #                Cvec_lt = Cvec_lt,
+  #                .control = .control), .control$opt_control))
 
     # likelihood-based confidence intervals
   theta_low <- theta_high <- NULL
   if(isTRUE(.control$lik_ci)) {
 
-  lower_llik <- em_fit(.control$opt_control$interval[1],
+  lower_llik <- em_fit(.control$lik_ci_intervals$interval[1],
                        dist = .distribution$dist,
                        pvfm = .distribution$pvfm,
                        Y = Y, Xmat = X, atrisk = atrisk, basehaz_line = basehaz_line,
                        mcox = list(coefficients = g, loglik = mcox$loglik),  # a "fake" cox model
                        Cvec = Cvec, lt = .distribution$left_truncation,
-                       Cvec_lt = Cvec_lt,
-                       .control = .control)
+                       Cvec_lt = Cvec_lt, se = FALSE,
+                       inner_control = .control$inner_control)
 
-  upper_llik <- em_fit(.control$opt_control$interval[2],
+  upper_llik <- em_fit(.control$lik_ci_intervals$interval[2],
          dist = .distribution$dist,
          pvfm = .distribution$pvfm,
          Y = Y, Xmat = X, atrisk = atrisk, basehaz_line = basehaz_line,
          mcox = list(coefficients = g, loglik = mcox$loglik),  # a "fake" cox model
          Cvec = Cvec, lt = .distribution$left_truncation,
-         Cvec_lt = Cvec_lt,
-         .control = .control)
+         Cvec_lt = Cvec_lt, se = FALSE,
+         inner_control = .control$inner_control)
 
   theta_low <- uniroot(function(x, ...) outer_m$minimum - em_fit(x, ...) + 1.92,
-                       interval = c(.control$opt_control$interval[1], outer_m$estimate),
+                       interval = c(.control$lik_ci_intervals$interval[1], outer_m$estimate),
                        f.lower = outer_m$minimum - lower_llik + 1.92, f.upper = 1.92,
                        tol = .Machine$double.eps^0.1,
                        dist = .distribution$dist,
@@ -521,8 +511,8 @@ emfrail <- function(.data,
                        Y = Y, Xmat = X, atrisk = atrisk, basehaz_line = basehaz_line,
                        mcox = list(coefficients = g, loglik = mcox$loglik),  # a "fake" cox model
                        Cvec = Cvec, lt = .distribution$left_truncation,
-                       Cvec_lt = Cvec_lt,
-                       .control = .control,
+                       Cvec_lt = Cvec_lt, se = FALSE,
+                       inner_control = .control$inner_control,
                        maxiter = 100)$root
 
 
@@ -530,7 +520,7 @@ emfrail <- function(.data,
   # then screw this it's infinity
   if(upper_llik  - outer_m$minimum < 1.92) theta_high <- Inf else
     theta_high <- uniroot(function(x, ...) outer_m$minimum - em_fit(x, ...) + 1.92,
-                          interval = c(outer_m$estimate, .control$opt_control$interval[2]),
+                          interval = c(outer_m$estimate, .control$lik_ci_intervals$interval[2]),
                           f.lower = 1.92, f.upper = outer_m$minimum - upper_llik + 1.92,
                           extendInt = c("downX"),
                           dist = .distribution$dist,
@@ -538,8 +528,8 @@ emfrail <- function(.data,
                           Y = Y, Xmat = X, atrisk = atrisk, basehaz_line = basehaz_line,
                           mcox = list(coefficients = g, loglik = mcox$loglik),  # a "fake" cox model
                           Cvec = Cvec, lt = .distribution$left_truncation,
-                          Cvec_lt = Cvec_lt,
-                          .control = .control)$root
+                          Cvec_lt = Cvec_lt, se  = FALSE,
+                          inner_control = .control$inner_control)$root
   }
 
   # outer_m$minimum
@@ -554,16 +544,28 @@ emfrail <- function(.data,
 
   #message("Calculating final fit with information matrix...")
 
-  inner_m <- em_fit(logfrailtypar = outer_m$estimate,
+  if(isTRUE(.control$se))  {
+    inner_m <- em_fit(logfrailtypar = outer_m$estimate,
                       dist = .distribution$dist, pvfm = .distribution$pvfm,
                       Y = Y, Xmat = X, atrisk = atrisk, basehaz_line = basehaz_line,
                       mcox = list(coefficients = g, loglik = mcox$loglik),  # a "fake" cox model
                       Cvec = Cvec, lt = .distribution$left_truncation,
-                      Cvec_lt = Cvec_lt,
-                      .control = .control, return_loglik = FALSE)
+                      Cvec_lt = Cvec_lt, se = TRUE,
+                      inner_control = .control$inner_control,
+                      return_loglik = FALSE)
+  } else
+    inner_m <- em_fit(logfrailtypar = outer_m$estimate,
+                      dist = .distribution$dist, pvfm = .distribution$pvfm,
+                      Y = Y, Xmat = X, atrisk = atrisk, basehaz_line = basehaz_line,
+                      mcox = list(coefficients = g, loglik = mcox$loglik),  # a "fake" cox model
+                      Cvec = Cvec, lt = .distribution$left_truncation,
+                      Cvec_lt = Cvec_lt, se = FALSE,
+                      inner_control = .control$inner_control,
+                      return_loglik = FALSE)
+
 
   # adjusted standard errors
-  if(isTRUE(.control$se_fit) & isTRUE(.control$se_adj)) {
+  if(isTRUE(.control$se) & isTRUE(.control$se_adj)) {
 
     # absolute value should be redundant. but sometimes the "hessian" might be 0.
     # in that case it might appear negative; this happened only on Linux...
@@ -580,16 +582,17 @@ emfrail <- function(.data,
                               Y = Y, Xmat = X, atrisk = atrisk, basehaz_line = basehaz_line,
                               mcox = list(coefficients = g, loglik = mcox$loglik),  # a "fake" cox model
                               Cvec = Cvec, lt = .distribution$left_truncation,
-                              Cvec_lt = Cvec_lt,
-                              .control = .control, return_loglik = FALSE)
+                              Cvec_lt = Cvec_lt, se = TRUE,
+                              inner_control = .control$inner_control,
+                              return_loglik = FALSE)
 
     final_fit_plus <- em_fit(logfrailtypar = lfp_plus,
                              dist = .distribution$dist, pvfm = .distribution$pvfm,
                              Y = Y, Xmat = X, atrisk = atrisk, basehaz_line = basehaz_line,
                              mcox = list(coefficients = g, loglik = mcox$loglik),  # a "fake" cox model
                              Cvec = Cvec, lt = .distribution$left_truncation,
-                             Cvec_lt = Cvec_lt,
-                             .control = .control, return_loglik = FALSE)
+                             Cvec_lt = Cvec_lt, se = TRUE,
+                             inner_control = .control$inner_control, return_loglik = FALSE)
 
 
     # instructional: this should be more or less equal to the

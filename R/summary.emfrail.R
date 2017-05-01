@@ -113,7 +113,7 @@ summary.emfrail <- function(object,
   ci_theta_high <- exp(with(fit, outer_m$minimum + 1.96 * sqrt(1/outer_m$hess)))
 
   # if theta was at the edge, then CI should show this....
-  if(theta > object$.control$opt_control$interval[2] - 0.1) {
+  if(theta > object$.control$inner_control$lower_tol - 0.1) {
     ci_theta_low <- theta
     ci_theta_high <- Inf
   }
