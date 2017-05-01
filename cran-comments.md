@@ -1,6 +1,6 @@
 ## Test environments
-* local OS X install, R 3.4 21/03
-* ubuntu 12.04, R 3.3.2
+* local OS X install, R 3.4.0
+* ubuntu 12.04, x86_64-pc-linux-gnu (64-bit) R 3.4.0
 * win-builder (devel and release)
 
 ## R CMD check results
@@ -9,6 +9,6 @@
 
 ## Reverse dependencies
 
-This is a new release, so there are no reverse dependencies.
+No reverse dependencies.
 
 ---
