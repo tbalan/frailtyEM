@@ -363,8 +363,7 @@ em_fit <- function(logfrailtypar, dist, pvfm,
   }
 
 
-
-
+  # this is supppper slow / not the Map part but the lapply and the Reduce.
   cor_dh <- Reduce("+", lapply(
     Map(function(a,b) a * b,
         elp_to_tev,
@@ -372,8 +371,6 @@ em_fit <- function(logfrailtypar, dist, pvfm,
     function(x) x %*% t(x)
   )
   )
-
-
 
 
 

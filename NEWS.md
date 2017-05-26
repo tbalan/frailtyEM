@@ -1,3 +1,9 @@
+# frailtyEM 0.6.3
+- fixed intervals for calculating confidence based intervals. seems there is a problem when the frailty variance is very large (e.g. 30, 40) 
+- fixed an issue where nlm was not taking the parameters from the .control argument
+- set the step size smaller for the nlm maximizer so that it doesn't overshoot (see 1st issue)
+
+
 # frailtyEM 0.6.2
 - big overhaul of the `control` argument and the `emfrail_control()` function
 
