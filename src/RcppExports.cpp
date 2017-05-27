@@ -36,3 +36,15 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// sumxxt
+NumericVector sumxxt(List x, int L);
+RcppExport SEXP frailtyEM_sumxxt(SEXP xSEXP, SEXP LSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< List >::type x(xSEXP);
+    Rcpp::traits::input_parameter< int >::type L(LSEXP);
+    rcpp_result_gen = Rcpp::wrap(sumxxt(x, L));
+    return rcpp_result_gen;
+END_RCPP
+}

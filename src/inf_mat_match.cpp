@@ -58,5 +58,5 @@ NumericVector inf_mat_match(NumericVector left, NumericVector right, NumericVect
 
 /*** R
 # for example,
-try(inf_mat_match(c(0,2,4), c(2,5, 7), rnorm(10), 100))
+# try(inf_mat_match(c(0,2,4), c(2,5, 7), rnorm(10), 100))
 */

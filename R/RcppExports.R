@@ -26,3 +26,7 @@ inf_mat_match <- function(left, right, elp, maxlength) {
     .Call('frailtyEM_inf_mat_match', PACKAGE = 'frailtyEM', left, right, elp, maxlength)
 }
 
+sumxxt <- function(x, L) {
+    .Call('frailtyEM_sumxxt', PACKAGE = 'frailtyEM', x, L)
+}
+

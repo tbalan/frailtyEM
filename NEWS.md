@@ -1,3 +1,6 @@
+# frailtyEM 0.6.4
+- massive performance improvement, when there are a lot of distinct event time points. moved part of the calculation of the information matrix to c++
+
 # frailtyEM 0.6.3
 - fixed intervals for calculating confidence based intervals. seems there is a problem when the frailty variance is very large (e.g. 30, 40) 
 - fixed an issue where nlm was not taking the parameters from the .control argument

@@ -364,17 +364,27 @@ em_fit <- function(logfrailtypar, dist, pvfm,
 
 
   # this is supppper slow / not the Map part but the lapply and the Reduce.
-  cor_dh <- Reduce("+", lapply(
-    Map(function(a,b) a * b,
-        elp_to_tev,
-        sqrt(zz - z^2)),
-    function(x) x %*% t(x)
-  )
-  )
+
+  # cor_dh <- Reduce("+", lapply(
+  #   Map(function(a,b) a * b,
+  #       elp_to_tev,
+  #       sqrt(zz - z^2)),
+  #   function(x) x %*% t(x)
+  # )
+  # )
 
 
+#
+  a <- Map(function(a,b) a * b,
+      elp_to_tev,
+      sqrt(zz - z^2))
+  m <- matrix(0, length(a[[1]]),  length(a[[1]]))
+  m[upper.tri(m, diag = TRUE)] <- sumxxt(a, length(a[[1]]))
+  cor_dh <- m + t(m) - diag(diag(m))
 
-  # cor_dh <- elp_to_tev %>%  # these are the c_ik without the z man.
+  #all.equal(m2, cor_dh)
+
+  # cor_dh <- elp_to_tev %>%  # these are the c_ik without the z.
   #   lapply(function(x) x %*% t(x)) %>%
   #   mapply(function(a,b) a * b, ., zz - z^2, SIMPLIFY = FALSE) %>%
   #   Reduce("+",.)
