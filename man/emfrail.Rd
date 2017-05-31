@@ -175,7 +175,7 @@ summary(mod_rec)
 
 # Create a histogram of the estimated frailties
 
-hist_frail(mod_rec)
+plot(mod_rec, type = "hist")
 
 # or, with ggplot:
 \dontrun{
@@ -218,7 +218,7 @@ ggplotly(
 # Plot marginal and conditional curves
 # For recurrent events, the survival is not very meaningful
 
-plot_pred(mod_rec, quantity = "cumhaz")
+plot(mod_rec, type = "pred", lp = 0, quantity = "cumhaz")
 #The strong frailty "drags down" the intensity
 
 
@@ -270,7 +270,7 @@ summary(mod_3)
 }
 }
 \seealso{
-\code{\link{plot_emfrail}} and \code{\link{ggplot_emfrail}} for plot functions directly available, \code{\link{emfrail_pll}} for calculating \eqn{\widehat{L}(\theta)} at specific values of \eqn{\theta},
+\code{\link{plot.emfrail}} and \code{\link{autoplot.emfrail}} for plot functions directly available, \code{\link{emfrail_pll}} for calculating \eqn{\widehat{L}(\theta)} at specific values of \eqn{\theta},
 \code{\link{summary.emfrail}} for transforming the \code{emfrail} object into a more human-readable format and for
 visualizing the frailty (empirical Bayes) estimates,
 \code{\link{predict.emfrail}} for calculating and visalizing conditional and marginal survival and cumulative

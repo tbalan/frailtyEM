@@ -4,7 +4,7 @@
 \alias{predict.emfrail}
 \title{Predicted hazard and survival curves from an \code{emfrail} object}
 \usage{
-\method{predict}{emfrail}(object, lp = c(0), newdata = NULL,
+\method{predict}{emfrail}(object, lp = NULL, newdata = NULL,
   quantity = c("cumhaz", "survival"), type = c("conditional", "marginal"),
   conf_int = c("regular", "adjusted"), ...)
 }
@@ -71,18 +71,19 @@ kidney$sex <- ifelse(kidney$sex == 1, "male", "female")
 m1 <- emfrail(.data =  kidney,
               .formula = Surv(time, status) ~  sex + age  + cluster(id))
 
-pred <- predict(m1)
+pred <- predict(m1, lp = 0)
 
 names(pred)
 
 # Plot baseline cumulative hazard: note that is for someone aged 0!
-plot_pred(m1)
+plot(m1, type = "pred", lp = 0)
 
 # More realistic:
-plot_pred(m1, newdata = data.frame(sex = "female", age = mean(kidney$age)))
+plot(m1, type = "pred", newdata = data.frame(sex = "female", age = mean(kidney$age)))
 
 # Plot survival
-plot_pred(m1,
+plot(m1,
+type = "pred",
           newdata = data.frame(sex = "female", age = mean(kidney$age)),
           quantity = "survival", conf_int = "none")
 \dontrun{
@@ -124,9 +125,9 @@ legend(c("conditional", "marginal"), x = "bottomleft", col = c(1,2), lty = 1)
 # With positive stable, this plot would be two parallel lines
 
 # Or easier, in this way:
-plot_hr(m1, newdata = data.frame(sex = c("female", "male"), age = c(44, 44)))
+plot(m1, type = "hr", newdata = data.frame(sex = c("female", "male"), age = c(44, 44)))
 }
 }
 \seealso{
-\code{\link{plot_pred}}, \code{\link{plot_hr}}
+\code{\link{plot.emfrail}}, \code{\link{autoplot.emfrail}}
 }

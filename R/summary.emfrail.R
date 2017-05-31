@@ -26,7 +26,7 @@
 #'
 #' @export
 #'
-#' @seealso \code{\link{predict.emfrail}, \link{plot_emfrail}}
+#' @seealso \code{\link{predict.emfrail}, \link{plot.emfrail}}
 #'
 #' @examples
 #' data("bladder")
@@ -36,7 +36,7 @@
 #'
 #' # plot the Empirical Bayes estimates of the frailty
 #' # easy way:
-#' hist_frail(mod_gamma)
+#' plot(mod_gamma, type = "hist")
 #'
 #' # a fancy graph:
 #' sum_mod <- summary(mod_gamma)

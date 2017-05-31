@@ -46,7 +46,7 @@ summary(mod_gamma)
 
 # plot the Empirical Bayes estimates of the frailty
 # easy way:
-hist_frail(mod_gamma)
+plot(mod_gamma, type = "hist")
 
 # a fancy graph:
 sum_mod <- summary(mod_gamma)
@@ -93,5 +93,5 @@ zph2
 # the p-values are even larger; the frailty "corrects" for proportionality.
 }
 \seealso{
-\code{\link{predict.emfrail}, \link{plot_emfrail}}
+\code{\link{predict.emfrail}, \link{plot.emfrail}}
 }

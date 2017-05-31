@@ -57,21 +57,22 @@
 #' m1 <- emfrail(.data =  kidney,
 #'               .formula = Surv(time, status) ~  sex + age  + cluster(id))
 #'
-#' pred <- predict(m1)
+#' pred <- predict(m1, lp = 0)
 #'
 #' names(pred)
 #'
 #' # Plot baseline cumulative hazard: note that is for someone aged 0!
-#' plot_pred(m1)
+#' plot(m1, type = "pred", lp = 0)
 #'
 #' # More realistic:
-#' plot_pred(m1, newdata = data.frame(sex = "female", age = mean(kidney$age)))
+#' plot(m1, type = "pred", newdata = data.frame(sex = "female", age = mean(kidney$age)))
 #'
 #' # Plot survival
-#' plot_pred(m1,
+#' plot(m1,
+#' type = "pred",
 #'           newdata = data.frame(sex = "female", age = mean(kidney$age)),
 #'           quantity = "survival", conf_int = "none")
-#'\dontrun{
+#' \dontrun{
 #' # Plot cumulative hazard with confidence intervals, ggplot2
 #' library(ggplot2)
 #' ggplot(pred, aes(x = time, y = cumhaz)) +
@@ -110,11 +111,11 @@
 #' # With positive stable, this plot would be two parallel lines
 #'
 #' # Or easier, in this way:
-#' plot_hr(m1, newdata = data.frame(sex = c("female", "male"), age = c(44, 44)))
+#' plot(m1, type = "hr", newdata = data.frame(sex = c("female", "male"), age = c(44, 44)))
 #' }
-#' @seealso \code{\link{plot_pred}}, \code{\link{plot_hr}}
+#' @seealso \code{\link{plot.emfrail}}, \code{\link{autoplot.emfrail}}
 predict.emfrail <- function(object,
-                            lp = c(0),
+                            lp = NULL,
                             newdata = NULL,
                             quantity = c("cumhaz", "survival"),
                             type = c("conditional", "marginal"),
@@ -122,9 +123,12 @@ predict.emfrail <- function(object,
                             ...) {
 
 
+  if(is.null(newdata) & is.null(lp)) stop("lp or newdata must be specified")
+
   if(!is.null(newdata)) {
     if(!inherits(newdata, "data.frame")) stop("newdata must be a data.frame")
-    #message("newdata specified, ignoring lp")
+
+    if(!is.null(lp)) warning("newdata specified, ignoring lp")
 
     mdata <- attr(object, "metadata")
     mf <- model.frame(mdata[[1]], data = newdata, xlev = mdata[[2]])

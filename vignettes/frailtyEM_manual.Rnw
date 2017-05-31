@@ -359,11 +359,13 @@ To illustrate the predicted cumulative hazard curves we take two individuals, on
 \begin{center}
 <<bladder2_cumhaz, fig=TRUE, width=14>>==
 library("ggplot2")
-p1 <- ggplot_pred(m1,
+p1 <- autoplot(m1,
+               type = "pred",
           newdata = data.frame(sex = "male", treat = "rIFN-g")) +
   ggtitle("rIFN-g") + ylim(c(0, 2)) +
   theme_minimal()
-p2 <- ggplot_pred(m1,
+p2 <- autoplot(m1,
+                  type = "pred",
           newdata = data.frame(sex = "male", treat = "placebo")) +
     ggtitle("placebo") + ylim(c(0, 2)) +
     theme_minimal()
@@ -391,13 +393,15 @@ The coefficient estimates are similar to those of \code{m1}. The ``Frailty summa
 \begin{figure}
 \begin{center}
 <<bladder2_hazardratios, fig=TRUE, width=12>>==
-pl1 <- ggplot_hr(m1,
+pl1 <- autoplot(m1,
+                type = "hr",
         newdata = data.frame(treat = c("placebo", "rIFN-g"),
                              sex = c("male", "male"))) +
   ggtitle("gamma") +
   theme_minimal()
 
-pl2 <- ggplot_hr(m2,
+pl2 <- autoplot(m2,
+                type = "hr",
         newdata = data.frame(treat = c("placebo", "rIFN-g"),
                              sex = c("male", "male"))) +
   ggtitle("stable") +

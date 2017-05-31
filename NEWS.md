@@ -1,3 +1,6 @@
+# frailtyEM 0.6.5
+- removed all the plot functions and replaced them by methods with `plot.emfrail()` and `autoplot.emfrail()` (for `ggplot2`).
+
 # frailtyEM 0.6.4
 - massive performance improvement, when there are a lot of distinct event time points. moved part of the calculation of the information matrix to c++
 

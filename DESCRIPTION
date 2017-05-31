@@ -1,7 +1,7 @@
 Package: frailtyEM
 Type: Package
 Title: Fitting Frailty Models with the EM Algorithm
-Version: 0.6.4
+Version: 0.6.5
 Author: Theodor Adrian Balan, Hein Putter
 Maintainer: Theodor Adrian Balan <t.a.balan@lumc.nl>
 URL: https://github.com/teddybalan/frailtyEM
@@ -32,14 +32,14 @@ Suggests:
     gridExtra
 Collate: 
     'RcppExports.R'
+    'autoplot.emfrail.R'
     'ca_test.R'
     'em_fit.R'
     'emfrail_aux.R'
     'emfrail.R'
     'emfrail_arguments.R'
     'fast_Estep.R'
-    'ggplot_emfrail.R'
-    'plot_emfrail.R'
+    'plot.emfrail.R'
     'predict.emfrail.R'
     'print.emfrail.R'
     'print.emfrail_summary.R'
