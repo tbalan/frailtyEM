@@ -1,14 +1,6 @@
-#' Import for the autoplot generic
 #' @importFrom ggplot2 autoplot
-#' @export autoplot
-#' @param object An object
-#' @param ... Further arguments
-#' @keywords internal
-#' @details This is just used to correctly import the S3 generic \code{autoplot} from the \code{ggplot2} package in R. In general, there seems to be an issue
-#' when writing a method using a generic function that is not defined in the base R packages. It needs to be imported and exported as well.
-#' This generic lies in \code{ggplot2} and is doocumented there.
-#' @seealso \code{\link{autoplot.emfrail}}
-
+#' @export
+#' @rdname autoplot.emfrail
 autoplot <- autoplot
 
 #' Plots for emfrail objects using \code{ggplot2}
@@ -27,11 +19,11 @@ autoplot <- autoplot
 #' @param quantity For \code{type == "pred"} the predicted quantity; see \code{\link{predict.emfrail}}
 #' @param marg_cond For \code{type == "pred"} the type of predicted quantity; see \code{\link{predict.emfrail}}
 #' @param conf_int For \code{type == "pred"} the type of confidence intervals; see \code{\link{predict.emfrail}}
-#' @param ... Further arguments to be passed to ggplot
+#' @param ... Further arguments to be passed on to `ggplot`
 #'
 #' @return A list of \code{ggplot2} objects corresponding to the required plots, or one \code{ggplot2} if only one plot is selected
-#' @export
 #' @export autoplot.emfrail
+#' @export
 #' @seealso \code{\link{predict.emfrail}}, \code{\link{summary.emfrail}}, \code{\link{plot.emfrail}}.
 #'
 #' @examples
