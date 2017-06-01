@@ -4,12 +4,12 @@
 \alias{laplace_transform}
 \title{Laplace transform calculation}
 \usage{
-laplace_transform(x, .distribution)
+laplace_transform(x, distribution)
 }
 \arguments{
 \item{x}{A vector of positive values where to calculate the Laplace transform}
 
-\item{.distribution}{An \code{emfrail_distribution} object. See \code{?emfrail_distribution}.}
+\item{distribution}{An \code{emfrail_distribution} object. See \code{?emfrail_distribution}.}
 }
 \value{
 A vector of the same length as \code{x} with the Laplace transform of \code{x}

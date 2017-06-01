@@ -41,7 +41,7 @@ If the model contains covariates, the field \code{coefmat} contains the correspo
 \examples{
 data("bladder")
 coxph(Surv(start, stop, status) ~ treatment + frailty(id), data = bladder1, method = "breslow")
-mod_gamma <- emfrail(bladder1, Surv(start, stop, status) ~ treatment + cluster(id))
+mod_gamma <- emfrail(Surv(start, stop, status) ~ treatment + cluster(id), bladder1)
 summary(mod_gamma)
 
 # plot the Empirical Bayes estimates of the frailty

@@ -42,7 +42,7 @@ dist_to_pars <- function(dist, logfrailtypar, pvfm) {
 #' Laplace transform calculation
 #'
 #' @param x A vector of positive values where to calculate the Laplace transform
-#' @param .distribution An \code{emfrail_distribution} object. See \code{?emfrail_distribution}.
+#' @param distribution An \code{emfrail_distribution} object. See \code{?emfrail_distribution}.
 #'
 #' @return A vector of the same length as \code{x} with the Laplace transform of \code{x}
 #'
@@ -51,12 +51,12 @@ dist_to_pars <- function(dist, logfrailtypar, pvfm) {
 #' Note that the \code{left_truncation} argument is ignored here;
 #' the marginal survival or hazard are given for the Laplace transform of a baseline subject entered at time 0.
 #' @keywords internal
-laplace_transform <- function(x, .distribution) {
+laplace_transform <- function(x, distribution) {
   # if(missing(.distribution) & missing())
-  if(!inherits(.distribution, "emfrail_distribution"))
-    stop(".distribution argument misspecified; see ?emfrail_distribution()")
+  if(!inherits(distribution, "emfrail_distribution"))
+    stop("distribution argument misspecified; see ?emfrail_distribution()")
 
-  getpars <- dist_to_pars(.distribution$dist, log(.distribution$frailtypar), .distribution$pvfm)
+  getpars <- dist_to_pars(distribution$dist, log(distribution$frailtypar), distribution$pvfm)
 
   if(getpars$dist == 0L) {
     L <- with(getpars, (bbeta / (bbeta + x))^alpha)
@@ -67,7 +67,7 @@ laplace_transform <- function(x, .distribution) {
   }
 
   if(getpars$dist == 2L) {
-    L <- with(getpars, exp(-alpha * sign(.distribution$pvfm) * (1 - (bbeta / (bbeta + x))^.distribution$pvfm )))
+    L <- with(getpars, exp(-alpha * sign(distribution$pvfm) * (1 - (bbeta / (bbeta + x))^distribution$pvfm )))
   }
 
   L
@@ -77,10 +77,10 @@ laplace_transform <- function(x, .distribution) {
 
 #' Profile log-likelihood calculation
 #'
-#' @param .data Same as in \code{emfrail}
-#' @param .formula Same as in \code{emfrail}
-#' @param .distribution Same as in \code{emfrail}
-#' @param .values A vector of values on where to calculate the profile likelihood. See details.
+#' @param data Same as in \code{emfrail}
+#' @param formula Same as in \code{emfrail}
+#' @param distribution Same as in \code{emfrail}
+#' @param values A vector of values on where to calculate the profile likelihood. See details.
 #'
 #' @return The profile log-likelihood at the specific value of the frailty parameter
 #' @export
@@ -89,7 +89,7 @@ laplace_transform <- function(x, .distribution) {
 #' The scale is that of \code{theta} as defined in \code{emfrail_distribution()}.
 #' For the gamma and pvf frailty, that is the inverse of the frailty variance.
 #'
-#' @note This function is just a simple wrapper for \code{emfrail()} with the \code{.control} argument
+#' @note This function is just a simple wrapper for \code{emfrail()} with the \code{control} argument
 #' a call from \code{emfrail_control} with the option \code{opt_fit = FALSE}. More flexibility can be obtained
 #' by calling \code{emfrail} with this option, especially
 #' for setting other \code{emfrail_control} parameters.
@@ -97,9 +97,8 @@ laplace_transform <- function(x, .distribution) {
 #' @examples
 #'
 #' fr_var <- c(0.001, 0.01, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9)
-#' profloglik <- emfrail_pll(rats,
-#'                           Surv(time, status) ~ rx + sex + cluster(litter),
-#'                           .values = 1/fr_var)
+#' profloglik <- emfrail_pll(Surv(time, status) ~ rx + sex + cluster(litter), rats,
+#'                           values = 1/fr_var)
 #' plot(fr_var, profloglik, xlab = "frailty variance", ylab = "profile log-likelihood")
 #'
 #' # check with coxph:
@@ -109,17 +108,17 @@ laplace_transform <- function(x, .distribution) {
 #'
 #' lines(fr_var, profloglik_cph, col = 2)
 #'
-emfrail_pll <- function(.data, .formula,
-                        .distribution = emfrail_distribution(),
-                        .values) {
-  sapply(.values, function(fp) {
-    -emfrail(.data = .data,
-             .formula = .formula,
-             .distribution =  emfrail_distribution(dist = .distribution$dist,
-                                                   theta = fp,
-                                                   pvfm = .distribution$pvfm,
-                                                   left_truncation = .distribution$left_truncation),
-             .control = emfrail_control(opt_fit = FALSE))
+emfrail_pll <- function(formula, data,
+                        distribution = emfrail_distribution(),
+                        values) {
+  sapply(values, function(fp) {
+    -emfrail(formula = formula,
+             data = data,
+             distribution =  emfrail_distribution(dist = distribution$dist,
+                                                  theta = fp,
+                                                  pvfm = distribution$pvfm,
+                                                  left_truncation = distribution$left_truncation),
+             control = emfrail_control(opt_fit = FALSE))
   })
 
 

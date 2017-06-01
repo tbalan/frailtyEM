@@ -42,7 +42,7 @@ A list of \code{ggplot2} objects corresponding to the required plots, or one \co
 Plots for emfrail objects using \code{ggplot2}
 }
 \examples{
-mod_rec <- emfrail(bladder1, Surv(start, stop, status) ~ treatment + number + cluster(id))
+mod_rec <- emfrail(Surv(start, stop, status) ~ treatment + number + cluster(id), bladder1)
 summary(mod_rec)
 # cumulative hazard
 # Note: this individual has number = 0, which does not exist in the data
@@ -63,9 +63,9 @@ newdata = data.frame(treatment = c("placebo", "placebo"), number = c(0, 2)))
 
 # hazard ratio with the stable distribution:
 \dontrun{
-mod_rec_stab <- emfrail(bladder1,
-                        Surv(start, stop, status) ~ treatment + number + cluster(id),
-                        .distribution = emfrail_distribution(dist = "stable"))
+mod_rec_stab <- emfrail(Surv(start, stop, status) ~ treatment + number + cluster(id),
+                        bladder1,
+                        distribution = emfrail_distribution(dist = "stable"))
 
 autoplot(mod_rec_stab, type = "hr",
 newdata = data.frame(treatment = c("placebo", "placebo"), number = c(0, 2)))

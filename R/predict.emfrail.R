@@ -54,8 +54,8 @@
 #'
 #' @examples
 #' kidney$sex <- ifelse(kidney$sex == 1, "male", "female")
-#' m1 <- emfrail(.data =  kidney,
-#'               .formula = Surv(time, status) ~  sex + age  + cluster(id))
+#' m1 <- emfrail(formula = Surv(time, status) ~  sex + age  + cluster(id),
+#'               data =  kidney,)
 #'
 #' pred <- predict(m1, lp = 0)
 #'
@@ -142,7 +142,7 @@ predict.emfrail <- function(object,
 
 
   fit <- object
-  est_dist <- fit$.distribution
+  est_dist <- fit$distribution
   est_dist$frailtypar <- exp(fit$outer_m$minimum)
 
 

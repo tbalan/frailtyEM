@@ -4,26 +4,26 @@
 \alias{emfrail}
 \title{Fitting shared frailty models with the EM algorithm}
 \usage{
-emfrail(.data, .formula, .distribution = emfrail_distribution(),
-  .control = emfrail_control())
+emfrail(formula, data, distribution = emfrail_distribution(),
+  control = emfrail_control(), ...)
 }
 \arguments{
-\item{.data}{A data frame in which the formula argument can be evaluated}
-
-\item{.formula}{A formula that contains on the left hand side an object of the type \code{Surv}
+\item{formula}{A formula that contains on the left hand side an object of the type \code{Surv}
 and on the right hand side a \code{+cluster(id)} statement. Optionally, also a \code{+terminal()} statement
 may be added, and then a score test for association between the event process and the result in the specified
 column is performed. See details.}
 
-\item{.distribution}{An object as created by \code{\link{emfrail_distribution}}}
+\item{data}{A data frame in which the formula argument can be evaluated}
 
-\item{.control}{An object as created by \code{\link{emfrail_control}}}
+\item{distribution}{An object as created by \code{\link{emfrail_distribution}}}
+
+\item{control}{An object as created by \code{\link{emfrail_control}}}
 }
 \value{
 An object of the class \code{emfrail}, that is in fact a list which contains (1) the object returned by the
 "outer maximization", (2) the object with all the estimates returned by the "inner maximization",
 (3) the log-likelihood of the Cox model without frailty, (4) the variance-covariance matrix adjusted for the uncertainty in the
-outer maximization, (5) the results of the Commenges-Andersen test for heterogeneity and (6,7,8) are copies of the original input arguments: .formula, .distribution and .control.
+outer maximization, (5) the results of the Commenges-Andersen test for heterogeneity and (6,7,8) are copies of the original input arguments: formula, distribution and control.
 Two attributes are also present, \code{class} for determining the object type and \code{metadata} which contains some information that is used to
 process the input for \code{predict.emfrail()}.
 }
@@ -56,9 +56,9 @@ solutions are calculated with a recursive algorithm. The information matrix (giv
 The "outer" problem is solved relying on the maximizers in the \code{nlm} function, which also provides an estimate
 of the Hessian matrix. The remaining elements of the information matrix are approximated numerically.
 
-Several options are available to the user. In the \code{.distribution} argument, the frailty distribution and the
+Several options are available to the user. In the \code{distribution} argument, the frailty distribution and the
 starting value for \eqn{\theta} can be specified, as well as whether the data consists of left truncated
-survival times or not (the default). In the \code{.control} argument, several parameters control the maximization.
+survival times or not (the default). In the \code{control} argument, several parameters control the maximization.
 The convergence criterion for the EM can be specified (or a maximum number of iterations). The "outer" procedure can be
 avoided altogether and then \code{emfrail} calculates only \eqn{\widehat{L}(\theta)} at the given starting value.
 
@@ -79,27 +79,27 @@ of the Cox model is returned to avoid such problems. This option can be tweaked 
 dat <- survival::rats
 
 
-m1 <- emfrail(.data =  dat,
-              .formula = Surv(time, status) ~  rx + sex + cluster(litter))
+m1 <- emfrail(formula = Surv(time, status) ~  rx + sex + cluster(litter),
+data =  dat)
 m1
 summary(m1)
 \dontrun{
 # for the Inverse Gaussian distribution
-m2 <- emfrail(.data =  dat,
-              .formula = Surv(time, status) ~  rx + sex + cluster(litter),
-              .distribution = emfrail_distribution(dist = "pvf"))
+m2 <- emfrail(formula = Surv(time, status) ~  rx + sex + cluster(litter),
+             data =  dat,
+             distribution = emfrail_distribution(dist = "pvf"))
 m2
 
 # for the PVF distribution with m = 0.75
-m3 <- emfrail(.data =  dat,
-              .formula = Surv(time, status) ~  rx + sex + cluster(litter),
-              .distribution = emfrail_distribution(dist = "pvf", pvfm = 0.75))
+m3 <- emfrail(formula = Surv(time, status) ~  rx + sex + cluster(litter),
+              data =  dat,
+              distribution = emfrail_distribution(dist = "pvf", pvfm = 0.75))
 m3
 
 # for the positive stable distribution
-m4 <- emfrail(.data =  dat,
-              .formula = Surv(time, status) ~  rx + sex + cluster(litter),
-              .distribution = emfrail_distribution(dist = "stable"))
+m4 <- emfrail(formula = Surv(time, status) ~  rx + sex + cluster(litter),
+              data =  dat,
+              distribution = emfrail_distribution(dist = "stable"))
 m4
 }
 # Compare marginal log-likelihoods
@@ -110,7 +110,7 @@ logliks <- lapply(models,
                   function(x) -x$outer_m$value)
 
 names(logliks) <- lapply(models,
-                         function(x) with(x$.distribution,
+                         function(x) with(x$distribution,
                                           ifelse(dist == "pvf",
                                                  paste(dist, "/", pvfm),
                                                  dist))
@@ -123,9 +123,9 @@ logliks
 fr_var <- seq(from = 0.01, to = 1.4, length.out = 20)
 
 # For gamma the variance is 1/theta (see parametrizations)
-pll_gamma <- emfrail_pll(.data =  dat,
-                         .formula = Surv(time, status) ~  rx + sex + cluster(litter),
-                         .values = 1/fr_var )
+pll_gamma <- emfrail_pll(formula = Surv(time, status) ~  rx + sex + cluster(litter),
+                         data =  dat,
+                         values = 1/fr_var )
  plot(fr_var, pll_gamma,
      type = "l",
      xlab = "Frailty variance",
@@ -138,15 +138,15 @@ pll_cph <- sapply(fr_var, function(fr)
         method = "breslow")$history[[1]][[3]])
 
 # Same for inverse gaussian
-pll_if <- emfrail_pll(.data =  dat,
-                      .formula = Surv(time, status) ~  rx + sex + cluster(litter),
-                      .distribution = emfrail_distribution(dist = "pvf"),
+pll_if <- emfrail_pll(data =  dat,
+                      formula = Surv(time, status) ~  rx + sex + cluster(litter),
+                      distribution = emfrail_distribution(dist = "pvf"),
                       .values = 1/fr_var )
 
 # Same for pvf with a psoitive pvfm parameter
-pll_pvf <- emfrail_pll(.data =  dat,
-                       .formula = Surv(time, status) ~  rx + sex + cluster(litter),
-                       .distribution = emfrail_distribution(dist = "pvf", pvfm = 1.5),
+pll_pvf <- emfrail_pll(data =  dat,
+                       formula = Surv(time, status) ~  rx + sex + cluster(litter),
+                       distribution = emfrail_distribution(dist = "pvf", pvfm = 1.5),
                        .values = 1/fr_var )
 
 miny <- min(c(pll_gamma, pll_cph, pll_if, pll_pvf))
@@ -168,7 +168,7 @@ legend(legend = c("gamma (emfrail)", "gamma (coxph)", "inverse gaussian", "pvf, 
        y = (maxy + miny)/2)
 }
 # Recurrent events
-mod_rec <- emfrail(bladder1, Surv(start, stop, status) ~ treatment + cluster(id))
+mod_rec <- emfrail(Surv(start, stop, status) ~ treatment + cluster(id), bladder1)
 # The warnings appear from the Surv object, they also appear in coxph.
 
 summary(mod_rec)
@@ -247,22 +247,19 @@ d_left <- d[d$stime > d$ltime,]
 
 # The worst thing that can be done is to
 # Ignore the left truncation:
-mod_1 <- emfrail(d_left,
-                 Surv(stime, status)~ x + cluster(id))
+mod_1 <- emfrail(Surv(stime, status)~ x + cluster(id), d_left)
 
 # The so-and-so thing is to consider the delayed entry time,
 # But do not "update" the frailty distribution accordingly
-mod_2 <- emfrail(d_left,
-                 Surv(ltime, stime, status)~ x + cluster(id))
+mod_2 <- emfrail(Surv(ltime, stime, status)~ x + cluster(id), d_left)
 
 # This is identical with
 mod_cox <- coxph(Surv(ltime, stime, status)~ x + frailty(id), data = d_left)
 
 
 # The correct thing is to update the frailty.
-mod_3 <- emfrail(d_left,
-                 Surv(ltime, stime, status)~ x + cluster(id),
-                 .distribution = emfrail_distribution(left_truncation = TRUE))
+mod_3 <- emfrail(Surv(ltime, stime, status)~ x + cluster(id), d_left,
+                 distribution = emfrail_distribution(left_truncation = TRUE))
 
 summary(mod_1)
 summary(mod_2)

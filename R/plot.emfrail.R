@@ -22,7 +22,7 @@
 #' @seealso \code{\link{predict.emfrail}}, \code{\link{summary.emfrail}}, \code{\link{autoplot.emfrail}}.
 #'
 #' @examples
-#' mod_rec <- emfrail(bladder1, Surv(start, stop, status) ~ treatment + number + cluster(id))
+#' mod_rec <- emfrail(Surv(start, stop, status) ~ treatment + number + cluster(id), bladder1)
 #' summary(mod_rec)
 #'
 #' # cumulative hazard
@@ -45,9 +45,9 @@
 #'
 #' # hazard ratio with the stable distribution:
 #' \dontrun{
-#' mod_rec_stab <- emfrail(bladder1,
-#'                         Surv(start, stop, status) ~ treatment + number + cluster(id),
-#'                         .distribution = emfrail_distribution(dist = "stable"))
+#' mod_rec_stab <- emfrail(Surv(start, stop, status) ~ treatment + number + cluster(id),
+#'                         bladder1,
+#'                         distribution = emfrail_distribution(dist = "stable"))
 #'
 #' plot(mod_rec_stab, type = "hr",
 #' newdata = data.frame(treatment = c("placebo", "placebo"), number = c(0, 2)))

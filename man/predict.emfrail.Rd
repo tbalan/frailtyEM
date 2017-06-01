@@ -68,8 +68,8 @@ is a bit dodgy, in the sense that this is not what happens in the survival packa
 }
 \examples{
 kidney$sex <- ifelse(kidney$sex == 1, "male", "female")
-m1 <- emfrail(.data =  kidney,
-              .formula = Surv(time, status) ~  sex + age  + cluster(id))
+m1 <- emfrail(formula = Surv(time, status) ~  sex + age  + cluster(id),
+              data =  kidney,)
 
 pred <- predict(m1, lp = 0)
 

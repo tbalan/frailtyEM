@@ -4,16 +4,16 @@
 \alias{emfrail_pll}
 \title{Profile log-likelihood calculation}
 \usage{
-emfrail_pll(.data, .formula, .distribution = emfrail_distribution(), .values)
+emfrail_pll(formula, data, distribution = emfrail_distribution(), values)
 }
 \arguments{
-\item{.data}{Same as in \code{emfrail}}
+\item{formula}{Same as in \code{emfrail}}
 
-\item{.formula}{Same as in \code{emfrail}}
+\item{data}{Same as in \code{emfrail}}
 
-\item{.distribution}{Same as in \code{emfrail}}
+\item{distribution}{Same as in \code{emfrail}}
 
-\item{.values}{A vector of values on where to calculate the profile likelihood. See details.}
+\item{values}{A vector of values on where to calculate the profile likelihood. See details.}
 }
 \value{
 The profile log-likelihood at the specific value of the frailty parameter
@@ -27,7 +27,7 @@ The scale is that of \code{theta} as defined in \code{emfrail_distribution()}.
 For the gamma and pvf frailty, that is the inverse of the frailty variance.
 }
 \note{
-This function is just a simple wrapper for \code{emfrail()} with the \code{.control} argument
+This function is just a simple wrapper for \code{emfrail()} with the \code{control} argument
 a call from \code{emfrail_control} with the option \code{opt_fit = FALSE}. More flexibility can be obtained
 by calling \code{emfrail} with this option, especially
 for setting other \code{emfrail_control} parameters.
@@ -35,9 +35,8 @@ for setting other \code{emfrail_control} parameters.
 \examples{
 
 fr_var <- c(0.001, 0.01, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9)
-profloglik <- emfrail_pll(rats,
-                          Surv(time, status) ~ rx + sex + cluster(litter),
-                          .values = 1/fr_var)
+profloglik <- emfrail_pll(Surv(time, status) ~ rx + sex + cluster(litter), rats,
+                          values = 1/fr_var)
 plot(fr_var, profloglik, xlab = "frailty variance", ylab = "profile log-likelihood")
 
 # check with coxph:

@@ -12,12 +12,12 @@ em_fit <- function(logfrailtypar, dist, pvfm,
   #nev_tp <- tapply(X = Y[,3], INDEX = Y[,2], sum)
 
 
-  .pars <- dist_to_pars(dist, logfrailtypar, pvfm)
+  pars <- dist_to_pars(dist, logfrailtypar, pvfm)
   if (isTRUE(inner_control$verbose)) {
-    print(paste0(#"dist=", .pars$dist,
+    print(paste0(#"dist=", pars$dist,
       "logfrailtypar= ", logfrailtypar,
-      " / alpha=", .pars$alpha,
-      " / bbeta=", .pars$bbeta))
+      " / alpha=", pars$alpha,
+      " / bbeta=", pars$bbeta))
   }
 
   if(logfrailtypar < -100) warning("theta virtually 0; try another starting value")
@@ -57,13 +57,13 @@ em_fit <- function(logfrailtypar, dist, pvfm,
   while(!isTRUE(convergence)) {
 
     if(isTRUE(inner_control$fast_fit)) {
-      e_step_val <- fast_Estep(Cvec, Cvec_lt, atrisk$nev_id, alpha = .pars$alpha, bbeta = .pars$bbeta, pvfm = pvfm, dist = .pars$dist)
+      e_step_val <- fast_Estep(Cvec, Cvec_lt, atrisk$nev_id, alpha = pars$alpha, bbeta = pars$bbeta, pvfm = pvfm, dist = pars$dist)
     } else {
-      e_step_val <- Estep(Cvec, Cvec_lt, atrisk$nev_id, alpha = .pars$alpha, bbeta = .pars$bbeta, pvfm = pvfm, dist = .pars$dist)
+      e_step_val <- Estep(Cvec, Cvec_lt, atrisk$nev_id, alpha = pars$alpha, bbeta = pars$bbeta, pvfm = pvfm, dist = pars$dist)
     }
 
-    # a1 <- fast_Estep(Cvec + Cvec_lt, rep(0, length(Cvec)), nev_id, alpha = .pars$alpha, bbeta = .pars$bbeta, pvfm = pvfm, dist = .pars$dist)
-    # a2 <- fast_Estep(Cvec_lt, rep(0, length(Cvec)), rep(0, length(Cvec)), alpha = .pars$alpha, bbeta = .pars$bbeta, pvfm = pvfm, dist = .pars$dist)
+    # a1 <- fast_Estep(Cvec + Cvec_lt, rep(0, length(Cvec)), nev_id, alpha = pars$alpha, bbeta = pars$bbeta, pvfm = pvfm, dist = pars$dist)
+    # a2 <- fast_Estep(Cvec_lt, rep(0, length(Cvec)), rep(0, length(Cvec)), alpha = pars$alpha, bbeta = pars$bbeta, pvfm = pvfm, dist = pars$dist)
     #
     # if(!isTRUE(all.equal(a1[,3] - a2[,3], e_step_val[,3]))) stop("sum ting wong")
     #
@@ -79,7 +79,7 @@ em_fit <- function(logfrailtypar, dist, pvfm,
     #
      logz <- log((e_step_val[,1] / e_step_val[,2])[atrisk$order_id])
     # something only for the gamma:
-    # logz <- log(rep((.pars$alpha + nev_id )/ (.pars$alpha + Cvec),   rle(id)$lengths))
+    # logz <- log(rep((pars$alpha + nev_id )/ (pars$alpha + Cvec),   rle(id)$lengths))
 
 
     loglik <- sum((log(basehaz_line) + g_x)[Y[,3] == 1]) +
@@ -253,27 +253,27 @@ em_fit <- function(logfrailtypar, dist, pvfm,
       estep_again <- fast_Estep(Cvec,
                                 Cvec_lt,
                                 atrisk$nev_id,
-                                alpha = .pars$alpha,
-                                bbeta = .pars$bbeta,
+                                alpha = pars$alpha,
+                                bbeta = pars$bbeta,
                                 pvfm = pvfm,
-                                dist = .pars$dist)
+                                dist = pars$dist)
       z <- estep_again[,1] / estep_again[,2]
       zz <- estep_again[,4]
     } else {
       estep_plusone <- Estep(Cvec,
                              Cvec_lt,
                              atrisk$nev_id+1,
-                             alpha = .pars$alpha,
-                             bbeta = .pars$bbeta,
+                             alpha = pars$alpha,
+                             bbeta = pars$bbeta,
                              pvfm = pvfm,
-                             dist = .pars$dist)
+                             dist = pars$dist)
       estep_again <- Estep(Cvec,
                            Cvec_lt,
                            atrisk$nev_id,
-                           alpha = .pars$alpha,
-                           bbeta = .pars$bbeta,
+                           alpha = pars$alpha,
+                           bbeta = pars$bbeta,
                            pvfm = pvfm,
-                           dist = .pars$dist)
+                           dist = pars$dist)
       zz <- estep_plusone[,1] /estep_again[,2]
       z <- estep_again[,1] / estep_again[,2]
     }

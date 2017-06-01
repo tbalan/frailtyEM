@@ -31,7 +31,7 @@
 #' @examples
 #' data("bladder")
 #' coxph(Surv(start, stop, status) ~ treatment + frailty(id), data = bladder1, method = "breslow")
-#' mod_gamma <- emfrail(bladder1, Surv(start, stop, status) ~ treatment + cluster(id))
+#' mod_gamma <- emfrail(Surv(start, stop, status) ~ treatment + cluster(id), bladder1)
 #' summary(mod_gamma)
 #'
 #' # plot the Empirical Bayes estimates of the frailty
@@ -92,7 +92,7 @@ summary.emfrail <- function(object,
 
   # Calculate the following: estimated distribution of the frailty at time 0
   fit <- object
-  est_dist <- fit$.distribution
+  est_dist <- fit$distribution
   est_dist$frailtypar <- exp(fit$outer_m$minimum)
 
   loglik <- c(L0 = fit$loglik_null,
@@ -113,14 +113,14 @@ summary.emfrail <- function(object,
   ci_theta_high <- exp(with(fit, outer_m$minimum + 1.96 * sqrt(1/outer_m$hess)))
 
   # if theta was at the edge, then CI should show this....
-  if(theta > object$.control$inner_control$lower_tol - 0.1) {
+  if(theta > object$control$inner_control$lower_tol - 0.1) {
     ci_theta_low <- theta
     ci_theta_high <- Inf
   }
 
   # likelihood based confidence intervals
   if(isTRUE(lik_ci))
-    if(!isTRUE(object$.control$lik_ci)) warning("emfrail not called with lik_ci = TRUE") else {
+    if(!isTRUE(object$control$lik_ci)) warning("emfrail not called with lik_ci = TRUE") else {
       ci_theta_low <- exp(object$outer_m$ltheta_low)
       ci_theta_high <- exp(object$outer_m$ltheta_high)
     }

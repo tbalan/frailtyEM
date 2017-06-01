@@ -38,7 +38,7 @@ Nothing
 Plots for emfrail objects
 }
 \examples{
-mod_rec <- emfrail(bladder1, Surv(start, stop, status) ~ treatment + number + cluster(id))
+mod_rec <- emfrail(Surv(start, stop, status) ~ treatment + number + cluster(id), bladder1)
 summary(mod_rec)
 
 # cumulative hazard
@@ -61,9 +61,9 @@ newdata = data.frame(treatment = c("placebo", "placebo"), number = c(0, 2)))
 
 # hazard ratio with the stable distribution:
 \dontrun{
-mod_rec_stab <- emfrail(bladder1,
-                        Surv(start, stop, status) ~ treatment + number + cluster(id),
-                        .distribution = emfrail_distribution(dist = "stable"))
+mod_rec_stab <- emfrail(Surv(start, stop, status) ~ treatment + number + cluster(id),
+                        bladder1,
+                        distribution = emfrail_distribution(dist = "stable"))
 
 plot(mod_rec_stab, type = "hr",
 newdata = data.frame(treatment = c("placebo", "placebo"), number = c(0, 2)))

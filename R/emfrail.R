@@ -8,17 +8,17 @@
 #' @include em_fit.R
 #' @include emfrail_aux.R
 #'
-#' @param .data A data frame in which the formula argument can be evaluated
-#' @param .formula A formula that contains on the left hand side an object of the type \code{Surv}
+#' @param data A data frame in which the formula argument can be evaluated
+#' @param formula A formula that contains on the left hand side an object of the type \code{Surv}
 #' and on the right hand side a \code{+cluster(id)} statement. Optionally, also a \code{+terminal()} statement
 #' may be added, and then a score test for association between the event process and the result in the specified
 #' column is performed. See details.
-#' @param .distribution An object as created by \code{\link{emfrail_distribution}}
-#' @param .control An object as created by \code{\link{emfrail_control}}
+#' @param distribution An object as created by \code{\link{emfrail_distribution}}
+#' @param control An object as created by \code{\link{emfrail_control}}
 #' @return An object of the class \code{emfrail}, that is in fact a list which contains (1) the object returned by the
 #' "outer maximization", (2) the object with all the estimates returned by the "inner maximization",
 #' (3) the log-likelihood of the Cox model without frailty, (4) the variance-covariance matrix adjusted for the uncertainty in the
-#' outer maximization, (5) the results of the Commenges-Andersen test for heterogeneity and (6,7,8) are copies of the original input arguments: .formula, .distribution and .control.
+#' outer maximization, (5) the results of the Commenges-Andersen test for heterogeneity and (6,7,8) are copies of the original input arguments: formula, distribution and control.
 #' Two attributes are also present, \code{class} for determining the object type and \code{metadata} which contains some information that is used to
 #' process the input for \code{predict.emfrail()}.
 #' @export
@@ -48,9 +48,9 @@
 #' The "outer" problem is solved relying on the maximizers in the \code{nlm} function, which also provides an estimate
 #' of the Hessian matrix. The remaining elements of the information matrix are approximated numerically.
 #'
-#' Several options are available to the user. In the \code{.distribution} argument, the frailty distribution and the
+#' Several options are available to the user. In the \code{distribution} argument, the frailty distribution and the
 #' starting value for \eqn{\theta} can be specified, as well as whether the data consists of left truncated
-#' survival times or not (the default). In the \code{.control} argument, several parameters control the maximization.
+#' survival times or not (the default). In the \code{control} argument, several parameters control the maximization.
 #' The convergence criterion for the EM can be specified (or a maximum number of iterations). The "outer" procedure can be
 #' avoided altogether and then \code{emfrail} calculates only \eqn{\widehat{L}(\theta)} at the given starting value.
 #'
@@ -76,27 +76,27 @@
 #' dat <- survival::rats
 #'
 #'
-#' m1 <- emfrail(.data =  dat,
-#'               .formula = Surv(time, status) ~  rx + sex + cluster(litter))
+#' m1 <- emfrail(formula = Surv(time, status) ~  rx + sex + cluster(litter),
+#' data =  dat)
 #' m1
 #' summary(m1)
 #' \dontrun{
 #' # for the Inverse Gaussian distribution
-#' m2 <- emfrail(.data =  dat,
-#'               .formula = Surv(time, status) ~  rx + sex + cluster(litter),
-#'               .distribution = emfrail_distribution(dist = "pvf"))
+#' m2 <- emfrail(formula = Surv(time, status) ~  rx + sex + cluster(litter),
+#'              data =  dat,
+#'              distribution = emfrail_distribution(dist = "pvf"))
 #' m2
 #'
 #' # for the PVF distribution with m = 0.75
-#' m3 <- emfrail(.data =  dat,
-#'               .formula = Surv(time, status) ~  rx + sex + cluster(litter),
-#'               .distribution = emfrail_distribution(dist = "pvf", pvfm = 0.75))
+#' m3 <- emfrail(formula = Surv(time, status) ~  rx + sex + cluster(litter),
+#'               data =  dat,
+#'               distribution = emfrail_distribution(dist = "pvf", pvfm = 0.75))
 #' m3
 #'
 #' # for the positive stable distribution
-#' m4 <- emfrail(.data =  dat,
-#'               .formula = Surv(time, status) ~  rx + sex + cluster(litter),
-#'               .distribution = emfrail_distribution(dist = "stable"))
+#' m4 <- emfrail(formula = Surv(time, status) ~  rx + sex + cluster(litter),
+#'               data =  dat,
+#'               distribution = emfrail_distribution(dist = "stable"))
 #' m4
 #'}
 #' # Compare marginal log-likelihoods
@@ -107,7 +107,7 @@
 #'                   function(x) -x$outer_m$value)
 #'
 #' names(logliks) <- lapply(models,
-#'                          function(x) with(x$.distribution,
+#'                          function(x) with(x$distribution,
 #'                                           ifelse(dist == "pvf",
 #'                                                  paste(dist, "/", pvfm),
 #'                                                  dist))
@@ -120,9 +120,9 @@
 #' fr_var <- seq(from = 0.01, to = 1.4, length.out = 20)
 #'
 #' # For gamma the variance is 1/theta (see parametrizations)
-#' pll_gamma <- emfrail_pll(.data =  dat,
-#'                          .formula = Surv(time, status) ~  rx + sex + cluster(litter),
-#'                          .values = 1/fr_var )
+#' pll_gamma <- emfrail_pll(formula = Surv(time, status) ~  rx + sex + cluster(litter),
+#'                          data =  dat,
+#'                          values = 1/fr_var )
 #'  plot(fr_var, pll_gamma,
 #'      type = "l",
 #'      xlab = "Frailty variance",
@@ -135,15 +135,15 @@
 #'         method = "breslow")$history[[1]][[3]])
 #'
 #' # Same for inverse gaussian
-#' pll_if <- emfrail_pll(.data =  dat,
-#'                       .formula = Surv(time, status) ~  rx + sex + cluster(litter),
-#'                       .distribution = emfrail_distribution(dist = "pvf"),
+#' pll_if <- emfrail_pll(data =  dat,
+#'                       formula = Surv(time, status) ~  rx + sex + cluster(litter),
+#'                       distribution = emfrail_distribution(dist = "pvf"),
 #'                       .values = 1/fr_var )
 #'
 #' # Same for pvf with a psoitive pvfm parameter
-#' pll_pvf <- emfrail_pll(.data =  dat,
-#'                        .formula = Surv(time, status) ~  rx + sex + cluster(litter),
-#'                        .distribution = emfrail_distribution(dist = "pvf", pvfm = 1.5),
+#' pll_pvf <- emfrail_pll(data =  dat,
+#'                        formula = Surv(time, status) ~  rx + sex + cluster(litter),
+#'                        distribution = emfrail_distribution(dist = "pvf", pvfm = 1.5),
 #'                        .values = 1/fr_var )
 #'
 #' miny <- min(c(pll_gamma, pll_cph, pll_if, pll_pvf))
@@ -165,7 +165,7 @@
 #'        y = (maxy + miny)/2)
 #' }
 #' # Recurrent events
-#' mod_rec <- emfrail(bladder1, Surv(start, stop, status) ~ treatment + cluster(id))
+#' mod_rec <- emfrail(Surv(start, stop, status) ~ treatment + cluster(id), bladder1)
 #' # The warnings appear from the Surv object, they also appear in coxph.
 #'
 #' summary(mod_rec)
@@ -244,49 +244,67 @@
 #'
 #' # The worst thing that can be done is to
 #' # Ignore the left truncation:
-#' mod_1 <- emfrail(d_left,
-#'                  Surv(stime, status)~ x + cluster(id))
+#' mod_1 <- emfrail(Surv(stime, status)~ x + cluster(id), d_left)
 #'
 #' # The so-and-so thing is to consider the delayed entry time,
 #' # But do not "update" the frailty distribution accordingly
-#' mod_2 <- emfrail(d_left,
-#'                  Surv(ltime, stime, status)~ x + cluster(id))
+#' mod_2 <- emfrail(Surv(ltime, stime, status)~ x + cluster(id), d_left)
 #'
 #' # This is identical with
 #' mod_cox <- coxph(Surv(ltime, stime, status)~ x + frailty(id), data = d_left)
 #'
 #'
 #' # The correct thing is to update the frailty.
-#' mod_3 <- emfrail(d_left,
-#'                  Surv(ltime, stime, status)~ x + cluster(id),
-#'                  .distribution = emfrail_distribution(left_truncation = TRUE))
+#' mod_3 <- emfrail(Surv(ltime, stime, status)~ x + cluster(id), d_left,
+#'                  distribution = emfrail_distribution(left_truncation = TRUE))
 #'
 #' summary(mod_1)
 #' summary(mod_2)
 #' summary(mod_3)
 #' }
 
+emfrail <- function(formula,
+                    data,
+                    distribution = emfrail_distribution(),
+                    control = emfrail_control(),
+                    ...) {
 
-emfrail <- function(.data,
-                    .formula,
-                    .distribution = emfrail_distribution(),
-                    .control = emfrail_control()) {
+  # This part is because the update breaks old code
+  extraargs <- list(...)
+  if(length(extraargs) >0) {
+    if(".formula" %in% names(extraargs)) stop(".formula has been deprecated; use formula")
+    if(".data" %in% names(extraargs)) stop(".data has been deprecated; use data")
+    if(".control" %in% names(extraargs)) stop(".control has been deprecated; use control")
+    if(".distribution" %in% names(extraargs)) stop(".distribution has been deprecated; use distribution")
+  }
 
-  if(!inherits(.distribution, "emfrail_distribution"))
-    stop(".distribution argument misspecified; see ?emfrail_distribution()")
+  if(!inherits(formula, "formula")) {
+    if(inherits(formula, "data.frame")) warning("You gave a data.frame instead of a formula.
+                                                Argument order has changed; now it's emfrail(formula, data, etc..).")
+      stop("formula is not an object of type formula")
+  }
 
-  if(!inherits(.control, "emfrail_control"))
-    stop(".control argument misspecified; see ?emfrail_control()")
+  if(!inherits(data, "data.frame")) {
+    if(inherits(data, "formula")) warning("You gave a formula instead of a data.frame.
+                                            Argument order has changed; now it's emfrail(formula, data, etc..).")
+    stop("data is not an object of type data.frame")
+  }
 
-  if(isTRUE(.control$inner_control$fast_fit)) {
-    if(!(.distribution$dist %in% c("gamma", "pvf"))) {
+  if(!inherits(distribution, "emfrail_distribution"))
+    stop("distribution argument misspecified; see ?emfrail_distribution()")
+
+  if(!inherits(control, "emfrail_control"))
+    stop("control argument misspecified; see ?emfrail_control()")
+
+  if(isTRUE(control$inner_control$fast_fit)) {
+    if(!(distribution$dist %in% c("gamma", "pvf"))) {
       #message("fast_fit option only available for gamma and pvf with m=-1/2 distributions")
-      .control$inner_control$fast_fit <- FALSE
+      control$inner_control$fast_fit <- FALSE
     }
 
     # version 0.5.6, the IG fast fit gets super sensitive at small frailty variance...
-    if(.distribution$dist == "pvf")
-      .control$inner_control$fast_fit <- FALSE
+    if(distribution$dist == "pvf")
+      control$inner_control$fast_fit <- FALSE
 
   }
 
@@ -294,12 +312,12 @@ emfrail <- function(.data,
   Call <- match.call()
 
 
-  if(missing(.formula)  | missing(.data)) stop("Missing arguments")
+  if(missing(formula) | missing(data)) stop("Missing arguments")
 
   cluster <- function(x) x
   terminal <- function(x) x
 
-  mf <- model.frame(.formula, .data)
+  mf <- model.frame(formula, data)
 
 
   # Identify the cluster and the ID column
@@ -323,7 +341,7 @@ emfrail <- function(.data,
 
 
   # get the model matrix
-  X1 <- model.matrix(.formula, .data)
+  X1 <- model.matrix(formula, data)
   # this is necessary because when factors have more levels, pos_cluster doesn't correspond any more
   pos_cluster_X1 <- grep("cluster", colnames(X1))
   pos_terminal_X1 <- grep("terminal", colnames(X1))
@@ -406,11 +424,11 @@ emfrail <- function(.data,
 
   ca_test <- NULL
 
-  if(isTRUE(.control$ca_test)) ca_test <- ca_test_fit(mcox, X, atrisk, exp_g_x, cumhaz)
-  if(isTRUE(.control$only_ca_test)) return(ca_test)
+  if(isTRUE(control$ca_test)) ca_test <- ca_test_fit(mcox, X, atrisk, exp_g_x, cumhaz)
+  if(isTRUE(control$only_ca_test)) return(ca_test)
 
 
-  if(isTRUE(.distribution$left_truncation)) {
+  if(isTRUE(distribution$left_truncation)) {
     #indx2 <- findInterval(Y[,1], time, left.open = TRUE)
     cumhaz_tstop <- cumsum(haz)
     cumhaz_tstart <- c(0, cumhaz_tstop)[indx2 + 1]
@@ -423,22 +441,22 @@ emfrail <- function(.data,
 
 
   # a fit just for the log-likelihood;
-  if(!isTRUE(.control$opt_fit)) {
-    return(em_fit(logfrailtypar = log(.distribution$theta),
-           dist = .distribution$dist, pvfm = .distribution$pvfm,
+  if(!isTRUE(control$opt_fit)) {
+    return(em_fit(logfrailtypar = log(distribution$theta),
+           dist = distribution$dist, pvfm = distribution$pvfm,
            Y = Y, Xmat = X, atrisk = atrisk, basehaz_line = basehaz_line,
            mcox = list(coefficients = g, loglik = mcox$loglik),  # a "fake" cox model
-           Cvec = Cvec, lt = .distribution$left_truncation,
+           Cvec = Cvec, lt = distribution$left_truncation,
            Cvec_lt = Cvec_lt, se = FALSE,
-           inner_control = .control$inner_control))
+           inner_control = control$inner_control))
   }
 
 
 
   # With the stable distribution, a problem pops up for small values, i.e. very large association (tau large)
   # So there is another interval...
-  if(.distribution$dist == "stable") {
-    .control$lik_ci_intervals$interval <- .control$lik_ci_intervals$interval_stable
+  if(distribution$dist == "stable") {
+    control$lik_ci_intervals$interval <- control$lik_ci_intervals$interval_stable
   }
 
   # add a bit to the interval so that it gets to the Cox likelihood, if it is at that end of the parameter space
@@ -446,98 +464,98 @@ emfrail <- function(.data,
   # Maybe try nlm as well. Looks alright!
 
   # outer_m <- optimize(f = em_fit,
-  #                     interval = .control$opt_control$interval + c(0, 0.1),
-  #                     dist = .distribution$dist, pvfm = .distribution$pvfm,
+  #                     interval = control$opt_control$interval + c(0, 0.1),
+  #                     dist = distribution$dist, pvfm = distribution$pvfm,
   #          Y = Y, Xmat = X, atrisk = atrisk, basehaz_line = basehaz_line,
   #          mcox = list(coefficients = g, loglik = mcox$loglik),  # a "fake" cox model
-  #          Cvec = Cvec, lt = .distribution$left_truncation,
+  #          Cvec = Cvec, lt = distribution$left_truncation,
   #          Cvec_lt = Cvec_lt,
-  #          .control = .control)
+  #          control = control)
 
   # Hessian
   # hess <- numDeriv::hessian(func = em_fit,
   #         x = outer_m$minimum,
-  #         dist = .distribution$dist, pvfm = .distribution$pvfm,
+  #         dist = distribution$dist, pvfm = distribution$pvfm,
   #         Y = Y, Xmat = X, atrisk = atrisk, basehaz_line = basehaz_line,
   #         mcox = list(coefficients = g, loglik = mcox$loglik),  # a "fake" cox model
-  #         Cvec = Cvec, lt = .distribution$left_truncation,
+  #         Cvec = Cvec, lt = distribution$left_truncation,
   #         Cvec_lt = Cvec_lt,
-  #         .control = .control)
+  #         control = control)
 
   #
   # outer_m <- optim(fn = em_fit,
   #                par = 2, hessian = TRUE,
-  #                dist = .distribution$dist, pvfm = .distribution$pvfm,
+  #                dist = distribution$dist, pvfm = distribution$pvfm,
   #                Y = Y, Xmat = X, atrisk = atrisk, basehaz_line = basehaz_line,
   #                mcox = list(coefficients = g, loglik = mcox$loglik),  # a "fake" cox model
-  #                Cvec = Cvec, lt = .distribution$left_truncation,
+  #                Cvec = Cvec, lt = distribution$left_truncation,
   #                Cvec_lt = Cvec_lt, se = FALSE,
-  #                inner_control = .control$inner_control)
+  #                inner_control = control$inner_control)
 
 
 
   outer_m <- do.call(nlm, args = c(list(f = em_fit,
                       p = 2, hessian = TRUE,
-                      dist = .distribution$dist, pvfm = .distribution$pvfm,
+                      dist = distribution$dist, pvfm = distribution$pvfm,
                       Y = Y, Xmat = X, atrisk = atrisk, basehaz_line = basehaz_line,
                       mcox = list(coefficients = g, loglik = mcox$loglik),  # a "fake" cox model
-                      Cvec = Cvec, lt = .distribution$left_truncation,
+                      Cvec = Cvec, lt = distribution$left_truncation,
                       Cvec_lt = Cvec_lt, se = FALSE,
-                      inner_control = .control$inner_control), .control$nlm_control))
+                      inner_control = control$inner_control), control$nlm_control))
 
 
 #
 #   outer_m <- nlm(f = em_fit,
 #                  p = 2, hessian = TRUE,
-#                  dist = .distribution$dist, pvfm = .distribution$pvfm,
+#                  dist = distribution$dist, pvfm = distribution$pvfm,
 #                  Y = Y, Xmat = X, atrisk = atrisk, basehaz_line = basehaz_line,
 #                  mcox = list(coefficients = g, loglik = mcox$loglik),  # a "fake" cox model
-#                  Cvec = Cvec, lt = .distribution$left_truncation,
+#                  Cvec = Cvec, lt = distribution$left_truncation,
 #                  Cvec_lt = Cvec_lt, se = FALSE,
-#                  inner_control = .control$inner_control, stepmax = 3)
+#                  inner_control = control$inner_control, stepmax = 3)
 
 
 
-  # do.call(nlm, c(list(f = em_fit, p = 2, hessian = TRUE, dist = .distribution$dist, pvfm = .distribution$pvfm,
+  # do.call(nlm, c(list(f = em_fit, p = 2, hessian = TRUE, dist = distribution$dist, pvfm = distribution$pvfm,
   #                Y = Y, Xmat = X, atrisk = atrisk, basehaz_line = basehaz_line,
   #                mcox = list(coefficients = g, loglik = mcox$loglik),  # a "fake" cox model
-  #                Cvec = Cvec, lt = .distribution$left_truncation,
+  #                Cvec = Cvec, lt = distribution$left_truncation,
   #                Cvec_lt = Cvec_lt,
-  #                .control = .control), .control$opt_control))
+  #                control = control), control$opt_control))
 
     # likelihood-based confidence intervals
   theta_low <- theta_high <- NULL
-  if(isTRUE(.control$lik_ci)) {
+  if(isTRUE(control$lik_ci)) {
 
-  lower_llik <- em_fit(.control$lik_ci_intervals$interval[1],
-                       dist = .distribution$dist,
-                       pvfm = .distribution$pvfm,
+  lower_llik <- em_fit(control$lik_ci_intervals$interval[1],
+                       dist = distribution$dist,
+                       pvfm = distribution$pvfm,
                        Y = Y, Xmat = X, atrisk = atrisk, basehaz_line = basehaz_line,
                        mcox = list(coefficients = g, loglik = mcox$loglik),  # a "fake" cox model
-                       Cvec = Cvec, lt = .distribution$left_truncation,
+                       Cvec = Cvec, lt = distribution$left_truncation,
                        Cvec_lt = Cvec_lt, se = FALSE,
-                       inner_control = .control$inner_control)
+                       inner_control = control$inner_control)
 
-  upper_llik <- em_fit(.control$lik_ci_intervals$interval[2],
-         dist = .distribution$dist,
-         pvfm = .distribution$pvfm,
+  upper_llik <- em_fit(control$lik_ci_intervals$interval[2],
+         dist = distribution$dist,
+         pvfm = distribution$pvfm,
          Y = Y, Xmat = X, atrisk = atrisk, basehaz_line = basehaz_line,
          mcox = list(coefficients = g, loglik = mcox$loglik),  # a "fake" cox model
-         Cvec = Cvec, lt = .distribution$left_truncation,
+         Cvec = Cvec, lt = distribution$left_truncation,
          Cvec_lt = Cvec_lt, se = FALSE,
-         inner_control = .control$inner_control)
+         inner_control = control$inner_control)
 
   theta_low <- uniroot(function(x, ...) outer_m$minimum - em_fit(x, ...) + 1.92,
-                       interval = c(.control$lik_ci_intervals$interval[1], outer_m$estimate),
+                       interval = c(control$lik_ci_intervals$interval[1], outer_m$estimate),
                        f.lower = outer_m$minimum - lower_llik + 1.92, f.upper = 1.92,
                        tol = .Machine$double.eps^0.1,
-                       dist = .distribution$dist,
-                       pvfm = .distribution$pvfm,
+                       dist = distribution$dist,
+                       pvfm = distribution$pvfm,
                        Y = Y, Xmat = X, atrisk = atrisk, basehaz_line = basehaz_line,
                        mcox = list(coefficients = g, loglik = mcox$loglik),  # a "fake" cox model
-                       Cvec = Cvec, lt = .distribution$left_truncation,
+                       Cvec = Cvec, lt = distribution$left_truncation,
                        Cvec_lt = Cvec_lt, se = FALSE,
-                       inner_control = .control$inner_control,
+                       inner_control = control$inner_control,
                        maxiter = 100)$root
 
 
@@ -545,52 +563,52 @@ emfrail <- function(.data,
   # then screw this it's infinity
   if(upper_llik  - outer_m$minimum < 1.92) theta_high <- Inf else
     theta_high <- uniroot(function(x, ...) outer_m$minimum - em_fit(x, ...) + 1.92,
-                          interval = c(outer_m$estimate, .control$lik_ci_intervals$interval[2]),
+                          interval = c(outer_m$estimate, control$lik_ci_intervals$interval[2]),
                           f.lower = 1.92, f.upper = outer_m$minimum - upper_llik + 1.92,
                           extendInt = c("downX"),
-                          dist = .distribution$dist,
-                          pvfm = .distribution$pvfm,
+                          dist = distribution$dist,
+                          pvfm = distribution$pvfm,
                           Y = Y, Xmat = X, atrisk = atrisk, basehaz_line = basehaz_line,
                           mcox = list(coefficients = g, loglik = mcox$loglik),  # a "fake" cox model
-                          Cvec = Cvec, lt = .distribution$left_truncation,
+                          Cvec = Cvec, lt = distribution$left_truncation,
                           Cvec_lt = Cvec_lt, se  = FALSE,
-                          inner_control = .control$inner_control)$root
+                          inner_control = control$inner_control)$root
   }
 
   # outer_m$minimum
   # em_fit(0.45,
-  #        dist = .distribution$dist,
-  #        pvfm = .distribution$pvfm,
+  #        dist = distribution$dist,
+  #        pvfm = distribution$pvfm,
   #        Y = Y, Xmat = X, atrisk = atrisk, basehaz_line = basehaz_line,
   #        mcox = list(coefficients = g, loglik = mcox$loglik),  # a "fake" cox model
-  #        Cvec = Cvec, lt = .distribution$left_truncation,
+  #        Cvec = Cvec, lt = distribution$left_truncation,
   #        Cvec_lt = Cvec_lt,
-  #        .control = .control)
+  #        control = control)
 
   #message("Calculating final fit with information matrix...")
 
-  if(isTRUE(.control$se))  {
+  if(isTRUE(control$se))  {
     inner_m <- em_fit(logfrailtypar = outer_m$estimate,
-                      dist = .distribution$dist, pvfm = .distribution$pvfm,
+                      dist = distribution$dist, pvfm = distribution$pvfm,
                       Y = Y, Xmat = X, atrisk = atrisk, basehaz_line = basehaz_line,
                       mcox = list(coefficients = g, loglik = mcox$loglik),  # a "fake" cox model
-                      Cvec = Cvec, lt = .distribution$left_truncation,
+                      Cvec = Cvec, lt = distribution$left_truncation,
                       Cvec_lt = Cvec_lt, se = TRUE,
-                      inner_control = .control$inner_control,
+                      inner_control = control$inner_control,
                       return_loglik = FALSE)
   } else
     inner_m <- em_fit(logfrailtypar = outer_m$estimate,
-                      dist = .distribution$dist, pvfm = .distribution$pvfm,
+                      dist = distribution$dist, pvfm = distribution$pvfm,
                       Y = Y, Xmat = X, atrisk = atrisk, basehaz_line = basehaz_line,
                       mcox = list(coefficients = g, loglik = mcox$loglik),  # a "fake" cox model
-                      Cvec = Cvec, lt = .distribution$left_truncation,
+                      Cvec = Cvec, lt = distribution$left_truncation,
                       Cvec_lt = Cvec_lt, se = FALSE,
-                      inner_control = .control$inner_control,
+                      inner_control = control$inner_control,
                       return_loglik = FALSE)
 
 
   # adjusted standard errors
-  if(isTRUE(.control$se) & isTRUE(.control$se_adj)) {
+  if(isTRUE(control$se) & isTRUE(control$se_adj)) {
 
     # absolute value should be redundant. but sometimes the "hessian" might be 0.
     # in that case it might appear negative; this happened only on Linux...
@@ -603,21 +621,21 @@ emfrail <- function(.data,
 
 
     final_fit_minus <- em_fit(logfrailtypar = lfp_minus,
-                              dist = .distribution$dist, pvfm = .distribution$pvfm,
+                              dist = distribution$dist, pvfm = distribution$pvfm,
                               Y = Y, Xmat = X, atrisk = atrisk, basehaz_line = basehaz_line,
                               mcox = list(coefficients = g, loglik = mcox$loglik),  # a "fake" cox model
-                              Cvec = Cvec, lt = .distribution$left_truncation,
+                              Cvec = Cvec, lt = distribution$left_truncation,
                               Cvec_lt = Cvec_lt, se = TRUE,
-                              inner_control = .control$inner_control,
+                              inner_control = control$inner_control,
                               return_loglik = FALSE)
 
     final_fit_plus <- em_fit(logfrailtypar = lfp_plus,
-                             dist = .distribution$dist, pvfm = .distribution$pvfm,
+                             dist = distribution$dist, pvfm = distribution$pvfm,
                              Y = Y, Xmat = X, atrisk = atrisk, basehaz_line = basehaz_line,
                              mcox = list(coefficients = g, loglik = mcox$loglik),  # a "fake" cox model
-                             Cvec = Cvec, lt = .distribution$left_truncation,
+                             Cvec = Cvec, lt = distribution$left_truncation,
                              Cvec_lt = Cvec_lt, se = TRUE,
-                             inner_control = .control$inner_control, return_loglik = FALSE)
+                             inner_control = control$inner_control, return_loglik = FALSE)
 
 
     # instructional: this should be more or less equal to the
@@ -637,7 +655,7 @@ emfrail <- function(.data,
 
 
 
-  if(length(pos_terminal_X1) > 0 & .distribution$dist == "gamma") {
+  if(length(pos_terminal_X1) > 0 & distribution$dist == "gamma") {
     Y[,3] <- X1[,pos_terminal_X1]
 
     Mres <- survival::agreg.fit(x = X, y = Y, strata = NULL, offset = NULL, init = NULL,
@@ -675,9 +693,9 @@ emfrail <- function(.data,
               vcov_adj = vcov_adj,
               ca_test = ca_test,
               cens_test = cens_test,
-              .formula = .formula,
-              .distribution = .distribution,
-              .control = .control
+              formula = formula,
+              distribution = distribution,
+              control = control
               )
 
 
