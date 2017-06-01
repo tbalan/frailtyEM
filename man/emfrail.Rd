@@ -18,6 +18,8 @@ column is performed. See details.}
 \item{distribution}{An object as created by \code{\link{emfrail_distribution}}}
 
 \item{control}{An object as created by \code{\link{emfrail_control}}}
+
+\item{...}{Other arguments, currently used to warn about deprecated argument names}
 }
 \value{
 An object of the class \code{emfrail}, that is in fact a list which contains (1) the object returned by the

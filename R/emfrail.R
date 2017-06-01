@@ -8,11 +8,11 @@
 #' @include em_fit.R
 #' @include emfrail_aux.R
 #'
-#' @param data A data frame in which the formula argument can be evaluated
 #' @param formula A formula that contains on the left hand side an object of the type \code{Surv}
 #' and on the right hand side a \code{+cluster(id)} statement. Optionally, also a \code{+terminal()} statement
 #' may be added, and then a score test for association between the event process and the result in the specified
 #' column is performed. See details.
+#' @param data A data frame in which the formula argument can be evaluated
 #' @param distribution An object as created by \code{\link{emfrail_distribution}}
 #' @param control An object as created by \code{\link{emfrail_control}}
 #' @return An object of the class \code{emfrail}, that is in fact a list which contains (1) the object returned by the
@@ -21,6 +21,7 @@
 #' outer maximization, (5) the results of the Commenges-Andersen test for heterogeneity and (6,7,8) are copies of the original input arguments: formula, distribution and control.
 #' Two attributes are also present, \code{class} for determining the object type and \code{metadata} which contains some information that is used to
 #' process the input for \code{predict.emfrail()}.
+#' @param ... Other arguments, currently used to warn about deprecated argument names
 #' @export
 #'
 #' @details The \code{emfrail} function fits shared frailty models for processes which have intensity
@@ -682,6 +683,21 @@ emfrail <- function(formula,
     cens_test = c(tstat = tr, pval = p.cor)
   } else cens_test = NULL
 
+
+  # prototype of new object: structure it like this
+  # coefficients for inner_m$beta
+  # basehaz for the baseline hazard
+  # residuals ??!?!?
+  # n
+  # nevent
+  #
+  # loglik for logliks
+  # vcov for vcov
+  # vcov_adj for vcov_adj
+  # ca_test stays
+  # cens_test stays
+  # distribution stays
+  # control stays
   res <- list(outer_m = list(objective = outer_m$minimum,
                              minimum = outer_m$estimate,
                              hess = outer_m$hessian,
