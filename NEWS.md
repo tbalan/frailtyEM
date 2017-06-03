@@ -1,3 +1,7 @@
+# frailtyEM 0.6.7
+- the `emfrail` object type has been re-vamped into a more conventional object
+- cleaned up the code of the methods 
+
 # frailtyEM 0.6.6
 - now no more arguments starting with dots and a more conventional `emfrail(formula, data, stuff)` phrasing of the main fitting function.
 - added more checks of the input and warnings that try to tell the user whether the old `.formula` or `.data` arguments are still used.

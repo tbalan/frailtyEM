@@ -30,7 +30,6 @@
 #'
 #' @examples
 #' data("bladder")
-#' coxph(Surv(start, stop, status) ~ treatment + frailty(id), data = bladder1, method = "breslow")
 #' mod_gamma <- emfrail(Surv(start, stop, status) ~ treatment + cluster(id), bladder1)
 #' summary(mod_gamma)
 #'
@@ -91,43 +90,41 @@ summary.emfrail <- function(object,
                             ...) {
 
   # Calculate the following: estimated distribution of the frailty at time 0
-  fit <- object
-  est_dist <- fit$distribution
-  est_dist$frailtypar <- exp(fit$outer_m$minimum)
+  # fit <- object
+  est_dist <- object$distribution
+  est_dist$frailtypar <- exp(object$logtheta)
 
-  loglik <- c(L0 = fit$loglik_null,
-              L = -fit$outer_m$objective,
-              LRT = 2 * (-fit$outer_m$objective - fit$loglik_null),
-              pval = pchisq(2 * (-fit$outer_m$objective - fit$loglik_null), df = 1, lower.tail = FALSE)/2)
+  loglik <- c(L0 = object$loglik[1],
+              L = object$loglik[2],
+              LRT = 2 * (object$loglik[2] - object$loglik[1]),
+              pval = pchisq(2 * (object$loglik[2]  - object$loglik[1]), df = 1, lower.tail = FALSE)/2)
 
-  # this is the frailtypar actually.
-  theta <- with(fit$outer_m, exp(minimum))
-  se_theta <- with(fit$outer_m,
-                   msm::deltamethod(~exp(x1),
-                                    mean = minimum,
-                                    cov = 1/hess))
+  # theta
+  theta <- exp(object$logtheta)
+  se_theta <- msm::deltamethod(~exp(x1),
+                                mean = object$logtheta,
+                                cov = object$var_logtheta)
 
 
-  # CI is symmetric on log(theta)
-  ci_theta_low <- exp(with(fit, outer_m$minimum - 1.96 * sqrt(1/outer_m$hess)))
-  ci_theta_high <- exp(with(fit, outer_m$minimum + 1.96 * sqrt(1/outer_m$hess)))
 
-  # if theta was at the edge, then CI should show this....
-  if(theta > object$control$inner_control$lower_tol - 0.1) {
-    ci_theta_low <- theta
-    ci_theta_high <- Inf
-  }
 
-  # likelihood based confidence intervals
-  if(isTRUE(lik_ci))
-    if(!isTRUE(object$control$lik_ci)) warning("emfrail not called with lik_ci = TRUE") else {
-      ci_theta_low <- exp(object$outer_m$ltheta_low)
-      ci_theta_high <- exp(object$outer_m$ltheta_high)
+  if(!isTRUE(lik_ci) | !isTRUE(object$control$lik_ci)) {
+    # CI symmetric on log(theta) scale,
+    ci_theta_low <- exp(object$logtheta - 1.96 * sqrt(object$var_logtheta))
+    ci_theta_high <-  exp(object$logtheta + 1.96 * sqrt(object$var_logtheta))
+
+    # if theta was at the edge, then CI should show this....
+    if(theta > object$control$inner_control$lower_tol - 0.1) {
+      ci_theta_low <- theta
+      ci_theta_high <- Inf
     }
+  } else {
+    ci_theta_low <- exp(object$ci_logtheta[1])
+    ci_theta_high <- exp(object$ci_logtheta[2])
+  }
 
   # for gamma and pvf theta is 1/variance
   # for stable the L.T. is exp(- c^(1 - theta / (theta + 1)))
-
 
   gamma_pars <- stable_pars <- pvf_pars <- NULL
   fr_var <- se_fr_var <- ci_frvar_low <- ci_frvar_high <- NULL
@@ -137,11 +134,10 @@ summary.emfrail <- function(object,
   # Frailty variance for gamma and pvf
 
   if(est_dist$dist != "stable") {
-    fr_var <- 1/ theta
-    se_fr_var <- with(fit$outer_m,
-                      msm::deltamethod(~1/exp(x1),
-                                       mean = minimum,
-                                       cov = 1/hess))
+    fr_var <- 1/theta
+    se_fr_var <- msm::deltamethod(~1/exp(x1),
+                                  mean = object$logtheta,
+                                  cov = object$var_logtheta)
     ci_frvar_low <- 1/ci_theta_high
     ci_frvar_high <- 1/ci_theta_low
   }
@@ -152,20 +148,18 @@ summary.emfrail <- function(object,
 
     # Kendall's tau
     tau_gamma <- list(tau = 1 / (1 + 2 * theta),
-                      se_tau =  with(fit$outer_m,
-                                     msm::deltamethod(~1 / (1 + 2 * exp(x1)),
-                                                      mean = minimum,
-                                                      cov = 1/hess)),
+                      se_tau =  msm::deltamethod(~1 / (1 + 2 * exp(x1)),
+                                                      mean = object$logtheta,
+                                                      cov = object$var_logtheta),
                       ci_tau_low = 1 / (1 + 2 * ci_theta_high),
                       ci_tau_high = 1 / (1 + 2 * ci_theta_low)
                       )
 
     # the CI seems to behave quite erratic...
     kappa_gamma <- list(kappa = 4 * (2^(1 + 1/theta) - 1)^(-theta) - 1,
-                        se_kappa = with(fit$outer_m,
-                                        msm::deltamethod(~4 * (2^(1 + 1/exp(x1)) - 1)^(-exp(x1)) - 1,
-                                                         mean = minimum,
-                                                         cov = 1/hess)),
+                        se_kappa = msm::deltamethod(~4 * (2^(1 + 1/exp(x1)) - 1)^(-exp(x1)) - 1,
+                                                         mean = object$logtheta,
+                                                         cov = object$var_logtheta),
                         ci_kappa_low = ifelse(ci_theta_high == Inf,
                                               0,
                                               4 * (2^(1 + 1/ci_theta_high) - 1)^(-ci_theta_high) - 1),
@@ -173,10 +167,9 @@ summary.emfrail <- function(object,
                         )
 
     e_log_z_gamma <- list(e_log_z = digamma(theta) - log(theta),
-                          se_e_log_z = with(fit$outer_m,
-                                            msm::deltamethod(~digamma(exp(x1)) - log(exp(x1)) ,
-                                                             mean = minimum,
-                                                             cov = 1/hess)),
+                          se_e_log_z = msm::deltamethod(~digamma(exp(x1)) - log(exp(x1)) ,
+                                                             mean = object$logtheta,
+                                                             cov = object$var_logtheta),
                           ci_e_log_z_low = digamma(ci_theta_low) - log(ci_theta_low),
                           ci_e_log_z_high = ifelse(ci_theta_high == Inf,
                                                    0,
@@ -184,10 +177,9 @@ summary.emfrail <- function(object,
                           )
 
     var_log_z_gamma <- list(var_log_z = trigamma(theta),
-                          se_var_log_z = with(fit$outer_m,
-                                            msm::deltamethod(~trigamma(exp(x1)) ,
-                                                             mean = minimum,
-                                                             cov = 1/hess)),
+                          se_var_log_z = msm::deltamethod(~trigamma(exp(x1)) ,
+                                                             mean = object$logtheta,
+                                                             cov = object$var_logtheta),
                           ci_var_log_z_low = trigamma(ci_theta_high),
                           ci_var_log_z_high = trigamma(ci_theta_low)
                           )
@@ -195,8 +187,8 @@ summary.emfrail <- function(object,
 
 
 
-    shape <- est_dist$frailtypar + fit$inner_m$nev_id
-    rate <- est_dist$frailtypar + fit$inner_m$Cvec
+    shape <- est_dist$frailtypar + object$nevents_id
+    rate <- est_dist$frailtypar + object$residuals
     var_z <- shape / rate^2
     lower_q <- stats::qgamma(0.025,
                              shape = shape,
@@ -224,10 +216,9 @@ summary.emfrail <- function(object,
     # Kendall's tau
     tau_stab <- list(
       tau = 1 - theta / (theta + 1),
-      se_tau = with(fit$outer_m,
-                          msm::deltamethod(~ 1 - (exp(x1) / (exp(x1) + 1)),
-                                           mean = minimum,
-                                           cov = 1/hess)),
+      se_tau = msm::deltamethod(~ 1 - (exp(x1) / (exp(x1) + 1)),
+                                           mean = object$logtheta,
+                                           cov = object$var_logtheta),
       ci_tau_low = ifelse(ci_theta_high == Inf,
                                  0,
                                  1 - ci_theta_high / (1 + ci_theta_high)),
@@ -236,10 +227,10 @@ summary.emfrail <- function(object,
 
     kappa_stab <- list(
       kappa = 2^(2 - 2^(theta / (theta + 1))) - 1,
-      se_kappa = with(fit$outer_m,
+      se_kappa = with(object$outer_m,
                     msm::deltamethod(~ 2^(2 - 2^(exp(x1) / (exp(x1) + 1))) - 1,
-                                     mean = minimum,
-                                     cov = 1/hess)),
+                                     mean = object$logtheta,
+                                     cov = object$var_logtheta)),
       ci_kappa_low = ifelse(ci_theta_high == Inf,
                             0,
                             2^(2 - 2^(ci_theta_high / (ci_theta_high + 1))) - 1),
@@ -248,10 +239,9 @@ summary.emfrail <- function(object,
 
     e_log_z_stab <- list(
       e_log_z = (-1) *  ((theta + 1) / theta - 1) * digamma(1),
-      se_e_log_z = with(fit$outer_m,
-                        msm::deltamethod(~ (-1) *  ((exp(x1) + 1) / exp(x1) - 1) * digamma(1),
-                                         mean = minimum,
-                                         cov = 1/hess)),
+      se_e_log_z = msm::deltamethod(~ (-1) *  ((exp(x1) + 1) / exp(x1) - 1) * digamma(1),
+                                         mean = object$logtheta,
+                                         cov = object$var_logtheta),
       ci_e_log_z_low = ifelse(ci_theta_high == Inf,
                               0,
                               (-1) *  ((ci_theta_high + 1) / ci_theta_high - 1) * digamma(1)),
@@ -260,10 +250,9 @@ summary.emfrail <- function(object,
 
     var_log_z_stab <- list(
       var_log_z = (((1 + theta) / theta)^2 - 1) * trigamma(1),
-      se_var_log_z = with(fit$outer_m,
-                          msm::deltamethod(~ (((1 + exp(x1)) / exp(x1))^2 - 1) * trigamma(1),
-                                           mean = minimum,
-                                           cov = 1/hess)),
+      se_var_log_z = msm::deltamethod(~ (((1 + exp(x1)) / exp(x1))^2 - 1) * trigamma(1),
+                                           mean = object$logtheta,
+                                           cov = object$var_logtheta),
       ci_var_log_z_low = ifelse(ci_theta_high == Inf,
                                 0,
                                 (((1 + ci_theta_high) / ci_theta_high)^2 - 1) * trigamma(1)),
@@ -274,10 +263,9 @@ summary.emfrail <- function(object,
 
     attenuation <- list(
       attenuation = theta / (theta + 1),
-      se_attenuation = with(fit$outer_m,
-                          msm::deltamethod(~ exp(x1) / (exp(x1) + 1),
-                                           mean = minimum,
-                                           cov = 1/hess)),
+      se_attenuation = msm::deltamethod(~ exp(x1) / (exp(x1) + 1),
+                                           mean = object$logtheta,
+                                           cov = object$var_logtheta),
       ci_attenuation_low = ci_theta_low / (ci_theta_low + 1),
       ci_attenuation_high = ifelse(ci_theta_high == Inf,
                                    1,
@@ -313,7 +301,7 @@ summary.emfrail <- function(object,
         4 * (pvfm + 1)^2 * theta^2 / (- pvfm) * exp(2 * (pvfm + 1) * theta / (- pvfm)) *
         expint::expint_En(2 * (pvfm + 1) * theta / (-pvfm), order = 1 / (- pvfm) - 1),
 
-         # se_tau = with(fit$outer_m,
+         # se_tau = with(object$outer_m,
          #               msm::deltamethod(~ (1 + pvfm) - 2 * (pvfm + 1) * exp(x1) +
          #                                  4 * (pvfm + 1)^2 * exp(x1)^2 / (- pvfm) * exp(2 * (pvfm + 1) * exp(x1) / (- pvfm)) *
          #                                  expint::expint_En(2 * (pvfm + 1) * exp(x1) / (-pvfm), order = 1 / (- pvfm) - 1),
@@ -338,14 +326,13 @@ summary.emfrail <- function(object,
                   ((pvfm + 1) * theta / (-pvfm) )^(- 1 / pvfm) )^(-pvfm) +
           (pvfm + 1) * theta / (-pvfm)
       ) - 1,
-      se_kappa = with(fit$outer_m,
-                    msm::deltamethod(~  4 * exp(
+      se_kappa = msm::deltamethod(~  4 * exp(
                       (-1) * (2 * ((pvfm + 1) * exp(x1) / (- pvfm) + log(2))^(-1/pvfm) -
                                 ((pvfm + 1) * exp(x1) / (-pvfm) )^(- 1 / pvfm) )^(-pvfm) +
                         (pvfm + 1) * exp(x1) / (-pvfm)
                     ) - 1,
-                                     mean = minimum,
-                                     cov = 1/hess)),
+                                     mean = object$logtheta,
+                                     cov = object$var_logtheta),
      # se_kappa = NULL,
       ci_kappa_low = ifelse(ci_theta_high == Inf,
                             0,
@@ -373,36 +360,27 @@ summary.emfrail <- function(object,
   }
 
 
-
-  # The coefficients
-  coef <- fit$inner_m$coef
-  se_coef <- with(fit$inner_m, sqrt(diag(Vcov)[seq_along(coef)]))
-  se_coef_adj <- with(fit, sqrt(diag(vcov_adj)[seq_along(inner_m$coef)]))
-
-
   # The frailty estimates
-  z <- with(fit$inner_m, estep[,1] / estep[,2])
-  names(z) <- rownames(fit$inner_m$nev_id)
-  # dist_pars <- dist_to_pars(est_dist$dist, log(est_dist$frailtypar), est_dist$pvfm)
 
-
-  z <- data.frame(id = rownames(fit$inner_m$nev_id),
-                  z = z)
+  z <- data.frame(id = rownames(object$nevents_id),
+                  z = object$frail)
 
   if(!is.null(gamma_pars)) {
     z$lower_q <- as.numeric(gamma_pars$lower_q)
     z$upper_q <- as.numeric(gamma_pars$upper_q)
   }
 
-  if(length(fit$inner_m$coef) > 0) {
+  if(length(object$coef) > 0) {
     coefmat <- list(
-      coef = fit$inner_m$coef,
-      "exp(coef)" = exp(fit$inner_m$coef),
-      "se(coef)" = sqrt(diag(fit$inner_m$Vcov)[seq_along(fit$inner_m$coef)]),
-      "adjusted se" = sqrt(diag(fit$vcov_adj)[seq_along(fit$inner_m$coef)] ))
+      coef = object$coef,
+      "exp(coef)" = exp(object$coef),
+      "se(coef)" = sqrt(diag(object$var)[seq_along(object$coef)]),
+      "adjusted se" = sqrt(diag(object$var_adj)[seq_along(object$coef)] ))
 
     coefmat$z <- coefmat$coef / coefmat$`se(coef)`
     coefmat$p <-  1 - pchisq(coefmat$z^2, df = 1)
+
+    coefmat <- do.call(cbind, coefmat)
   }
 
 
@@ -424,7 +402,7 @@ summary.emfrail <- function(object,
        gamma_pars = gamma_pars,
        pvf_pars = pvf_pars,
        stable_pars = stable_pars,
-       coefmat = do.call(cbind,coefmat),
+       coefmat = coefmat,
        frail = z
        )
 
@@ -434,17 +412,3 @@ summary.emfrail <- function(object,
   class(ret) <- "emfrail_summary"
   ret
 }
-
-
-
-# ppl1 <- data.frame(id = fit$res$z$id,
-#            z = fit$res$z$z,
-#            shape = fit$est_dist$frailtypar + fit$res$z$nev,
-#            rate = fit$est_dist$frailtypar + fit$res$z$Lambda) %>%
-#   arrange(z) %>%
-#   ggplot(aes(x = seq_along(id), y = z)) + geom_point() +
-#   geom_errorbar(aes(ymin = qgamma(0.025, shape = shape, rate = rate), ymax = qgamma(0.975, shape = shape, rate = rate),
-#                     id = id, gamma_shape = shape, gamma_rate = rate))
-#
-#
-# ggplotly(ppl1)

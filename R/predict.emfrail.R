@@ -134,31 +134,29 @@ predict.emfrail <- function(object,
     mf <- model.frame(mdata[[1]], data = newdata, xlev = mdata[[2]])
     mm <- try(model.matrix(mdata[[1]], mf)[,-1])
     if(inherits(mm, "try-error")) stop("newdata probably misspecified")
-    lp <- as.numeric(mm %*% object$inner_m$coef)
+    lp <- as.numeric(mm %*% object$coef)
     lp_all <- cbind(newdata, lp)
   } else
     lp_all <- data.frame(lp = lp)
 
 
 
-  fit <- object
-  est_dist <- fit$distribution
-  est_dist$frailtypar <- exp(fit$outer_m$minimum)
+  # fit <- object
+  est_dist <- object$distribution
+  est_dist$frailtypar <- exp(object$logtheta)
 
 
-  ncoef <- length(fit$inner_m$coef)
-  varH <-   fit$inner_m$Vcov[(ncoef + 1): nrow(fit$inner_m$Vcov), (ncoef+ 1): nrow(fit$inner_m$Vcov)]
-  varH_adj <- fit$vcov_adj[(ncoef + 1): nrow(fit$vcov_adj), (ncoef+ 1): nrow(fit$vcov_adj)]
+  ncoef <- length(object$coef)
+  varH <-   object$var[(ncoef + 1):nrow(object$var), (ncoef + 1):nrow(object$var)]
+  varH_adj <- object$var_adj[(ncoef + 1):nrow(object$var_adj), (ncoef + 1):nrow(object$var_adj)]
 
+  loghaz <- log(object$hazard)
+  time <- object$tev
 
-  loghaz <- log(fit$inner_m$haz)
+  cumhaz <- cumsum(object$hazard)
 
-
-
-  time <- fit$inner_m$tev
-  cumhaz <- cumsum(fit$inner_m$haz)
-
-  xs <- lapply(seq_along(fit$inner_m$haz), function(x) text1 <- paste0("x", x))
+  # Now here I build a bunch of formulas - that is to get the confidence intervals with the delta mehtod
+  xs <- lapply(seq_along(object$hazard), function(x) text1 <- paste0("x", x))
   for(i in 2:length(xs)) {
     xs[[i]] = paste0(xs[[i-1]], " + ", xs[[i]])
   }
@@ -166,43 +164,16 @@ predict.emfrail <- function(object,
 
   # These are the SE of log cumulative hazard
   se_logH <- msm::deltamethod(g = forms,
-                   mean = fit$inner_m$haz,
+                   mean = object$hazard,
                    cov = varH,
                    ses = TRUE)
 
   se_logH_adj <- msm::deltamethod(g = forms,
-                                   mean = fit$inner_m$haz,
+                                   mean = object$hazard,
                                    cov = varH_adj,
                                    ses = TRUE)
 
-  # these are the variances at every time point
-  # varH_time <- numeric(nrow(varH))
-  # for(i in 1:nrow(varH)) {
-  #   varH_time[i] = sum(varH[1:i, 1:i])
-  # }
-  #
-  # varH_adj_time <- numeric(nrow(varH))
-  # for(i in 1:nrow(varH)) {
-  #   varH_adj_time[i] = sum(varH_adj[1:i, 1:i])
-  # }
 
-  # dodgy stuff: get the
-
-  # The "core" is to calculate the cumulative hazard and the confidence band for it
-
-
-
-  # se_chz <- sqrt(varH_time)
-  # se_chz_adj <- sqrt(varH_adj_time)
-
-  # lower_chz <- pmax(0, cumhaz - 1.96*se_chz)
-  # upper_chz <- cumhaz + 1.96*se_chz
-  #
-  # lower_chz_adj <- pmax(0, cumhaz - 1.96*se_chz_adj)
-  # upper_chz_adj <- cumhaz + 1.96*se_chz_adj
-
-  # Now calculate that for different LPs
-  #lp_all <- data.frame(lp_all, row.names = NULL)
 
   mintime <- max(0, c(min(time)-1))
 

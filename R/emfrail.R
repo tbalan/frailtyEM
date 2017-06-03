@@ -15,12 +15,7 @@
 #' @param data A data frame in which the formula argument can be evaluated
 #' @param distribution An object as created by \code{\link{emfrail_distribution}}
 #' @param control An object as created by \code{\link{emfrail_control}}
-#' @return An object of the class \code{emfrail}, that is in fact a list which contains (1) the object returned by the
-#' "outer maximization", (2) the object with all the estimates returned by the "inner maximization",
-#' (3) the log-likelihood of the Cox model without frailty, (4) the variance-covariance matrix adjusted for the uncertainty in the
-#' outer maximization, (5) the results of the Commenges-Andersen test for heterogeneity and (6,7,8) are copies of the original input arguments: formula, distribution and control.
-#' Two attributes are also present, \code{class} for determining the object type and \code{metadata} which contains some information that is used to
-#' process the input for \code{predict.emfrail()}.
+#' @param model Logical. Should the model frame be returned?
 #' @param ... Other arguments, currently used to warn about deprecated argument names
 #' @export
 #'
@@ -62,6 +57,28 @@
 #' The score test for dependent censoring test is detailed in Balan et al (2016). If significant, it may indicate
 #' that dependent censoring is present. A common scenario is when recurrent events are stopped by a terminal event.
 #'
+#'
+#' @return An object of class \code{emfrail} that contains the following fields:
+#' * `coefficients` A named vector of the estimated regression coefficients
+#' * `hazard` The breslow estimate of the baseline hazard at each event time point, in chronological order
+#' * `var` The variance-covariance matrix corresponding to the coefficients and hazard, assuming \eqn{\theta} constant
+#' * `var_adj` The variance-covariance matrx corresponding to the coefficients and hazard, adjusted for the estimation of \eqn{\theta}
+#' * `theta` The point estimate of \eqn{\theta}. For the gamma and PVF family of distributions, this is the inverse of the estimated frailty variance; for the positive stable this is Kendall's tau?
+#' * `var_theta` The variance of the estimated \eqn{\theta}
+#' * `ci_theta` The likelihood-based 95\% confidence interval for \eqn{\theta}
+#' * `frail` The posterior (empirical Bayes) estimates of the frailty for each cluster
+#' * `residuals` The sum of the cumulative hazard from all observations within a cluster
+#' * `tev` The time points of the events in the data set; this is the same length as \code{hazard}
+#' * `nevents_id` The number of events for each cluster
+#' * `loglik` A vector of length two with the non-frailty log-likelihood (starting model) and the maximized log-likelihodo
+#' * `ca_test` The results of the Commenges-Andersen test for heterogeneity
+#' * `cens_test` The results of the test for dependence between a recurrent event and a terminal event, if the \code{+terminal()} statement is specified and the frailty distribution is gamma
+#' * `formula` The original formula argument
+#' * `distribution` The original distribution argument
+#' * `control` The original control argument
+#' * `model` Logical. Should the model frame be returned?
+#'
+#' @md
 #' @note Some possible problems may appear when the maximum likelihood estimate lies on the border of the parameter space.
 #' Usually, this will happen when the "outer" parameter MLE is infinity (i.e. variance 0 in case of gamma and PVF).
 #' For small enough values of \eqn{1/\theta} the log-likelihood
@@ -268,6 +285,7 @@ emfrail <- function(formula,
                     data,
                     distribution = emfrail_distribution(),
                     control = emfrail_control(),
+                    model = FALSE,
                     ...) {
 
   # This part is because the update breaks old code
@@ -683,36 +701,43 @@ emfrail <- function(formula,
     cens_test = c(tstat = tr, pval = p.cor)
   } else cens_test = NULL
 
+  if(!isTRUE(model)) model_frame <- NULL else
+    model_frame <- mf
 
-  # prototype of new object: structure it like this
-  # coefficients for inner_m$beta
-  # basehaz for the baseline hazard
-  # residuals ??!?!?
-  # n
-  # nevent
-  #
-  # loglik for logliks
-  # vcov for vcov
-  # vcov_adj for vcov_adj
-  # ca_test stays
-  # cens_test stays
-  # distribution stays
-  # control stays
-  res <- list(outer_m = list(objective = outer_m$minimum,
-                             minimum = outer_m$estimate,
-                             hess = outer_m$hessian,
-                             ltheta_low = theta_low,
-                             ltheta_high = theta_high),
-              inner_m = inner_m,
-              loglik_null = mcox$loglik[length(mcox$loglik)],
-              # mcox = mcox,
-              vcov_adj = vcov_adj,
-              ca_test = ca_test,
-              cens_test = cens_test,
-              formula = formula,
-              distribution = distribution,
-              control = control
-              )
+  res <- list(coefficients = inner_m$coef,
+               hazard = inner_m$haz,
+               var = inner_m$Vcov,
+               var_adj = vcov_adj,
+               logtheta = outer_m$estimate,
+               var_logtheta = 1/outer_m$hessian,
+               ci_logtheta = c(theta_low, theta_high),
+               frail = inner_m$estep[,1] / inner_m$estep[,2],
+               residuals = inner_m$Cvec,
+               tev = inner_m$tev,
+               nevents_id = inner_m$nev_id,
+               loglik = c(mcox$loglik[length(mcox$loglik)], -outer_m$minimum),
+               ca_test = ca_test,
+               cens_test = cens_test,
+               formula = formula,
+               distribution = distribution,
+               control = control,
+               mf = model_frame)
+
+  # res <- list(outer_m = list(objective = outer_m$minimum,
+  #                            minimum = outer_m$estimate,
+  #                            hess = outer_m$hessian,
+  #                            ltheta_low = theta_low,
+  #                            ltheta_high = theta_high),
+  #             inner_m = inner_m,
+  #             loglik_null = mcox$loglik[length(mcox$loglik)],
+  #             # mcox = mcox,
+  #             vcov_adj = vcov_adj,
+  #             ca_test = ca_test,
+  #             cens_test = cens_test,
+  #             formula = formula,
+  #             distribution = distribution,
+  #             control = control
+  #             )
 
 
   # these are things that make the predict work and other methods
@@ -729,3 +754,5 @@ emfrail <- function(formula,
 
 
 }
+
+
