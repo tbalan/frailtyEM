@@ -1,4 +1,10 @@
 # frailtyEM 0.6.7
+- the `predict.emfrail` method suffered some alterations: first of all, it now gives predictions for each
+`lp` or each row of `newdata`, and it also gained the argumnet `individual`. If true, then the `newdata` argument
+is taken as coming from the same individual. This can be used with time-dependent covariates and adjusting
+the time at risk.
+
+# frailtyEM 0.6.7
 - the `emfrail` object type has been re-vamped into a more conventional object
 - cleaned up the code of the methods 
 

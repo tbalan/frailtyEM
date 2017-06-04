@@ -313,7 +313,7 @@ The variables of interest here are: \code{tstart}, \code{tstop} and \code{status
 A basic \code{emfrail} model can be fitted like this:
 <<bladder2>>==
 m1 <- emfrail(Surv(tstart, tstop, status) ~ sex + treat + cluster(id),
-              data = cgd,)
+              data = cgd)
 @
 The arguments of \code{emfrail} visible above are \code{data} and \code{formula}. The \code{control} and \code{distribution} are taken as defaults; for the latter, that is the gamma frailty distribution. The \code{formula} argument contains a \code{Surv} object at the left hand side and a \code{+cluster()} statement on the right hand side (essentially as \code{+frailty()} in \code{coxph}). The \code{distribution} and \code{control} arguments must be objects of the type \code{emfrail_distribution} and \code{emfrail_control}, which are created by calls to functions with the same names.  For example, the default choice for the distribution is:
 <<distribution>>==

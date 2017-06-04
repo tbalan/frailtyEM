@@ -7,21 +7,32 @@
 #' @param quantity Can be \code{"cumhaz"} and/or \code{"survival"}. The quantity to be calculated for the values of \code{lp}.
 #' @param type Can be \code{"conditional"} and/or \code{"marginal"}. The type of the quantity to be calculated.
 #' @param conf_int Can be \code{"regular"} and/or \code{"adjusted"}. The type of confidence interval to be calculated.
+#' @param individual Logical. Are the observations in \code{newdata} from the same individual? See details.
 #' @param ... Ignored
 #'
-#' @return A data frame with the column \code{time} and several other columns according to the input.
+#' @return If \code{lp} has length 1, \code{newdata} has 1 row or \code{individual == TRUE}, then the return object
+#' is a \code{data.frame}; otherwise, it is a list of \code{data.frame}s, where each element is the prediction
+#' for the corresponding element of \code{lp} or row of \code{newdata}.
 #' By default, for each \code{lp} it will give the following columns: \code{cumhaz}, \code{survival},
 #' \code{cumhaz_m}, \code{survival_m} for the cumulative hazard and survival, conditional and marginal.
 #'
-#' @details There are two ways of specifying for which individuals to calculate the cumulative hazard or survival curve.
-#' One way is directly, for certain values of the linear predictor, via \code{lp},
-#' and the second way is via \code{newdata}, a \code{data.frame} where the column names are the same as in the original data.
-#' If \code{newdata} is specified, then the \code{lp} argument is ignored.
+#' @details
+#' This method calculates predicted cumulative hazard and survival curves for fixed covariate values.
+#' There are two ways of inputing this values. The first is via \code{lp},
+#' where the function expects a vector of values, of the linear predictor or via \code{newdata},
+#' where the function expects a \code{data.frame} with columns of the covariates matching those in the
+#' \code{emfrail} fit. If \code{newdata} is specified, the at-risk indicator can be specified by including
+#' two columns named \code{tstart} and \code{tstop} specifying the time at risk.
 #'
-#' The names of the columns in the returned object are as follows: \code{time} represents the unique event time points
-#' from the data set, \code{lp} is the value of the linear predictor (as specified in the input or as calculated from the lines of \code{newdata}). If
-#' \code{newdata} is specified, columns repeating each line of \code{newdata} are also added.
-#'  The two "quantities" that can be returned are
+#' If \code{individual == FALSE}, each value of \code{lp} or each row of \code{newdata} will result in a
+#' data frame with the required predictions. If \code{individual == TRUE}, then the rows of \code{newdata}
+#' are assumed to come from the same individual and the function will return a single data frame.
+#'  In this case, the specification of the \code{tstart} and \code{tstop} columns is mandatory.
+#'
+#' The names of the columns in the returned data frames are as follows: \code{time} represents the unique event time points
+#' from the data set, \code{lp} is the value of the linear predictor (as specified in the input or as calculated from the lines of \code{newdata}).
+#'
+#' The two "quantities" that can be returned are
 #' named \code{cumhaz} and \code{survival}. If we denote each quantity with \code{q}, then the columns with the marginal estimates
 #' are named \code{q_m}. The confidence intervals contain the name of the quantity (conditional or marginal) followed by \code{_l} or \code{_r} for
 #' the lower and upper bound. The bounds calculated with the adjusted standard errors have the name of the regular bounds followed by
@@ -43,9 +54,8 @@
 #' The only standard errors that are available from \code{emfrail} are those for \eqn{\lambda_0(t)}. From this,
 #' standard errors of \eqn{\log \Lambda(t)} may be calculated. On this scale, the symmetric confidence intervals are built, and then
 #' moved to the desired scale.
-#' The following two issues arise: (1) the linear predictor is taken as fixed,
-#' i.e. the variability in the estimation of the regression coefficient is not taken into account and (2) this construction of the confidence intervals
-#' is a bit dodgy, in the sense that this is not what happens in the survival package. Several options will be added in future versions.
+#' The linear predictor is taken as fixed,
+#' i.e. the variability in the estimation of the regression coefficient is not taken into account.
 #'
 #'
 #'
@@ -120,134 +130,168 @@ predict.emfrail <- function(object,
                             quantity = c("cumhaz", "survival"),
                             type = c("conditional", "marginal"),
                             conf_int = c("regular", "adjusted"),
+                            individual = FALSE,
                             ...) {
 
 
   if(is.null(newdata) & is.null(lp)) stop("lp or newdata must be specified")
 
+  if(!is.null(lp) & !is.null(newdata)) stop("specify either lp or newdata")
+
+  if(!is.null(lp)) {
+    if(isTRUE(individual)) stop("if lp is specified, individual must be FALSE")
+    tstart <- 0
+    tstop <- Inf
+  }
+
   if(!is.null(newdata)) {
     if(!inherits(newdata, "data.frame")) stop("newdata must be a data.frame")
-
-    if(!is.null(lp)) warning("newdata specified, ignoring lp")
 
     mdata <- attr(object, "metadata")
     mf <- model.frame(mdata[[1]], data = newdata, xlev = mdata[[2]])
     mm <- try(model.matrix(mdata[[1]], mf)[,-1])
     if(inherits(mm, "try-error")) stop("newdata probably misspecified")
     lp <- as.numeric(mm %*% object$coef)
-    lp_all <- cbind(newdata, lp)
-  } else
-    lp_all <- data.frame(lp = lp)
 
+    if(!("tstart" %in% names(newdata))) {
+      tstart = 0
+      tstop = Inf
+    } else
+        if(!("tstop" %in% names(newdata)))
+          stop("if tstart is specified then also tstop must be specified") else {
+            if(any(newdata$tstop <= newdata$tstart)) stop("tstop must be larger than tstart")
 
+            # check if there is an overlap
+            if(individual == TRUE) {
+              if(any(diff(as.numeric(as.matrix(newdata[c("tstart", "tstop")]))) < 0))
+                stop("(tstart,tstop) must be ordered and without overlap")
+            }
+            tstart <- newdata$tstart
+            tstop <- newdata$tstop
+          }
 
-  # fit <- object
-  est_dist <- object$distribution
-  est_dist$frailtypar <- exp(object$logtheta)
+    # at this point I should have a vector of lp
+    # if individual == TRUE then I should also have tstart tstop for each lp
+  }
+
+    list_haz <- mapply(FUN = function(lp, haz, tstart, tstop, tev) {
+      cbind(tev[tstart <= tev & tev < tstop], lp, haz[tstart <= tev & tev < tstop] * exp(lp))
+    }, lp, list(object$hazard), tstart, tstop, list(object$tev), SIMPLIFY = FALSE)
+
+    if(isTRUE(individual)) {
+      res <- as.data.frame(do.call(rbind, list_haz))
+      names(res) <- c("time", "lp", "cumhaz")
+      res$cumhaz <- cumsum(res$cumhaz) # a bit dodgy
+      attr(res, "bounds") <- "cumhaz"
+      res <- list(res)
+    } else
+      res <- lapply(list_haz, function(x) {res <- as.data.frame(x)
+                    names(res) <- c("time", "lp", "cumhaz")
+                    res$cumhaz <- cumsum(res$cumhaz)
+                    attr(res, "bounds") <- "cumhaz"
+              res})
+
+    # now res a list of data frames
 
 
   ncoef <- length(object$coef)
-  varH <-   object$var[(ncoef + 1):nrow(object$var), (ncoef + 1):nrow(object$var)]
-  varH_adj <- object$var_adj[(ncoef + 1):nrow(object$var_adj), (ncoef + 1):nrow(object$var_adj)]
 
-  loghaz <- log(object$hazard)
-  time <- object$tev
 
-  cumhaz <- cumsum(object$hazard)
+  # Here we start putting a bunch of standard errors and stuff inside
+  # for each lp we will get a data frame with a "bounds" attribute.
+  # this attributie is meant to keep track of which columns we have in the data frame
+  if(("regular" %in% conf_int) | ("adjusted" %in% conf_int)) {
+    varH <-   object$var[(ncoef + 1):nrow(object$var), (ncoef + 1):nrow(object$var)]
+    varH_adj <- object$var_adj[(ncoef + 1):nrow(object$var_adj), (ncoef + 1):nrow(object$var_adj)]
 
-  # Now here I build a bunch of formulas - that is to get the confidence intervals with the delta mehtod
-  xs <- lapply(seq_along(object$hazard), function(x) text1 <- paste0("x", x))
-  for(i in 2:length(xs)) {
-    xs[[i]] = paste0(xs[[i-1]], " + ", xs[[i]])
+    res <- lapply(res, function(x) {
+      times_res <- match(x$time, object$tev)
+
+      loghaz <- log(object$hazard[times_res])
+
+      # Now here I build a bunch of formulas - that is to get the confidence intervals with the delta mehtod
+      xs <- lapply(seq_along(times_res), function(x) text1 <- paste0("x", x))
+      for(i in 2:length(xs)) {
+        xs[[i]] = paste0(xs[[i-1]], " + ", xs[[i]])
+      }
+      forms <- lapply(xs, function(x) as.formula(paste0("~log(", x, ")")))
+
+      # attr(x, "bounds") <- "cumhaz"
+
+      if("regular" %in% conf_int) {
+
+        x$se_logH <- msm::deltamethod(g = forms,
+                                      mean = object$hazard[times_res],
+                                      cov = varH[times_res, times_res],
+                                      ses = TRUE)
+
+        attr(x, "bounds") <- c(attr(x, "bounds"), "cumhaz_l", "cumhaz_r")
+        x$cumhaz_l <- pmax(0, exp(log(x$cumhaz) - 1.96*x$se_logH))
+        x$cumhaz_r <- exp(log(x$cumhaz) + 1.96*x$se_logH)
+      }
+
+      if("adjusted" %in% conf_int) {
+        x$se_logH_adj <- msm::deltamethod(g = forms,
+                                          mean = object$hazard[times_res],
+                                          cov = varH_adj[times_res, times_res],
+                                          ses = TRUE)
+
+        attr(x, "bounds") <- c(attr(x, "bounds"), "cumhaz_l_a", "cumhaz_r_a")
+        x$cumhaz_l_a <- pmax(0, exp(log(x$cumhaz) - 1.96*x$se_logH_adj))
+        x$cumhaz_r_a <- exp(log(x$cumhaz) + 1.96*x$se_logH_adj)
+      }
+
+
+
+      x
+    })
   }
-  forms <- lapply(xs, function(x) as.formula(paste0("~log(", x, ")")))
-
-  # These are the SE of log cumulative hazard
-  se_logH <- msm::deltamethod(g = forms,
-                   mean = object$hazard,
-                   cov = varH,
-                   ses = TRUE)
-
-  se_logH_adj <- msm::deltamethod(g = forms,
-                                   mean = object$hazard,
-                                   cov = varH_adj,
-                                   ses = TRUE)
 
 
+  est_dist <- object$distribution
+  est_dist$frailtypar <- exp(object$logtheta)
 
-  mintime <- max(0, c(min(time)-1))
-
-  #row.names(lp_all) <- NULL
-
-  ret <- do.call(rbind,
-                 lapply(split(lp_all, 1:nrow(lp_all)), function(x) cbind(time = c(mintime,time),
-                                                                         cumhaz = c(0, cumhaz*exp(x$lp)),
-                                                                         se_logchz = c(0, se_logH),
-                                                                         se_logchz_adj = c(0, se_logH_adj),
-                                                                         x,
-                                                                         row.names = NULL))
-  )
-  ret
-
-
-
-  # ret <- do.call(rbind,
-  #                lapply(split(lp_all, 1:nrow(lp_all)), function(x) cbind(time = c(mintime,time),
-  #                                             cumhaz = c(0, cumhaz * exp(x$lp)),
-  #                                             se_chz = c(0, exp(x$lp) * se_chz),
-  #                                             se_chz_adj = c(0, exp(x$lp) * se_chz_adj),
-  #                                             x,
-  #                                             row.names = NULL))
-  #                )
-
-
+  # the way to convert the cumulative hazard to all sort of quantities
   chz_to_surv <- function(x) exp(-x)
   surv_to_chz <- function(x) -1 * log(x)
-
-  scenarios <- expand.grid(quantity, type, conf_int)
-
   survival <- function(chz) exp(-chz)
   survival_m <- function(chz) laplace_transform(chz, est_dist)
   cumhaz_m <- function(chz) -1 * log(laplace_transform(chz, est_dist))
 
-  # cumhaz_m(cumhaz)
-  # first, add confidence bands for the cumulative hazard
-  bounds <- "cumhaz"
+  scenarios <- expand.grid(quantity, type, conf_int)
 
-  if(length(conf_int) > 0) {
-    if("regular" %in% conf_int) {
-      bounds <- c(bounds, "cumhaz_l", "cumhaz_r")
-      ret$cumhaz_l <- pmax(0, exp(log(ret$cumhaz) - 1.96*ret$se_logchz))
-      ret$cumhaz_r <- exp(log(ret$cumhaz) + 1.96*ret$se_logchz)
+  res <- lapply(res, function(x) {
+
+    # bounds gets kicked out by cbind
+
+    bounds <- attr(x, "bounds")
+    if("survival" %in% quantity & "conditional" %in% type) {
+      x <- cbind(x,
+                 as.data.frame(lapply(x[bounds], survival),
+                               col.names = sub("cumhaz", "survival", bounds)))
     }
 
-    if("adjusted" %in% conf_int) {
-      bounds <- c(bounds, "cumhaz_l_a", "cumhaz_r_a")
-        ret$cumhaz_l_a <- pmax(0, exp(log(ret$cumhaz) - 1.96*ret$se_logchz_adj))
-        ret$cumhaz_r_a <- exp(log(ret$cumhaz) + 1.96*ret$se_logchz_adj)
+    if("survival" %in% quantity & "marginal" %in% type) {
+      x <- cbind(x,
+                 as.data.frame(lapply(x[bounds], survival_m),
+                               col.names = sub("cumhaz", "survival_m", bounds)))
     }
-  }
+
+    if("cumhaz" %in% quantity & "marginal" %in% type) {
+      x <- cbind(x,
+                 as.data.frame(lapply(x[bounds], cumhaz_m),
+                               col.names = sub("cumhaz", "cumhaz_m", bounds)))
+    }
+
+    if(!("cumhaz" %in% quantity & "conditional" %in% type)) {
+      cols_to_keep <- which(!(names(x) %in% c(bounds, "se_logH", "se_logH_adj")))
+      x <- x[,cols_to_keep]
+    }
+    x
+
+  })
 
 
-  #survival_m(1.5)
-  #fit$est_dist$dist == "gamma"
-  # bounds is the names of columns that we want to transform
-  if("survival" %in% quantity & "conditional" %in% type) {
-    ret <- cbind(ret, as.data.frame(lapply(ret[bounds], survival), col.names = sub("cumhaz", "survival", bounds)))
-  }
-
-  if("survival" %in% quantity & "marginal" %in% type) {
-    ret <- cbind(ret, as.data.frame(lapply(ret[bounds], survival_m), col.names = sub("cumhaz", "survival_m", bounds)))
-  }
-
-  if("cumhaz" %in% quantity & "marginal" %in% type) {
-    ret <- cbind(ret, as.data.frame(lapply(ret[bounds], cumhaz_m), col.names = sub("cumhaz", "cumhaz_m", bounds)))
-  }
-
-  if(!("cumhaz" %in% quantity & "conditional" %in% type)) {
-    cols_to_keep <- which(!(names(ret) %in% c(bounds, "se_chz", "se_chz_adj")))
-    ret <- ret[,cols_to_keep]
-  }
-
-  ret
+  if(length(res) == 1) res <- res[[1]]
+  res
 }

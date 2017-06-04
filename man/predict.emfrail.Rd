@@ -6,7 +6,7 @@
 \usage{
 \method{predict}{emfrail}(object, lp = NULL, newdata = NULL,
   quantity = c("cumhaz", "survival"), type = c("conditional", "marginal"),
-  conf_int = c("regular", "adjusted"), ...)
+  conf_int = c("regular", "adjusted"), individual = FALSE, ...)
 }
 \arguments{
 \item{object}{An \code{emfrail} fit object}
@@ -21,10 +21,14 @@
 
 \item{conf_int}{Can be \code{"regular"} and/or \code{"adjusted"}. The type of confidence interval to be calculated.}
 
+\item{individual}{Logical. Are the observations in \code{newdata} from the same individual? See details.}
+
 \item{...}{Ignored}
 }
 \value{
-A data frame with the column \code{time} and several other columns according to the input.
+If \code{lp} has length 1, \code{newdata} has 1 row or \code{individual == TRUE}, then the return object
+is a \code{data.frame}; otherwise, it is a list of \code{data.frame}s, where each element is the prediction
+for the corresponding element of \code{lp} or row of \code{newdata}.
 By default, for each \code{lp} it will give the following columns: \code{cumhaz}, \code{survival},
 \code{cumhaz_m}, \code{survival_m} for the cumulative hazard and survival, conditional and marginal.
 }
@@ -32,15 +36,22 @@ By default, for each \code{lp} it will give the following columns: \code{cumhaz}
 Predicted hazard and survival curves from an \code{emfrail} object
 }
 \details{
-There are two ways of specifying for which individuals to calculate the cumulative hazard or survival curve.
-One way is directly, for certain values of the linear predictor, via \code{lp},
-and the second way is via \code{newdata}, a \code{data.frame} where the column names are the same as in the original data.
-If \code{newdata} is specified, then the \code{lp} argument is ignored.
+This method calculates predicted cumulative hazard and survival curves for fixed covariate values.
+There are two ways of inputing this values. The first is via \code{lp},
+where the function expects a vector of values, of the linear predictor or via \code{newdata},
+where the function expects a \code{data.frame} with columns of the covariates matching those in the
+\code{emfrail} fit. If \code{newdata} is specified, the at-risk indicator can be specified by including
+two columns named \code{tstart} and \code{tstop} specifying the time at risk.
 
-The names of the columns in the returned object are as follows: \code{time} represents the unique event time points
-from the data set, \code{lp} is the value of the linear predictor (as specified in the input or as calculated from the lines of \code{newdata}). If
-\code{newdata} is specified, columns repeating each line of \code{newdata} are also added.
- The two "quantities" that can be returned are
+If \code{individual == FALSE}, each value of \code{lp} or each row of \code{newdata} will result in a
+data frame with the required predictions. If \code{individual == TRUE}, then the rows of \code{newdata}
+are assumed to come from the same individual and the function will return a single data frame.
+ In this case, the specification of the \code{tstart} and \code{tstop} columns is mandatory.
+
+The names of the columns in the returned data frames are as follows: \code{time} represents the unique event time points
+from the data set, \code{lp} is the value of the linear predictor (as specified in the input or as calculated from the lines of \code{newdata}).
+
+The two "quantities" that can be returned are
 named \code{cumhaz} and \code{survival}. If we denote each quantity with \code{q}, then the columns with the marginal estimates
 are named \code{q_m}. The confidence intervals contain the name of the quantity (conditional or marginal) followed by \code{_l} or \code{_r} for
 the lower and upper bound. The bounds calculated with the adjusted standard errors have the name of the regular bounds followed by
@@ -62,9 +73,8 @@ The marginal hazard is obtained as \deqn{\bar \Lambda(t) = - \log \bar S(t).}
 The only standard errors that are available from \code{emfrail} are those for \eqn{\lambda_0(t)}. From this,
 standard errors of \eqn{\log \Lambda(t)} may be calculated. On this scale, the symmetric confidence intervals are built, and then
 moved to the desired scale.
-The following two issues arise: (1) the linear predictor is taken as fixed,
-i.e. the variability in the estimation of the regression coefficient is not taken into account and (2) this construction of the confidence intervals
-is a bit dodgy, in the sense that this is not what happens in the survival package. Several options will be added in future versions.
+The linear predictor is taken as fixed,
+i.e. the variability in the estimation of the regression coefficient is not taken into account.
 }
 \examples{
 kidney$sex <- ifelse(kidney$sex == 1, "male", "female")
