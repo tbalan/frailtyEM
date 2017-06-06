@@ -5,8 +5,8 @@
 \title{Plots for emfrail objects}
 \usage{
 \method{plot}{emfrail}(x, type = c("hist", "hr", "pred"), newdata = NULL,
-  lp = NULL, quantity = "cumhaz", marg_cond = "both",
-  conf_int = "adjusted", ...)
+  lp = NULL, quantity = "cumhaz", type_pred = c("conditional",
+  "marginal"), conf_int = "adjusted", individual = FALSE, ...)
 }
 \arguments{
 \item{x}{\code{emfrail} object, typically result of \code{emfrail()}}
@@ -23,11 +23,14 @@ for the first row of \code{newdata} is calculated.}
 between the first two values of \code{lp} is calculated. For \code{type == "pred"} the prediction
 for the first value of \code{lp} is calculated.}
 
-\item{quantity}{For \code{type == "pred"} the predicted quantity; see \code{\link{predict.emfrail}}}
+\item{quantity}{For \code{type == "pred"} the predicted quantity; see \code{quantity} in \code{\link{predict.emfrail}}}
 
-\item{marg_cond}{For \code{type == "pred"} the type of predicted quantity; see \code{\link{predict.emfrail}}}
+\item{type_pred}{For \code{type == "pred"} the type of predicted quantity; see \code{type} in \code{\link{predict.emfrail}}}
 
-\item{conf_int}{For \code{type == "pred"} the type of confidence intervals; see \code{\link{predict.emfrail}}}
+\item{conf_int}{For \code{type == "pred"} the type of confidence intervals; see \code{conf_int} in \code{\link{predict.emfrail}}}
+
+\item{individual}{For \code{type == "pred"} for drawing a curve when the rows of \code{newdata} refer to the same individual; see
+\code{individual} in \code{\link{predict.emfrail}}}
 
 \item{...}{Further arguments to be passed to the plot function}
 }
@@ -39,38 +42,30 @@ Plots for emfrail objects
 }
 \examples{
 mod_rec <- emfrail(Surv(start, stop, status) ~ treatment + number + cluster(id), bladder1)
-summary(mod_rec)
 
-# cumulative hazard
-# Note: this individual has number = 0, which does not exist in the data
-plot(mod_rec, type = "pred", lp = 0)
+# Histogram of the estimated frailties
+plot(mod_rec, type = "hist")
 
-# survival, although not very meaningful with recurrent events
-plot(mod_rec, type = "pred", lp = 0, quantity = "survival")
+# hazard ratio between placebo and pyridoxine
+newdata1 <- data.frame(treatment = c("placebo", "pyridoxine"),
+                       number = c(1, 3))
 
+plot(mod_rec, type = "hr", newdata = newdata1)
 
-# For an individual with number == 2
-plot(mod_rec, type = "pred",
-newdata = data.frame(treatment = "placebo", number = 2))
+# predicted cumulative hazard for placebo, and number = 1
+plot(mod_rec, type = "pred", newdata = newdata1[1,])
 
-# hazard ratio between an individual with 0 and with 2 recurrences at baseline
-# the marginal hazard ratio is "pulled" towards 1:
+# predicted survival for placebo, and number = 1
+plot(mod_rec, type = "pred", quantity = "survival", newdata = newdata1[1,])
 
-plot(mod_rec, type = "hr",
-newdata = data.frame(treatment = c("placebo", "placebo"), number = c(0, 2)))
+# predicted survival for an individual that switches from
+# placebo to pyridoxine at time = 15
+newdata2 <- data.frame(treatment = c("placebo", "pyridoxine"),
+                       number = c(1, 3),
+                       tstart = c(0, 15),
+                       tstop = c(15, Inf))
 
-# hazard ratio with the stable distribution:
-\dontrun{
-mod_rec_stab <- emfrail(Surv(start, stop, status) ~ treatment + number + cluster(id),
-                        bladder1,
-                        distribution = emfrail_distribution(dist = "stable"))
-
-plot(mod_rec_stab, type = "hr",
-newdata = data.frame(treatment = c("placebo", "placebo"), number = c(0, 2)))
-
-# histogram of frailty estimates
-plot(mod_rec_stab, type = "hist")
-}
+plot(mod_rec, type = "pred", quantity = "survival", newdata = newdata2, individual = TRUE)
 }
 \seealso{
 \code{\link{predict.emfrail}}, \code{\link{summary.emfrail}}, \code{\link{autoplot.emfrail}}.

@@ -8,13 +8,14 @@
 autoplot(object, ...)
 
 \method{autoplot}{emfrail}(object, type = c("hist", "hr", "pred", "frail"),
-  newdata = NULL, lp = NULL, quantity = "cumhaz", marg_cond = "both",
-  conf_int = "adjusted", ...)
+  newdata = NULL, lp = NULL, quantity = "cumhaz",
+  type_pred = c("conditional", "marginal"), conf_int = "adjusted",
+  individual = FALSE, ...)
 }
 \arguments{
 \item{object}{\code{emfrail} object, typically result of \code{emfrail()}}
 
-\item{...}{Further arguments to be passed on to `ggplot`}
+\item{...}{Further arguments to be passed on to `ggplot` (ignored)}
 
 \item{type}{One (or more) of \code{hist} for a histogram of the estimated frailty values,
 \code{hr} for a plot of the conditional and marginal hazard ratio between two cases,
@@ -29,11 +30,14 @@ for the first row of \code{newdata} is calculated.}
 between the first two values of \code{lp} is calculated. For \code{type == "pred"} the prediction
 for the first value of \code{lp} is calculated.}
 
-\item{quantity}{For \code{type == "pred"} the predicted quantity; see \code{\link{predict.emfrail}}}
+\item{quantity}{For \code{type == "pred"} the predicted quantity; see \code{quantity} in \code{\link{predict.emfrail}}}
 
-\item{marg_cond}{For \code{type == "pred"} the type of predicted quantity; see \code{\link{predict.emfrail}}}
+\item{type_pred}{For \code{type == "pred"} the type of predicted quantity; see \code{type} in \code{\link{predict.emfrail}}}
 
-\item{conf_int}{For \code{type == "pred"} the type of confidence intervals; see \code{\link{predict.emfrail}}}
+\item{conf_int}{For \code{type == "pred"} the type of confidence intervals; see \code{conf_int} in \code{\link{predict.emfrail}}}
+
+\item{individual}{For \code{type == "pred"} for drawing a curve when the rows of \code{newdata} refer to the same individual; see
+\code{individual} in \code{\link{predict.emfrail}}}
 }
 \value{
 A list of \code{ggplot2} objects corresponding to the required plots, or one \code{ggplot2} if only one plot is selected
@@ -43,36 +47,33 @@ Plots for emfrail objects using \code{ggplot2}
 }
 \examples{
 mod_rec <- emfrail(Surv(start, stop, status) ~ treatment + number + cluster(id), bladder1)
-summary(mod_rec)
-# cumulative hazard
-# Note: this individual has number = 0, which does not exist in the data
-autoplot(mod_rec, type = "pred", lp = 0)
 
-# survival, although not very meaningful with recurrent events
-autoplot(mod_rec, type = "pred", lp = 0, quantity = "survival")
+# Histogram of the estimated frailties
+autoplot(mod_rec, type = "hist")
 
+# Ordered estimated frailties (with confidence intervals, for gamma distribution)
+autoplot(mod_rec, type = "frail")
 
-# For an individual with number == 2
-autoplot(mod_rec, type = "pred", newdata = data.frame(treatment = "placebo", number = 2))
+# hazard ratio between placebo and pyridoxine
+newdata1 <- data.frame(treatment = c("placebo", "pyridoxine"),
+                       number = c(1, 3))
 
-# hazard ratio between an individual with 0 and with 2 recurrences at baseline
-# the marginal hazard ratio is "pulled" towards 1:
+autoplot(mod_rec, type = "hr", newdata = newdata1)
 
-autoplot(mod_rec, type = "hr",
-newdata = data.frame(treatment = c("placebo", "placebo"), number = c(0, 2)))
+# predicted cumulative hazard for placebo, and number = 1
+autoplot(mod_rec, type = "pred", newdata = newdata1[1,])
 
-# hazard ratio with the stable distribution:
-\dontrun{
-mod_rec_stab <- emfrail(Surv(start, stop, status) ~ treatment + number + cluster(id),
-                        bladder1,
-                        distribution = emfrail_distribution(dist = "stable"))
+# predicted survival for placebo, and number = 1
+autoplot(mod_rec, type = "pred", quantity = "survival", newdata = newdata1[1,])
 
-autoplot(mod_rec_stab, type = "hr",
-newdata = data.frame(treatment = c("placebo", "placebo"), number = c(0, 2)))
+# predicted survival for an individual that switches from
+# placebo to pyridoxine at time = 15
+newdata2 <- data.frame(treatment = c("placebo", "pyridoxine"),
+                       number = c(1, 3),
+                       tstart = c(0, 15),
+                       tstop = c(15, Inf))
 
-# histogram of frailty estimates
-autoplot(mod_rec_stab, type = "hist")
-}
+autoplot(mod_rec, type = "pred", quantity = "survival", newdata = newdata2, individual = TRUE)
 }
 \seealso{
 \code{\link{predict.emfrail}}, \code{\link{summary.emfrail}}, \code{\link{plot.emfrail}}.

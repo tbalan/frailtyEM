@@ -11,9 +11,11 @@
 #' @param lp A numeric vector of values of the linear predictor, each corresponding to a case. For \code{type == "hr"} the hazard ratio
 #' between the first two values of \code{lp} is calculated. For \code{type == "pred"} the prediction
 #' for the first value of \code{lp} is calculated.
-#' @param quantity For \code{type == "pred"} the predicted quantity; see \code{\link{predict.emfrail}}
-#' @param marg_cond For \code{type == "pred"} the type of predicted quantity; see \code{\link{predict.emfrail}}
-#' @param conf_int For \code{type == "pred"} the type of confidence intervals; see \code{\link{predict.emfrail}}
+#' @param quantity For \code{type == "pred"} the predicted quantity; see \code{quantity} in \code{\link{predict.emfrail}}
+#' @param type_pred For \code{type == "pred"} the type of predicted quantity; see \code{type} in \code{\link{predict.emfrail}}
+#' @param conf_int For \code{type == "pred"} the type of confidence intervals; see \code{conf_int} in \code{\link{predict.emfrail}}
+#' @param individual For \code{type == "pred"} for drawing a curve when the rows of \code{newdata} refer to the same individual; see
+#' \code{individual} in \code{\link{predict.emfrail}}
 #' @param ... Further arguments to be passed to the plot function
 #'
 #' @return Nothing
@@ -23,39 +25,36 @@
 #'
 #' @examples
 #' mod_rec <- emfrail(Surv(start, stop, status) ~ treatment + number + cluster(id), bladder1)
-#' summary(mod_rec)
 #'
-#' # cumulative hazard
-#' # Note: this individual has number = 0, which does not exist in the data
-#' plot(mod_rec, type = "pred", lp = 0)
+#' # Histogram of the estimated frailties
+#' plot(mod_rec, type = "hist")
 #'
-#' # survival, although not very meaningful with recurrent events
-#' plot(mod_rec, type = "pred", lp = 0, quantity = "survival")
+#' # hazard ratio between placebo and pyridoxine
+#' newdata1 <- data.frame(treatment = c("placebo", "pyridoxine"),
+#'                        number = c(1, 3))
 #'
+#' plot(mod_rec, type = "hr", newdata = newdata1)
 #'
-#' # For an individual with number == 2
-#' plot(mod_rec, type = "pred",
-#' newdata = data.frame(treatment = "placebo", number = 2))
+#' # predicted cumulative hazard for placebo, and number = 1
+#' plot(mod_rec, type = "pred", newdata = newdata1[1,])
 #'
-#' # hazard ratio between an individual with 0 and with 2 recurrences at baseline
-#' # the marginal hazard ratio is "pulled" towards 1:
+#' # predicted survival for placebo, and number = 1
+#' plot(mod_rec, type = "pred", quantity = "survival", newdata = newdata1[1,])
 #'
-#' plot(mod_rec, type = "hr",
-#' newdata = data.frame(treatment = c("placebo", "placebo"), number = c(0, 2)))
+#' # predicted survival for an individual that switches from
+#' # placebo to pyridoxine at time = 15
+#' newdata2 <- data.frame(treatment = c("placebo", "pyridoxine"),
+#'                        number = c(1, 3),
+#'                        tstart = c(0, 15),
+#'                        tstop = c(15, Inf))
 #'
-#' # hazard ratio with the stable distribution:
-#' \dontrun{
-#' mod_rec_stab <- emfrail(Surv(start, stop, status) ~ treatment + number + cluster(id),
-#'                         bladder1,
-#'                         distribution = emfrail_distribution(dist = "stable"))
-#'
-#' plot(mod_rec_stab, type = "hr",
-#' newdata = data.frame(treatment = c("placebo", "placebo"), number = c(0, 2)))
-#'
-#' # histogram of frailty estimates
-#' plot(mod_rec_stab, type = "hist")
-#' }
-plot.emfrail <- function(x, type = c("hist", "hr", "pred"), newdata = NULL, lp = NULL, quantity = "cumhaz", marg_cond = "both", conf_int = "adjusted", ...) {
+#' plot(mod_rec, type = "pred", quantity = "survival", newdata = newdata2, individual = TRUE)
+plot.emfrail <- function(x, type = c("hist", "hr", "pred"), newdata = NULL, lp = NULL,
+                         quantity = "cumhaz",
+                         type_pred = c("conditional", "marginal"),
+                         conf_int = "adjusted",
+                         individual = FALSE,
+                         ...) {
 
   if("hist" %in% type) {
     sobj <- summary.emfrail(x)
@@ -80,29 +79,24 @@ plot.emfrail <- function(x, type = c("hist", "hr", "pred"), newdata = NULL, lp =
         }
 
 
-    p1 <- predict.emfrail(x,
-                          lp = lp[1],
-                          newdata = newdata[1,],
-                          quantity = "cumhaz",
-                          conf_int = NULL)
+    p <- predict.emfrail(x,
+                         lp = lp,
+                         newdata = newdata,
+                         quantity = "cumhaz",
+                         conf_int = NULL)
 
-    p2 <- predict.emfrail(x,
-                          lp = lp[2],
-                          newdata = newdata[2,],
-                          quantity = "cumhaz",
-                          conf_int = NULL)
 
-    hr_cond <- p1$cumhaz / p2$cumhaz
-    hr_mar <- p1$cumhaz_m / p2$cumhaz_m
+    hr_cond <- p[[1]]$cumhaz / p[[2]]$cumhaz
+    hr_mar <- p[[1]]$cumhaz_m / p[[2]]$cumhaz_m
 
     hr_cond[1] <- hr_cond[2]  # that's cause it's 0/0
-    hr_mar[1] <- hr_mar[2]
+    hr_mar[1] <- hr_cond[1]
     ylim <- c(min(c(hr_cond, hr_mar, 0.95)), max(c(hr_cond, hr_mar, 1.05)))
 
-    plot(p1$time, hr_cond, type = "s", ylim = ylim,
+    plot(p[[1]]$time, hr_cond, type = "s", ylim = ylim,
          xlab = "time",
          ylab = "hazard ratio", ...)
-    lines(p1$time, hr_mar, type = "s", col = 2)
+    lines(p[[1]]$time, hr_mar, type = "s", col = 2)
     abline(a = 1, b = 0, lty = 2, col = "gray")
 
     if(hr_mar[length(hr_mar)] > 1) pos <- "bottomright" else
@@ -117,36 +111,40 @@ plot.emfrail <- function(x, type = c("hist", "hr", "pred"), newdata = NULL, lp =
     if(!is.null(newdata))
       if(!inherits(newdata, "data.frame")) stop("newdata must be a data.frame") else
         if(nrow(newdata) < 1) stop("newdata must have eat least 1 row for type = pred") else
-          if(nrow(newdata) > 1) warning("just the first row is used for type = pred")
+          if(nrow(newdata) > 1 & !isTRUE(individual)) {
+            warning("just the first row is used for type = pred")
+            newdata <- newdata[1,,drop = FALSE]
+          }
+
 
     if(is.null(newdata) & !is.null(lp))
       if(length(lp) < 1) stop("lp should have at least length 1") else
-        if(length(lp) > 1) warning("just the first value of lp is used for type = pred")
+        if(length(lp) > 1) {
+          warning("just the first value of lp is used for type = pred")
+          lp <- lp[1]
+        }
+
     if(!(quantity %in% c("cumhaz", "survival")) | length(quantity) != 1)
-      stop("quantity must be cumhaz or survival for type = pred")
+      stop("quantity must be one of cumhaz or survival for type = pred")
 
-    if(!(marg_cond %in% c("conditional", "marginal", "both")) | length(marg_cond) != 1)
-      stop("marg_cond must be conditional, marginal, or both for type = pred")
 
-    if(!(conf_int %in% c("adjusted", "regular", "none")) | length(conf_int) != 1)
-      stop("conf_int must be adjusted, regular or none for type = pred")
 
-    if(marg_cond == "both")
-      type_pred <- c("conditional", "marginal") else
-        type_pred <- marg_cond
-
-      p1 <- predict.emfrail(x,
-                            lp = lp[1],
-                            newdata = newdata[1,],
+    p1 <- predict.emfrail(x,
+                            lp = lp,
+                            newdata = newdata,
                             quantity = quantity,
                             type = type_pred,
-                            conf_int = conf_int)
+                            conf_int = conf_int,
+                            individual = individual)
 
       # determine columns to be plotted by name,
       # possibilities: quantity is just one of survival or cumhaz
       # they may have an _m or not at the end,
 
-      if(marg_cond == "conditional") {
+    # so I don't re-write the whole code below again
+    if("conditional" %in% type_pred & "marginal" %in% type_pred) type_pred <- "both"
+
+      if(type_pred == "conditional") {
         if(quantity == "cumhaz") {
           # if(conf_int == "adjusted") ylim <- c(0, max(p1$cumhaz_r_a)) else
           #   if(conf_int == "regular") ylim <- c(0, max(p1$cumhaz_r)) else
@@ -188,7 +186,7 @@ plot.emfrail <- function(x, type = c("hist", "hr", "pred"), newdata = NULL, lp =
         }
       }
 
-      if(marg_cond == "marginal") {
+      if(type_pred == "marginal") {
         if(quantity == "cumhaz") {
           # if(conf_int == "adjusted") ylim <- c(0, max(p1$cumhaz_m_r)) else
           #   if(conf_int == "regular") ylim <- c(0, max(p1$cumhaz_m_r_a)) else
@@ -232,7 +230,7 @@ plot.emfrail <- function(x, type = c("hist", "hr", "pred"), newdata = NULL, lp =
 
       }
 
-      if(marg_cond == "both") {
+      if(type_pred == "both") {
         if(quantity == "cumhaz") {
           # if(conf_int == "adjusted") ylim <- c(0, max(p1$cumhaz_r_a)) else
           #   if(conf_int == "regular") ylim <- c(0, max(p1$cumhaz_r)) else
