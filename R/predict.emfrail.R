@@ -120,7 +120,7 @@ predict.emfrail <- function(object,
 
     mdata <- attr(object, "metadata")
     mf <- model.frame(mdata[[1]], data = newdata, xlev = mdata[[2]])
-    mm <- try(model.matrix(mdata[[1]], mf)[,-1])
+    mm <- try(model.matrix(mdata[[1]], mf)[,-1,drop=FALSE])
     if(inherits(mm, "try-error")) stop("newdata probably misspecified")
     lp <- as.numeric(mm %*% object$coef)
 
