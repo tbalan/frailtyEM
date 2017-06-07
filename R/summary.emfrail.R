@@ -188,7 +188,7 @@ summary.emfrail <- function(object,
 
 
     shape <- est_dist$frailtypar + object$nevents_id
-    rate <- est_dist$frailtypar + object$residuals
+    rate <- est_dist$frailtypar + object$residuals[[1]]
     var_z <- shape / rate^2
     lower_q <- stats::qgamma(0.025,
                              shape = shape,

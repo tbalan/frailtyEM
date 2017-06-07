@@ -102,7 +102,7 @@ em_fit <- function(logfrailtypar, dist, pvfm,
 
     #cc1 <- coxph(Surv(tstart, tstop, status) ~ x + offset(logz), dat1, method = "breslow")
 
-    # NOTE: this ids what linear.predictors actually is:
+    # NOTE: this is what linear.predictors actually is:
     # exp(mcox$coefficients * (Xmat - mean(Xmat)) + logz)
 
     # How I calculate the cumulative hazard corresponding to each line in the data set...
@@ -159,6 +159,7 @@ em_fit <- function(logfrailtypar, dist, pvfm,
   }  # for when maximizing
 
 
+
   tev <- atrisk$time[haz > 0]
   haz_tev = haz[haz > 0]
 
@@ -170,6 +171,7 @@ em_fit <- function(logfrailtypar, dist, pvfm,
       Vcov <- matrix(NA, ncol(Xmat) + length(tev), ncol(Xmat) + length(tev))
     }
 
+
     res = list(loglik = loglik, # this we need
                tev = tev, # event time points
                haz = haz_tev, # the Breslow estimator for ech tev
@@ -177,8 +179,7 @@ em_fit <- function(logfrailtypar, dist, pvfm,
                Cvec = Cvec, #the Lambdatildei, I don't think I need that. But maybe I do?
                estep = e_step_val, # the E step object, just keep it like that.
                coef = mcox$coefficients, # the maximized coefficients. I need this.
-               Vcov = Vcov) # the Vcov matrix
-
+               Vcov = Vcov)
     return(res)
   }
 
@@ -423,7 +424,9 @@ em_fit <- function(logfrailtypar, dist, pvfm,
                Cvec = Cvec, #the Lambdatildei, I don't think I need that. But maybe I do?
                estep = e_step_val, # the E step object, just keep it like that.
                coef = mcox$coefficients, # the maximized coefficients. I need this.
-               Vcov = Vcov) # the Vcov matrix
+               Vcov = Vcov,
+               fitted = g_x + logz, # fitted values of the linear predictor
+               cumhaz_line = cumhaz_line) # the Vcov matrix
 
     res
   }

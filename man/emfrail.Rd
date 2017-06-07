@@ -5,7 +5,7 @@
 \title{Fitting shared frailty models with the EM algorithm}
 \usage{
 emfrail(formula, data, distribution = emfrail_distribution(),
-  control = emfrail_control(), model = FALSE, ...)
+  control = emfrail_control(), model = FALSE, model.matrix = FALSE, ...)
 }
 \arguments{
 \item{formula}{A formula that contains on the left hand side an object of the type \code{Surv}
@@ -21,30 +21,9 @@ column is performed. See details.}
 
 \item{model}{Logical. Should the model frame be returned?}
 
+\item{model.matrix}{Logical. Should the model matrix be returned?}
+
 \item{...}{Other arguments, currently used to warn about deprecated argument names}
-}
-\value{
-An object of class \code{emfrail} that contains the following fields:
-\itemize{
-\item \code{coefficients} A named vector of the estimated regression coefficients
-\item \code{hazard} The breslow estimate of the baseline hazard at each event time point, in chronological order
-\item \code{var} The variance-covariance matrix corresponding to the coefficients and hazard, assuming \eqn{\theta} constant
-\item \code{var_adj} The variance-covariance matrx corresponding to the coefficients and hazard, adjusted for the estimation of \eqn{\theta}
-\item \code{theta} The point estimate of \eqn{\theta}. For the gamma and PVF family of distributions, this is the inverse of the estimated frailty variance; for the positive stable this is Kendall's tau?
-\item \code{var_theta} The variance of the estimated \eqn{\theta}
-\item \code{ci_theta} The likelihood-based 95\% confidence interval for \eqn{\theta}
-\item \code{frail} The posterior (empirical Bayes) estimates of the frailty for each cluster
-\item \code{residuals} The sum of the cumulative hazard from all observations within a cluster
-\item \code{tev} The time points of the events in the data set; this is the same length as \code{hazard}
-\item \code{nevents_id} The number of events for each cluster
-\item \code{loglik} A vector of length two with the non-frailty log-likelihood (starting model) and the maximized log-likelihodo
-\item \code{ca_test} The results of the Commenges-Andersen test for heterogeneity
-\item \code{cens_test} The results of the test for dependence between a recurrent event and a terminal event, if the \code{+terminal()} statement is specified and the frailty distribution is gamma
-\item \code{formula} The original formula argument
-\item \code{distribution} The original distribution argument
-\item \code{control} The original control argument
-\item \code{model} Logical. Should the model frame be returned?
-}
 }
 \description{
 Fitting shared frailty models with the EM algorithm

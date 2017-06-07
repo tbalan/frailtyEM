@@ -1,3 +1,7 @@
+# frailtyEM 0.6.8
+- added a larger number of methods for `emfrail` objects.
+
+
 # frailtyEM 0.6.7
 - the `predict.emfrail` method suffered some alterations: first of all, it now gives predictions for each
 `lp` or each row of `newdata`, and it also gained the argumnet `individual`. If true, then the `newdata` argument
