@@ -4,7 +4,7 @@
 \alias{emfrail}
 \title{Fitting shared frailty models with the EM algorithm}
 \usage{
-emfrail(formula, data, distribution = emfrail_distribution(),
+emfrail(formula, data, distribution = emfrail_dist(),
   control = emfrail_control(), model = FALSE, model.matrix = FALSE, ...)
 }
 \arguments{
@@ -15,7 +15,7 @@ column is performed. See details.}
 
 \item{data}{A data frame in which the formula argument can be evaluated}
 
-\item{distribution}{An object as created by \code{\link{emfrail_distribution}}}
+\item{distribution}{An object as created by \code{\link{emfrail_dist}}}
 
 \item{control}{An object as created by \code{\link{emfrail_control}}}
 
@@ -24,6 +24,35 @@ column is performed. See details.}
 \item{model.matrix}{Logical. Should the model matrix be returned?}
 
 \item{...}{Other arguments, currently used to warn about deprecated argument names}
+}
+\value{
+An object of class \code{emfrail} that contains the following fields:
+\item{coefficients}{A named vector of the estimated regression coefficients}
+\item{hazard}{The breslow estimate of the baseline hazard at each event time point, in chronological order}
+\item{var}{The variance-covariance matrix corresponding to the coefficients and hazard, assuming \eqn{\theta} constant}
+\item{var_adj}{The variance-covariance matrx corresponding to the
+coefficients and hazard, adjusted for the estimation of theta}
+\item{theta}{The point estimate of \eqn{\theta}. For the gamma and
+PVF family of distributions, this is the inverse of the estimated frailty variance.}
+\item{var_theta}{The variance of the estimated \eqn{\theta}}
+\item{ci_theta}{The likelihood-based 95\% confidence interval for \eqn{\theta}}
+\item{frail}{The posterior (empirical Bayes) estimates of the frailty for each cluster}
+\item{residuals}{A list with two elements, cluster which is a vector that the sum of the
+cumulative hazards from each cluster for a frailty value of 1, and
+individual, which is a vector that contains the cumulative hazard corresponding to each row of the data,
+multiplied by the corresponding frailty estimate}
+\item{tev}{The time points of the events in the data set, this is the same length as hazard}
+\item{nevents_id}{The number of events for each cluster}
+\item{loglik}{A vector of length two with the log-likelihood of the starting Cox model
+and the maximized log-likelihood}
+\item{ca_test}{The results of the Commenges-Andersen test for heterogeneity}
+\item{cens_test}{The results of the test for dependence between a recurrent event and a terminal event,
+if the \code{+terminal()} statement is specified and the frailty distribution is gamma}
+\item{formula}{The original formula argument}
+\item{distribution}{The original distribution argument}
+\item{control}{The original control argument}
+\item{mf}{The \code{model.frame}, if \code{model = TRUE}}
+\item{mm}{The \code{model.matrix}, if \code{model.matrix = TRUE}}
 }
 \description{
 Fitting shared frailty models with the EM algorithm
@@ -34,7 +63,7 @@ The \code{emfrail} function fits shared frailty models for processes which have 
 with a non-parametric (Breslow) baseline intensity \eqn{\lambda_0(t)}.
 The distribution of \eqn{z} is usually described by one parameter \eqn{\theta}.
 The family of supported distributions can be one of gamma, positive stable or PVF (power-variance-family).
-For details, see the vignette and \code{\link{emfrail_distribution}} .
+For details, see the vignette and \code{\link{emfrail_dist}} .
 
 The algorithm is described in detail in the vignette. The short version is as follows:
 The objective is to maximize a marginal likelihood with respect to 3 sets of parameters, \eqn{\theta > 0}
@@ -85,19 +114,19 @@ summary(m1)
 # for the Inverse Gaussian distribution
 m2 <- emfrail(formula = Surv(time, status) ~  rx + sex + cluster(litter),
              data =  dat,
-             distribution = emfrail_distribution(dist = "pvf"))
+             distribution = emfrail_dist(dist = "pvf"))
 m2
 
 # for the PVF distribution with m = 0.75
 m3 <- emfrail(formula = Surv(time, status) ~  rx + sex + cluster(litter),
               data =  dat,
-              distribution = emfrail_distribution(dist = "pvf", pvfm = 0.75))
+              distribution = emfrail_dist(dist = "pvf", pvfm = 0.75))
 m3
 
 # for the positive stable distribution
 m4 <- emfrail(formula = Surv(time, status) ~  rx + sex + cluster(litter),
               data =  dat,
-              distribution = emfrail_distribution(dist = "stable"))
+              distribution = emfrail_dist(dist = "stable"))
 m4
 }
 # Compare marginal log-likelihoods
@@ -138,13 +167,13 @@ pll_cph <- sapply(fr_var, function(fr)
 # Same for inverse gaussian
 pll_if <- emfrail_pll(data =  dat,
                       formula = Surv(time, status) ~  rx + sex + cluster(litter),
-                      distribution = emfrail_distribution(dist = "pvf"),
+                      distribution = emfrail_dist(dist = "pvf"),
                       .values = 1/fr_var )
 
 # Same for pvf with a psoitive pvfm parameter
 pll_pvf <- emfrail_pll(data =  dat,
                        formula = Surv(time, status) ~  rx + sex + cluster(litter),
-                       distribution = emfrail_distribution(dist = "pvf", pvfm = 1.5),
+                       distribution = emfrail_dist(dist = "pvf", pvfm = 1.5),
                        .values = 1/fr_var )
 
 miny <- min(c(pll_gamma, pll_cph, pll_if, pll_pvf))
@@ -257,7 +286,7 @@ mod_cox <- coxph(Surv(ltime, stime, status)~ x + frailty(id), data = d_left)
 
 # The correct thing is to update the frailty.
 mod_3 <- emfrail(Surv(ltime, stime, status)~ x + cluster(id), d_left,
-                 distribution = emfrail_distribution(left_truncation = TRUE))
+                 distribution = emfrail_dist(left_truncation = TRUE))
 
 summary(mod_1)
 summary(mod_2)
@@ -269,5 +298,6 @@ summary(mod_3)
 \code{\link{summary.emfrail}} for transforming the \code{emfrail} object into a more human-readable format and for
 visualizing the frailty (empirical Bayes) estimates,
 \code{\link{predict.emfrail}} for calculating and visalizing conditional and marginal survival and cumulative
-hazard curves.
+hazard curves. \code{\link{residuals.emfrail}} for extracting martingale residuals and \code{\link{logLik.emfrail}} for extracting
+the log-likelihood of the fitted model.
 }

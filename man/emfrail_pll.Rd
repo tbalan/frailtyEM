@@ -4,7 +4,7 @@
 \alias{emfrail_pll}
 \title{Profile log-likelihood calculation}
 \usage{
-emfrail_pll(formula, data, distribution = emfrail_distribution(), values)
+emfrail_pll(formula, data, distribution = emfrail_dist(), values)
 }
 \arguments{
 \item{formula}{Same as in \code{emfrail}}
@@ -23,7 +23,7 @@ Profile log-likelihood calculation
 }
 \details{
 This function can be used to calculate the profile log-likelihood for different values of \eqn{\theta}.
-The scale is that of \code{theta} as defined in \code{emfrail_distribution()}.
+The scale is that of \code{theta} as defined in \code{emfrail_dist()}.
 For the gamma and pvf frailty, that is the inverse of the frailty variance.
 }
 \note{

@@ -63,22 +63,29 @@
 #' \item{coefficients}{A named vector of the estimated regression coefficients}
 #' \item{hazard}{The breslow estimate of the baseline hazard at each event time point, in chronological order}
 #' \item{var}{The variance-covariance matrix corresponding to the coefficients and hazard, assuming \eqn{\theta} constant}
-#' \item{var_adj}{The variance-covariance matrx corresponding to the coefficients and hazard, adjusted for the estimation of \eqn{\theta}}
-#' \item{theta}{The point estimate of \eqn{\theta}. For the gamma and PVF family of distributions, this is the inverse of the estimated frailty variance; for the positive stable this is Kendall's tau?}
+#' \item{var_adj}{The variance-covariance matrx corresponding to the
+#' coefficients and hazard, adjusted for the estimation of theta}
+#' \item{theta}{The point estimate of \eqn{\theta}. For the gamma and
+#' PVF family of distributions, this is the inverse of the estimated frailty variance.}
 #' \item{var_theta}{The variance of the estimated \eqn{\theta}}
 #' \item{ci_theta}{The likelihood-based 95\% confidence interval for \eqn{\theta}}
 #' \item{frail}{The posterior (empirical Bayes) estimates of the frailty for each cluster}
-#' \item{residuals}{A list with two elements, \code{group} which is a vector that the sum of the cumulative hazards from each cluster for a frailty value of 1, and
-#' \code{individual}, which is a vector that contains the cumulative hazard corresponding to each row of the data, multiplied by the corresponding frailty estimate}
-#' \item{tev}{The time points of the events in the data set; this is the same length as \code{hazard}}
+#' \item{residuals}{A list with two elements, cluster which is a vector that the sum of the
+#' cumulative hazards from each cluster for a frailty value of 1, and
+#' individual, which is a vector that contains the cumulative hazard corresponding to each row of the data,
+#'  multiplied by the corresponding frailty estimate}
+#' \item{tev}{The time points of the events in the data set, this is the same length as hazard}
 #' \item{nevents_id}{The number of events for each cluster}
-#' \item{loglik}}{ A vector of length two with the non-frailty log-likelihood (starting model) and the maximized log-likelihood}
+#' \item{loglik}{A vector of length two with the log-likelihood of the starting Cox model
+#' and the maximized log-likelihood}
 #' \item{ca_test}{The results of the Commenges-Andersen test for heterogeneity}
-#' \item{cens_test}{The results of the test for dependence between a recurrent event and a terminal event, if the \code{+terminal()} statement is specified and the frailty distribution is gamma}
+#' \item{cens_test}{The results of the test for dependence between a recurrent event and a terminal event,
+#' if the \code{+terminal()} statement is specified and the frailty distribution is gamma}
 #' \item{formula}{The original formula argument}
 #' \item{distribution}{The original distribution argument}
 #' \item{control}{The original control argument}
-#' \item{model}{The \code{model.frame}, if \code{model == TRUE}}
+#' \item{mf}{The \code{model.frame}, if \code{model = TRUE}}
+#' \item{mm}{The \code{model.matrix}, if \code{model.matrix = TRUE}}
 #'
 #' @md
 #' @note Some possible problems may appear when the maximum likelihood estimate lies on the border of the parameter space.
@@ -90,7 +97,8 @@
 #' \code{\link{summary.emfrail}} for transforming the \code{emfrail} object into a more human-readable format and for
 #' visualizing the frailty (empirical Bayes) estimates,
 #' \code{\link{predict.emfrail}} for calculating and visalizing conditional and marginal survival and cumulative
-#' hazard curves.
+#' hazard curves. \code{\link{residuals.emfrail}} for extracting martingale residuals and \code{\link{logLik.emfrail}} for extracting
+#' the log-likelihood of the fitted model.
 #'
 #' @examples
 #' dat <- survival::rats

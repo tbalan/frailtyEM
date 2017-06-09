@@ -83,7 +83,8 @@ em_fit <- function(logfrailtypar, dist, pvfm,
 
 
     loglik <- sum((log(basehaz_line) + g_x)[Y[,3] == 1]) +
-     sum(e_step_val[,3]) + sum(Y[,3]) - sum((atrisk$nevent * log(atrisk$nevent))[atrisk$nevent > 0])# +  sum(nev_id * lp_individual)
+     sum(e_step_val[,3]) + sum(Y[,3]) -
+      sum((atrisk$nevent * log(atrisk$nevent))[atrisk$nevent > 0])# +  sum(nev_id * lp_individual)
 
     if(loglik < loglik_old - inner_control$lik_tol)
       warning(paste0("likelihood decrease of ", loglik - loglik_old ))

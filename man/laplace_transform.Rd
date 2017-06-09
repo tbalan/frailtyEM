@@ -9,7 +9,7 @@ laplace_transform(x, distribution)
 \arguments{
 \item{x}{A vector of positive values where to calculate the Laplace transform}
 
-\item{distribution}{An \code{emfrail_distribution} object. See \code{?emfrail_distribution}.}
+\item{distribution}{An \code{emfrail_dist} object. See \code{?emfrail_dist}.}
 }
 \value{
 A vector of the same length as \code{x} with the Laplace transform of \code{x}

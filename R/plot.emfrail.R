@@ -90,7 +90,13 @@ plot.emfrail <- function(x, type = c("hist", "hr", "pred"), newdata = NULL, lp =
     hr_mar <- p[[1]]$cumhaz_m / p[[2]]$cumhaz_m
 
     hr_cond[1] <- hr_cond[2]  # that's cause it's 0/0
-    hr_mar[1] <- hr_cond[1]
+    # the hr_mar in the beginning is the same for gamma / pvf
+    # except with the PS. then it is the same all the time
+    # this part here is simply a cosmetic change to get nice plots
+    if(object$distribution$dist == "stable")
+      hr_mar[1] <- hr_mar[2] else
+        hr_mar[1] <- hr_cond[1]
+
     ylim <- c(min(c(hr_cond, hr_mar, 0.95)), max(c(hr_cond, hr_mar, 1.05)))
 
     plot(p[[1]]$time, hr_cond, type = "s", ylim = ylim,

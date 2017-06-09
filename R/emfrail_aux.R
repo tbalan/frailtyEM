@@ -42,7 +42,7 @@ dist_to_pars <- function(dist, logfrailtypar, pvfm) {
 #' Laplace transform calculation
 #'
 #' @param x A vector of positive values where to calculate the Laplace transform
-#' @param distribution An \code{emfrail_distribution} object. See \code{?emfrail_distribution}.
+#' @param distribution An \code{emfrail_dist} object. See \code{?emfrail_dist}.
 #'
 #' @return A vector of the same length as \code{x} with the Laplace transform of \code{x}
 #'
@@ -53,8 +53,8 @@ dist_to_pars <- function(dist, logfrailtypar, pvfm) {
 #' @keywords internal
 laplace_transform <- function(x, distribution) {
   # if(missing(.distribution) & missing())
-  if(!inherits(distribution, "emfrail_distribution"))
-    stop("distribution argument misspecified; see ?emfrail_distribution()")
+  if(!inherits(distribution, "emfrail_dist"))
+    stop("distribution argument misspecified; see ?emfrail_dist()")
 
   getpars <- dist_to_pars(distribution$dist, log(distribution$frailtypar), distribution$pvfm)
 
@@ -86,7 +86,7 @@ laplace_transform <- function(x, distribution) {
 #' @export
 #'
 #' @details This function can be used to calculate the profile log-likelihood for different values of \eqn{\theta}.
-#' The scale is that of \code{theta} as defined in \code{emfrail_distribution()}.
+#' The scale is that of \code{theta} as defined in \code{emfrail_dist()}.
 #' For the gamma and pvf frailty, that is the inverse of the frailty variance.
 #'
 #' @note This function is just a simple wrapper for \code{emfrail()} with the \code{control} argument
@@ -109,12 +109,12 @@ laplace_transform <- function(x, distribution) {
 #' lines(fr_var, profloglik_cph, col = 2)
 #'
 emfrail_pll <- function(formula, data,
-                        distribution = emfrail_distribution(),
+                        distribution = emfrail_dist(),
                         values) {
   sapply(values, function(fp) {
     -emfrail(formula = formula,
              data = data,
-             distribution =  emfrail_distribution(dist = distribution$dist,
+             distribution =  emfrail_dist(dist = distribution$dist,
                                                   theta = fp,
                                                   pvfm = distribution$pvfm,
                                                   left_truncation = distribution$left_truncation),

@@ -65,5 +65,5 @@ emfrail_control(inner_control = list(eps = 1e-7))
 
 }
 \seealso{
-\code{\link{emfrail}}, \code{\link{emfrail_distribution}}, \code{\link{emfrail_pll}}
+\code{\link{emfrail}}, \code{\link{emfrail_dist}}, \code{\link{emfrail_pll}}
 }
