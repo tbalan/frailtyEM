@@ -48,5 +48,5 @@ model.matrix.emfrail <- function(object, ...) {
 #' @method model.frame emfrail
 model.frame.emfrail <- function(formula, ...) {
   if(is.null(formula$mf)) stop("emfrail must be called with model = TRUE in order to return the model frame")
-  object$mf
+  formula$mf
 }
