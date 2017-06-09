@@ -37,7 +37,7 @@
 #'
 #' The starting value of the outer optimization may be set in the \code{.distribution} argument.
 #'
-#' @seealso \code{\link{emfrail}}, \code{\link{emfrail_distribution}}, \code{\link{emfrail_pll}}
+#' @seealso \code{\link{emfrail}}, \code{\link{emfrail_dist}}, \code{\link{emfrail_pll}}
 #' @examples
 #' emfrail_control()
 #' emfrail_control(inner_control = list(eps = 1e-7))
@@ -114,7 +114,7 @@ emfrail_control <- function(opt_fit = TRUE,
 #' @param pvfm Only relevant if \code{dist = 'pvf'} is used. It determines which PVF distribution should be used. Must be  larger than -1 and not equal to 0.
 #' @param left_truncation Logical. Whether the data set represents left truncated survival times.
 #'
-#' @return An object of the type \code{emfrail_distribution}, which is mostly used to denote the
+#' @return An object of the type \code{emfrail_dist}, which is mostly used to denote the
 #' supported frailty distributions in a consistent way.
 #' @export
 #'
@@ -125,12 +125,12 @@ emfrail_control <- function(opt_fit = TRUE,
 #'
 #' @seealso \code{\link{emfrail}, \link{emfrail_control}}
 #' @examples
-#' emfrail_distribution()
+#' emfrail_dist()
 #' # Compound Poisson distribution:
-#' emfrail_distribution(dist = 'pvf', theta = 1.5, pvfm = 0.5)
+#' emfrail_dist(dist = 'pvf', theta = 1.5, pvfm = 0.5)
 #' # Inverse Gaussian distribution:
-#' emfrail_distribution(dist = 'pvf')
-emfrail_distribution <- function(dist = "gamma", theta = 2, pvfm = -1/2, left_truncation = FALSE) {
+#' emfrail_dist(dist = 'pvf')
+emfrail_dist <- function(dist = "gamma", theta = 2, pvfm = -1/2, left_truncation = FALSE) {
 
   if (!(dist %in% c("gamma", "stable", "pvf")))
     stop("frailty distribution must be one of gamma, stable, pvf")
@@ -143,7 +143,7 @@ emfrail_distribution <- function(dist = "gamma", theta = 2, pvfm = -1/2, left_tr
 
   if(!is.logical(left_truncation)) stop("left_truncation must be TRUE or FALSE")
   res <- list(dist = dist, theta = theta, pvfm = pvfm, left_truncation = left_truncation)
-  attr(res, "class") <- c("emfrail_distribution")
+  attr(res, "class") <- c("emfrail_dist")
   return(res)
 }
 

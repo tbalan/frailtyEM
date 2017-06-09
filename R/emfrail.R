@@ -13,7 +13,7 @@
 #' may be added, and then a score test for association between the event process and the result in the specified
 #' column is performed. See details.
 #' @param data A data frame in which the formula argument can be evaluated
-#' @param distribution An object as created by \code{\link{emfrail_distribution}}
+#' @param distribution An object as created by \code{\link{emfrail_dist}}
 #' @param control An object as created by \code{\link{emfrail_control}}
 #' @param model Logical. Should the model frame be returned?
 #' @param model.matrix Logical. Should the model matrix be returned?
@@ -25,7 +25,7 @@
 #' with a non-parametric (Breslow) baseline intensity \eqn{\lambda_0(t)}.
 #' The distribution of \eqn{z} is usually described by one parameter \eqn{\theta}.
 #' The family of supported distributions can be one of gamma, positive stable or PVF (power-variance-family).
-#' For details, see the vignette and \code{\link{emfrail_distribution}} .
+#' For details, see the vignette and \code{\link{emfrail_dist}} .
 #'
 #' The algorithm is described in detail in the vignette. The short version is as follows:
 #' The objective is to maximize a marginal likelihood with respect to 3 sets of parameters, \eqn{\theta > 0}
@@ -104,19 +104,19 @@
 #' # for the Inverse Gaussian distribution
 #' m2 <- emfrail(formula = Surv(time, status) ~  rx + sex + cluster(litter),
 #'              data =  dat,
-#'              distribution = emfrail_distribution(dist = "pvf"))
+#'              distribution = emfrail_dist(dist = "pvf"))
 #' m2
 #'
 #' # for the PVF distribution with m = 0.75
 #' m3 <- emfrail(formula = Surv(time, status) ~  rx + sex + cluster(litter),
 #'               data =  dat,
-#'               distribution = emfrail_distribution(dist = "pvf", pvfm = 0.75))
+#'               distribution = emfrail_dist(dist = "pvf", pvfm = 0.75))
 #' m3
 #'
 #' # for the positive stable distribution
 #' m4 <- emfrail(formula = Surv(time, status) ~  rx + sex + cluster(litter),
 #'               data =  dat,
-#'               distribution = emfrail_distribution(dist = "stable"))
+#'               distribution = emfrail_dist(dist = "stable"))
 #' m4
 #'}
 #' # Compare marginal log-likelihoods
@@ -157,13 +157,13 @@
 #' # Same for inverse gaussian
 #' pll_if <- emfrail_pll(data =  dat,
 #'                       formula = Surv(time, status) ~  rx + sex + cluster(litter),
-#'                       distribution = emfrail_distribution(dist = "pvf"),
+#'                       distribution = emfrail_dist(dist = "pvf"),
 #'                       .values = 1/fr_var )
 #'
 #' # Same for pvf with a psoitive pvfm parameter
 #' pll_pvf <- emfrail_pll(data =  dat,
 #'                        formula = Surv(time, status) ~  rx + sex + cluster(litter),
-#'                        distribution = emfrail_distribution(dist = "pvf", pvfm = 1.5),
+#'                        distribution = emfrail_dist(dist = "pvf", pvfm = 1.5),
 #'                        .values = 1/fr_var )
 #'
 #' miny <- min(c(pll_gamma, pll_cph, pll_if, pll_pvf))
@@ -276,7 +276,7 @@
 #'
 #' # The correct thing is to update the frailty.
 #' mod_3 <- emfrail(Surv(ltime, stime, status)~ x + cluster(id), d_left,
-#'                  distribution = emfrail_distribution(left_truncation = TRUE))
+#'                  distribution = emfrail_dist(left_truncation = TRUE))
 #'
 #' summary(mod_1)
 #' summary(mod_2)
@@ -285,7 +285,7 @@
 
 emfrail <- function(formula,
                     data,
-                    distribution = emfrail_distribution(),
+                    distribution = emfrail_dist(),
                     control = emfrail_control(),
                     model = FALSE, model.matrix = FALSE,
                     ...) {
@@ -311,8 +311,8 @@ emfrail <- function(formula,
     stop("data is not an object of type data.frame")
   }
 
-  if(!inherits(distribution, "emfrail_distribution"))
-    stop("distribution argument misspecified; see ?emfrail_distribution()")
+  if(!inherits(distribution, "emfrail_dist"))
+    stop("distribution argument misspecified; see ?emfrail_dist()")
 
   if(!inherits(control, "emfrail_control"))
     stop("control argument misspecified; see ?emfrail_control()")

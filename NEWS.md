@@ -1,6 +1,9 @@
 # frailtyEM 0.6.8
-- added a larger number of methods for `emfrail` objects.
+- now it's `emfrail_dist()` rather than `emfrail_distribution()`
+- a bunch of small fixes and improvements
 
+# frailtyEM 0.6.8
+- added a larger number of methods for `emfrail` objects.
 
 # frailtyEM 0.6.7
 - the `predict.emfrail` method suffered some alterations: first of all, it now gives predictions for each

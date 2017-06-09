@@ -107,10 +107,17 @@ autoplot.emfrail <- function(object,
 
 
     hr_cond <- p[[1]]$cumhaz / p[[2]]$cumhaz
+
     hr_mar <- p[[1]]$cumhaz_m / p[[2]]$cumhaz_m
 
     hr_cond[1] <- hr_cond[2]  # that's cause it's 0/0
-    hr_mar[1] <- hr_cond[1]
+    # the hr_mar in the beginning is the same for gamma / pvf
+    # except with the PS. then it is the same all the time
+    # this part here is simply a cosmetic change to get nice plots
+    if(object$distribution$dist == "stable")
+      hr_mar[1] <- hr_mar[2] else
+        hr_mar[1] <- hr_cond[1]
+
 
     plot2 <- p[[1]] %>%
       ggplot(aes_string(x = "time")) +
