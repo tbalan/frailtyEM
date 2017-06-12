@@ -2,8 +2,8 @@
 #'
 #' @importFrom stats .getXlevels delete.response drop.terms as.formula
 #' @param object An \code{emfrail} fit object
-#' @param lp A vector of linear predictor values at which to calculate the curves. Default is 0 (baseline).
 #' @param newdata A data frame with the same variable names as those that appear in the \code{emfrail} formula, used to calculate the \code{lp} (optional).
+#' @param lp A vector of linear predictor values at which to calculate the curves. Default is 0 (baseline).
 #' @param quantity Can be \code{"cumhaz"} and/or \code{"survival"}. The quantity to be calculated for the values of \code{lp}.
 #' @param type Can be \code{"conditional"} and/or \code{"marginal"}. The type of the quantity to be calculated.
 #' @param conf_int Can be \code{"regular"} and/or \code{"adjusted"}. The type of confidence interval to be calculated.
@@ -96,8 +96,8 @@
 #'
 #' @seealso \code{\link{plot.emfrail}}, \code{\link{autoplot.emfrail}}
 predict.emfrail <- function(object,
-                            lp = NULL,
                             newdata = NULL,
+                            lp = NULL,
                             quantity = c("cumhaz", "survival"),
                             type = c("conditional", "marginal"),
                             conf_int = c("regular", "adjusted"),
@@ -111,6 +111,7 @@ predict.emfrail <- function(object,
 
   if(!is.null(lp)) {
     if(isTRUE(individual)) stop("if lp is specified, individual must be FALSE")
+    if(!is.numeric(lp)) stop("lp must be a numeric vector")
     tstart <- 0
     tstop <- Inf
   }
@@ -150,7 +151,6 @@ predict.emfrail <- function(object,
 
   delta_time <- min(diff(object$tev)) /2
 
-  object$hazard * exp(lp[1]) / (object$hazard * exp(lp[2])  )
   list_haz <- mapply(FUN = function(lp, haz, tstart, tstop, tev) {
             cbind(tev[tstart <= tev & tev < tstop],
                   lp,
