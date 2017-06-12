@@ -1,3 +1,7 @@
+# frailtyEM 0.7.0
+- updated vignette
+- small fixes in the plot function
+
 # frailtyEM 0.6.8
 - now it's `emfrail_dist()` rather than `emfrail_distribution()`
 - a bunch of small fixes and improvements

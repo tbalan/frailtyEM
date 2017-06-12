@@ -93,7 +93,7 @@ plot.emfrail <- function(x, type = c("hist", "hr", "pred"), newdata = NULL, lp =
     # the hr_mar in the beginning is the same for gamma / pvf
     # except with the PS. then it is the same all the time
     # this part here is simply a cosmetic change to get nice plots
-    if(object$distribution$dist == "stable")
+    if(x$distribution$dist == "stable")
       hr_mar[1] <- hr_mar[2] else
         hr_mar[1] <- hr_cond[1]
 
