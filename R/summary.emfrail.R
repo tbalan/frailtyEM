@@ -326,14 +326,14 @@ summary.emfrail <- function(object,
                   ((pvfm + 1) * theta / (-pvfm) )^(- 1 / pvfm) )^(-pvfm) +
           (pvfm + 1) * theta / (-pvfm)
       ) - 1,
-      se_kappa = msm::deltamethod(~  4 * exp(
-                      (-1) * (2 * ((pvfm + 1) * exp(x1) / (- pvfm) + log(2))^(-1/pvfm) -
-                                ((pvfm + 1) * exp(x1) / (-pvfm) )^(- 1 / pvfm) )^(-pvfm) +
-                        (pvfm + 1) * exp(x1) / (-pvfm)
-                    ) - 1,
-                                     mean = object$logtheta,
-                                     cov = object$var_logtheta),
-     # se_kappa = NULL,
+      # se_kappa = msm::deltamethod(~  4 * exp(
+      #                 (-1) * (2 * ((pvfm + 1) * exp(x1) / (- pvfm) + log(2))^(-1/pvfm) -
+      #                           ((pvfm + 1) * exp(x1) / (-pvfm) )^(- 1 / pvfm) )^(-pvfm) +
+      #                   (pvfm + 1) * exp(x1) / (-pvfm)
+      #               ) - 1,
+      #                                mean = object$logtheta,
+      #                                cov = object$var_logtheta),
+      se_kappa = NULL,
       ci_kappa_low = ifelse(ci_theta_high == Inf,
                             0,
                             4 * exp(
