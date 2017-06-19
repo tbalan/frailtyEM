@@ -1,6 +1,13 @@
+### frailtyEM 0.7.0-2
+- added a warning for when the limits for searching of the likelihood based confidence interval are reached.
+- removed that message with calculating information matrix
+- muia
+
+
 # frailtyEM 0.7.0
-- updated vignette
-- small fixes in the plot function
+- big update comprising all previous changes: many new methods, organized plot methdos, speed improvements.
+- updated documentation
+- minor bug fixes
 
 # frailtyEM 0.6.8
 - now it's `emfrail_dist()` rather than `emfrail_distribution()`

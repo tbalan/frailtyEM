@@ -574,6 +574,10 @@ emfrail <- function(formula,
          Cvec_lt = Cvec_lt, se = FALSE,
          inner_control = control$inner_control)
 
+  if(lower_llik - outer_m$minimum < 1.92) {
+    theta_low <-  -Inf
+    warning("tolerance limit reached should maybe take a lower value for control$lik_ci_intervals[1]")
+  } else
   theta_low <- uniroot(function(x, ...) outer_m$minimum - em_fit(x, ...) + 1.92,
                        interval = c(control$lik_ci_intervals$interval[1], outer_m$estimate),
                        f.lower = outer_m$minimum - lower_llik + 1.92, f.upper = 1.92,
@@ -636,7 +640,7 @@ emfrail <- function(formula,
     lfp_minus <- max(outer_m$estimate - h , outer_m$estimate - 5)
     lfp_plus <- min(outer_m$estimate + h , outer_m$estimate + 5)
 
-    message("Calculating adjustment for information matrix...")
+#    message("Calculating adjustment for information matrix...")
 
 
     final_fit_minus <- em_fit(logfrailtypar = lfp_minus,

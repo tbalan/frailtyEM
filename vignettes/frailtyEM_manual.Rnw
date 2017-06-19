@@ -13,7 +13,7 @@
 %% almost as usual
 \author{Theodor Adrian Balan\\Leiden University Medical Center\And
         Hein Putter\\Leiden University Medical Center}
-\title{\pkg{frailtyEM}: an \proglang{R} Package for Estimating Semiparametric Shared Frailty Models}
+\title{\pkg{frailtyEM}: An \proglang{R} Package for Estimating Semiparametric Shared Frailty Models}
 
 %% for pretty printing and a nice hypersummary also set:
 \Plainauthor{Theodor Adrian Balan, Hein Putter} %% comma-separated
@@ -62,7 +62,6 @@ Although recent years have seen an increased availability of software for fittin
 %% Telephone: +43/512/507-7103
 %% Fax: +43/512/507-2851
 
-%% for those who use Sweave please include the following line (with % symbols):
 %% need no \usepackage{Sweave.sty}
 
 %% end of declarations %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -82,7 +81,7 @@ Cox regression has been the standard in survival analysis for a few reasons. Fir
 
 When individuals belong to clusters, or may experience recurrent events, the observations are correlated. In this case the Cox model is not appropriate for modeling individual risk. A natural extension is represented by random effect ``shared frailty'' models. Originating from the field of demographics \citep{vaupel1979impact}, these models traditionally assume that the proportional hazards model holds conditional on the frailty, a random effect that acts multiplicatively on the hazard. The variance of the frailty is usually indicative of the degree of heterogeneity in the data. This makes the choice of the random effect distribution relevant. However, the simplicity that made the Cox model so popular does not carry over to such models.
 
-Arguably the most popular way of fitting semiparametric shared frailty models is via the penalized likelihood method \citep{therneaupenalized}, available for the gamma and log-normal frailty distributions. This is the standard in the \pkg{survival} package \citep{survival-book,survival-package} in \proglang{R}, in the \code{PHREG} command in \proglang{SAS} and the \code{streg} procedure in \proglang{Stata}. This method has the advantage that it is generally fast and the Cox model is contained as a limiting case when the variance of the frailty is 0. However, this algorithm can not be used for estimating other frailty distributions or left-truncated data, and the provided standard errors are presented under the assumption that the estimated parameters of the frailty distribution are fixed. Log-normal frailty models may also be estimated in \proglang{R} via Laplace approximation in \pkg{coxme}  \citep{coxme}, h-likelihood in \pkg{frailtyHL} \citep{do2012frailtyhl} or Monte Carlo Expectation-Maximization \pkg{phmm} \cite{phmm1, phmm2, phmm3}.
+Arguably the most popular way of fitting semiparametric shared frailty models is via the penalized likelihood method \citep{therneaupenalized}, available for the gamma and log-normal frailty distributions. This is the standard in the \pkg{survival} package \citep{survival-book,survival-package} in \proglang{R}, in the \code{PHREG} command in \proglang{SAS} and the \code{streg} procedure in \proglang{Stata}. This method has the advantage that it is generally fast and the Cox model is contained as a limiting case when the variance of the frailty is 0. However, this algorithm can not be used for estimating other frailty distributions or left-truncated data, and the provided standard errors are presented under the assumption that the estimated parameters of the frailty distribution are fixed. Log-normal frailty models may also be estimated in \proglang{R} via Laplace approximation in \pkg{coxme}  \citep{coxme}, h-likelihood in \pkg{frailtyHL} \citep{do2012frailtyhl} or Monte Carlo Expectation-Maximization \pkg{phmm} \cite{phmm1, phmm2, phmm3}. Parametric and spline based shared frailty models are implemented for the gamma and log-normal distributions in the \pkg{frailtypack} package \citep{frailtypack1, frailtypack2}.
 
 In \cite{hougaard2012analysis}, the Power Variance Function (PVF) family was proposed for modeling the frailty distribution. These include the gamma, positive stable (PS), inverse gaussian (IG) and compound Poisson distributions with mass at 0. Each choice of the distribution for the frailty implies a different marginal model, with some emphasizing early depence of the observations (IG) and others the late dependence (gamma). Of particular interest is the PS distribution; for all the others, the hazards are assumed to be proportional conditional on the frailty, but not on the marginal level. For the PS frailty model, the hazards are assumed to be proportional on both levels. Therefore, this is the only distribution where the potential violation of the proportional hazards is not confounded with a frailty effect.
 
@@ -107,18 +106,18 @@ PS                            & yes       & no       & no    & no          & no 
 IG                            & yes       & no       & no    & yes         & no        & no          & yes   & no   \\
 Compound Poisson              & yes       & no       & no    & no          & no        & no          & no    & no   \\
 PVF                           & yes       & no       & no    & yes         & no        & no          & no    & no   \\
-\bf data \rm                  &           &          &       &             &           &             &       &      \\
+\bf Data \rm                  &           &          &       &             &           &             &       &      \\
 Clustered failures            & yes       & yes      & yes   & yes         & yes       & yes         & yes   & yes  \\
 Recurrent events (AG)         & yes       & yes      & yes   & no          & no        & yes         & no    & no   \\
 Left truncation               & yes       & no       & no    & no          & no        & yes         & yes   & no   \\
 Correlated structure          & no        & no       & yes   & no          & no        & yes         & no    & yes  \\
-\bf estimation \rm            &           &          &       &             &           &             &       &      \\
+\bf Estimation \rm            &           &          &       &             &           &             &       &      \\
 Semiparametric               & yes       & yes      & yes   & yes         & yes       & no          & no    & yes  \\
 Posterior frailties           & yes       & yes      & no    & no          & no        & yes         & no    & no   \\
 Conditional $\Lambda_0,\,S_0$ & yes       & limited  & no    & yes         & no        & yes         & yes   & no   \\
 Marginal $\Lambda_0, \, S_0$  & yes       & no       & no    & no          & no        & no          & no    & no   \\ \bottomrule
 \end{tabular}
-\caption{Comparsion of \proglang{R} packages for frailty models. Versions: \pkg{frailtyEM} 0.4.8, \pkg{survival} 2.40-1, \pkg{coxme} 2.2-5, \pkg{frailtyHL} 1.1, \pkg{frailtypack} 2.10.5, \pkg{parfm} 2.7.1, \pkg{phmm} 0.7-5}
+\caption{Comparsion of \proglang{R} packages for frailty models. Versions: \pkg{frailtyEM} 0.7.0, \pkg{survival} 2.40-1, \pkg{coxme} 2.2-5, \pkg{frailtyHL} 1.1, \pkg{frailtypack} 2.10.5, \pkg{parfm} 2.7.1, \pkg{phmm} 0.7-5.}
 \label{table1}
 \end{sidewaystable}
 
@@ -131,7 +130,7 @@ We consider the following framework: there are $I$ clusters and $J_i$ individual
 \end{equation}
 where $Y_{ij}(t)$ indicates whether $N_{ij}$ is under observation at time $t$, $Z_i$ is an unobserved random effect common to all individuals from cluster $i$ (the ``shared frailty''), $\mathbf{x}_{ij}(t)$ a vector of possibly time-dependent covariates, $\beta$ a vector of unknown regression coefficients and $\lambda_0(t) \geq 0$ an unspecified baseline intensity function. We assume that event times are independent given $Z_i = z_i$. We consider the general case where the $Z_i$ follows a distribution with positive support from the infinitely divisible family, i.e., they are i.i.d.~realizations of a random variable described by the Laplace transform
 \begin{equation}
-\mathcal{L}_Z(c; \alpha, \gamma) \equiv \mathrm{E}\left[ \exp(-Zc)\right] = \exp(-\alpha \psi(c;\gamma))
+\mathcal{L}_Z(c; \alpha, \gamma) \equiv \E\left[ \exp(-Zc)\right] = \exp(-\alpha \psi(c;\gamma))
 \label{laplace_transform}
 \end{equation}
 with $\alpha >0$ and $\gamma > 0$. This formulation includes several distributions, such as the gamma, PS, IG an the general PVF case. These distributions have been extensively studied in \cite{hougaard2012analysis}. Denote $\theta = (\alpha, \gamma)$ as the parameter vector that describes the distribution. The parametrizations used are described in Appendix A1.
@@ -139,7 +138,7 @@ with $\alpha >0$ and $\gamma > 0$. This formulation includes several distributio
 \subsection{Likelihood}
 The maximum likelihood problem is to maximize the marginal likelihood, based only on the observed data. With the specification \eqref{eq:intensity}, the marginal likelihood is obtained as the product over clusters of expected marginal contributions, i.e.,
 \begin{multline*}
-L(\theta, \beta, \lambda_0(\cdot)) = \prod_i \mathrm{E}_\theta \left[ \prod_j  \int_0^\infty \left\{Y_{ij}(t) Z_i \exp(\beta^\top \mathbf{x}_{ij}(t) \lambda_0(t) \right\}^{dN_{ij}(t)} \right. \\
+L(\theta, \beta, \lambda_0(\cdot)) = \prod_i \E_\theta \left[ \prod_j  \int_0^\infty \left\{Y_{ij}(t) Z_i \exp(\beta^\top \mathbf{x}_{ij}(t) \lambda_0(t) \right\}^{dN_{ij}(t)} \right. \\
 \left. \times
 \exp\left(-\sum_j\int_0^\infty Y_{ij}(t) Z_i \exp(\beta^\top \mathbf{x}_{ij}(t)) \lambda_0(t) dt\right)
  \right]
@@ -147,9 +146,11 @@ L(\theta, \beta, \lambda_0(\cdot)) = \prod_i \mathrm{E}_\theta \left[ \prod_j  \
 
 To make the connection with how this is reflected in the data, we consider that $(i,j,k)$ refers to the \mbox{$k$-th} observation from the \mbox{$j$-th} individual in the \mbox{$i$-th} cluster. Thus, $t_{ijk}$ is the event or censoring time and $\delta_{ijk} = dN_{ij}(t_{ijk})$ is the event indicator for $(i,j,k)$. We write the value of the covariate vector for this observation as $\mathbf{x}_{ijk}$. In the most basic case of clustered failures, $k \equiv 1$, while in the case of recurrent events $j \equiv 1$. More observations for one individual may also arise in the case of clustered failures when the covariates are time-dependent, and the individual is artificially censored at the time when the value of the covariates changes. Nevertheless, the $(i,j,k)$ pair refers to a certain cluster, individual, and a period of time where the covariate vector does not change.
 
-The baseline cumulative hazard for this observation is denoted as $\Lambda_{0,ijk}$. Also, let $\tilde \Lambda_i = \sum_{jk} \exp(\beta^\top \mathbf{x}_{ijk}) \Lambda_{0,ijk}$. The marginal likelihood can be written as
+\begin{sloppypar}
+The baseline cumulative hazard for observation $(i,j,k)$ is denoted as $\Lambda_{0,ijk}$. Also, let ${\tilde \Lambda_i = \sum_{jk} \exp(\beta^\top \mathbf{x}_{ijk}) \Lambda_{0,ijk}}$. The marginal likelihood can be written as
+\end{sloppypar}
 $$
-L(\theta, \beta, \lambda_0(\cdot)) = \prod_i \mathrm{E}_\theta \left[ \prod_j \left\{\prod_k (Z_i \exp(\beta^\top \mathbf{x}_{ijk})\lambda_0(t_k))^{\delta_{ijk}} \right\} \exp(-z_i \tilde \Lambda_i)\right].
+L(\theta, \beta, \lambda_0(\cdot)) = \prod_i \E_\theta \left[ \prod_j \left\{\prod_k (Z_i \exp(\beta^\top \mathbf{x}_{ijk})\lambda_0(t_k))^{\delta_{ijk}} \right\} \exp(-z_i \tilde \Lambda_i)\right].
 $$
 We consider the Breslow estimator for the baseline hazard, i.e., $\lambda_0(t) \equiv \lambda_{0t}$ for $t$ an event time, and 0 otherwise.
 %In this case, the direct maximization of the likelihood is very difficult.
@@ -164,18 +165,18 @@ where $\mathcal{L}^{(k)}_Z$ is the $k$-th derivative of the Laplace transform an
 \label{sec:Ascertainment}
 The problem of ascertainment with random effect time-to-event data is usually a difficult one. Consider that the event of observing the cluster $i$ in the data set is $A_i$. Thus, the distribution of the random effect in cluster $i$ is described by the Laplace transform of $Z_i|A_i$, which follows from Bayes' rule as
 \begin{equation}
-\mathcal{L}_{Z_i|A_i}(c) = \frac{\mathrm{E}\left[P(A_i | Z_i)\exp(-cZ_i) \right]}{\mathrm{E}\left[ P(A_i | Z_i)\right]}.
+\mathcal{L}_{Z_i|A_i}(c) = \frac{\E\left[\Prob(A_i | Z_i)\exp(-cZ_i) \right]}{\E\left[ \Prob(A_i | Z_i)\right]}.
 \label{eq:laplace_conditional}
 \end{equation}
 
-Expressing $P(A_i|Z = z)$ depends on the type of the study at hand and on the way the data were collected. In \pkg{frailtyEM} an option is included to deal with the classical scenario of left truncation, i.e., where
+Expressing $\Prob(A_i|Z = z)$ depends on the type of the study at hand and on the way the data were collected. In \pkg{frailtyEM} an option is included to deal with the classical scenario of left truncation, i.e., where
 $$
-P(A_i |Z_i = z_i) = P(T_{i1} > t_{L,i1}, T_{i2} > t_{L,i2} ... T_{J_i} > t_{L,iJ_i} | Z_i = z_i)
+\Prob(A_i |Z_i = z_i) = \Prob(T_{i1} > t_{L,i1}, T_{i2} > t_{L,i2} ... T_{J_i} > t_{L,iJ_i} | Z_i = z_i)
 $$
 
 Assume that, given $z_i$, the left truncation times $\mathbf{t}_{L,i}$ are independent and the cluster size is not informative. In this case,
 \begin{equation}
-P(A_i|Z_i = z_i) = \prod_{j=1}^{J_i} \exp\left(-z_i \int_0^{t_{L,ij}} \exp(\beta^\top \mathbf{x}_{ij}(t)) \lambda_0(t) dt \right).
+\Prob(A_i|Z_i = z_i) = \prod_{j=1}^{J_i} \exp\left(-z_i \int_0^{t_{L,ij}} \exp(\beta^\top \mathbf{x}_{ij}(t)) \lambda_0(t) dt \right).
 \label{eq:left_trunc1}
 \end{equation}
 A difficulty here is that the values of the covariate vector and of the baseline intensity must be known prior to the entry time in the study.
@@ -244,12 +245,12 @@ The ``outer'' problem refers to finding $\widehat \theta$ which maximizes the pr
 \subsection{The inner problem}
 For the inner problem of maximizing $L(\beta, \lambda_0 \vert \theta)$ the EM algorithm is used. This has been first proposed for the gamma frailty model in \cite{nielsen1992counting} and \cite{klein1992semiparametric}, and a generalization is discussed in \cite{hougaard2012analysis}.
 
-Most ideas from \cite{nielsen1992counting} are used here. The crucial observation is that the E step involves calculating the empirical Bayes estimates of the frailties $\widehat{z}_i = \mathrm{E}[Z_i | data]$. This expectation is taken with respect to the ``posterior'' distribution of the random effect. Afterwards, the M step is essentially a proportional hazards model with the $\log \widehat{z}_i$ as offset for each cluster.
+Most ideas from \cite{nielsen1992counting} are used here. The crucial observation is that the E step involves calculating the empirical Bayes estimates of the frailties $\widehat{z}_i = \E [Z_i | data]$. This expectation is taken with respect to the ``posterior'' distribution of the random effect. Afterwards, the M step is essentially a proportional hazards model with the $\log \widehat{z}_i$ as offset for each cluster.
 
 \paragraph{The E step}
 For the E step $\beta$ and $\lambda_0$ are fixed, either at their initial values or at the values from the previous M step. Let $n_i = \sum_{j,k} \delta_{ijk}$ be the number of events in cluster $i$. The conditional distribution of $Z_i$ given the data is described by the Laplace transform
 \begin{equation}
-\mathcal{L}(c) = \frac{\mathrm{E}\left[ Z_i^{n_i}  \exp(-Z_i \tilde\Lambda_i) \exp(-Z_i c) \right] }{\mathrm{E}\left[ Z_i^{n_i}  \exp(-Z_i \tilde\Lambda_i) \right] } = \frac{\mathcal{L}^{(n_i)}(c + \tilde\Lambda_i)}{\mathcal{L}^{(n_i)}(\tilde\Lambda_i)}.
+\mathcal{L}(c) = \frac{\E\left[ Z_i^{n_i}  \exp(-Z_i \tilde\Lambda_i) \exp(-Z_i c) \right] }{\E\left[ Z_i^{n_i}  \exp(-Z_i \tilde\Lambda_i) \right] } = \frac{\mathcal{L}^{(n_i)}(c + \tilde\Lambda_i)}{\mathcal{L}^{(n_i)}(\tilde\Lambda_i)}.
 \label{eq:laplace_transform_estep}
 \end{equation}
 The E step reduces to calculating the expectation of this distribution, i.e. the derivative of \eqref{eq:laplace_transform_estep} in 0:
@@ -348,9 +349,7 @@ The first two parts of this output, about regression coefficients and fit summar
 
 Both the Commenges-Andersen test for heterogeneity and the one-sided likelihood ratio test deems the random effect highly significant. This is also suggested by the confidence interval for the frailty variance, which is far from 0.
 
-To illustrate the predicted cumulative hazard curves we take two individuals, one from the treatment arm and one from the placebo arm, both males. The two are shown in Figure~\ref{fig:plot_pred}.
-\begin{figure}
-\begin{center}
+To illustrate the predicted cumulative hazard curves we take two individuals, one from the treatment arm and one from the placebo arm, both males:
 <<bladder2_cumhaz>>==
 library("ggplot2")
 p1 <- autoplot(gam, type = "pred",
@@ -361,13 +360,16 @@ p2 <- autoplot(gam, type = "pred",
   newdata = data.frame(sex = "male", treat = "placebo")) +
   ggtitle("placebo") + ylim(c(0, 2)) + theme_minimal()
 @
+The two plots are shown in Figure~\ref{fig:plot_pred}.
+\begin{figure}
+\begin{center}
 <<cgd_pred_plots, include=FALSE,echo=FALSE,results=hide>>=
 pdf("cgd_pred.pdf", width = 9, height = 3)
 gridExtra::grid.arrange(p1, p2, nrow = 1)
 dev.off()
 @
-\includegraphics[width = 16.5cm, height = 5.5cm]{cgd_pred}
-\caption{Predicted conditional and marginal cumulative hazards for males, one from the treatment arm and one from the placebo arm}
+\centering\includegraphics[width = 15.5cm, height = 5.16cm]{cgd_pred}
+\caption{Predicted conditional and marginal cumulative hazards for males, one from the treatment arm and one from the placebo arm, as produced by \code{autplot.emfrail()} with \code{type = "pred"}. }
 \label{fig:plot_pred}
 \end{center}
 \end{figure}
@@ -380,10 +382,7 @@ dat_pred <- data.frame(sex = c("male", "male"),
   treat = c("rIFN-g", "placebo"))
 predict(gam, dat_pred)
 @
-For a hypothetical individual that changes treatment from placebo to \mbox{rIFN-g} at time 200, predictions may also be obtained, as shown in Figure~\ref{fig:predchange}.
-
-\begin{figure}
-\begin{center}
+For a hypothetical individual that changes treatment from placebo to \mbox{rIFN-g} at time 200, predictions may also be obtained:
 <<pred_timechange>>==
 dat_pred_b <- data.frame(sex = c("male", "male"),
   treat = c("placebo", "rIFN-g"),
@@ -392,13 +391,17 @@ dat_pred_b <- data.frame(sex = c("male", "male"),
 p <- autoplot(gam, type = "pred", newdata = dat_pred_b, individual = TRUE) +
   ggtitle("change placebo to rIFN-g at time 200") + theme_minimal()
 @
+This plot is shown in Figure~\ref{fig:predchange}.
+
+\begin{figure}
+\begin{center}
 <<cgd_pred_change,  include=FALSE,echo=FALSE,results=hide>>=
-pdf("cgd_treatdif.pdf", width = 4, height = 4)
+pdf("cgd_treatdif.pdf", width = 5, height = 4)
 p
 dev.off()
 @
-\includegraphics[width = 8cm, height = 8cm]{cgd_treatdif}
-\caption{Predicted conditional and marginal cumulative hazards for a male that switches treatment from placebo to \mbox{rIFN-g} at time 200}
+\includegraphics[width = 10cm, height = 8cm]{cgd_treatdif}
+\caption{Predicted conditional and marginal cumulative hazards for a male that switches treatment from placebo to \mbox{rIFN-g} at time 200 as produced by \code{autoplot.emfrail()} with \code{type = "pred"}}
 \label{fig:predchange}
 \end{center}
 \end{figure}
@@ -413,17 +416,12 @@ summary(stab)
 
 The coefficient estimates are similar to those of the gamma frailty fit. The ``Frailty summary'' part is quite different though. For the positive stable distribution, the variance is not defined. However, Kendall's $\tau$ is easily obtained, and in this case it is smaller than in the gamma frailty model. Unlike the gamma or PVF distributions, the positive stable frailty predicts a marginal model with proportional hazards where the marginal hazard ratios are an attenuated version of the conditional hazard ratios shown in the output. The calculations are detailed in Appendix A1.
 
-The conditional and marginal hazard betw ratios from different distributions can also be visualized easily. We also fitted an IG frailty model on the same data, and the hazard ratio between two males from different treatment arms is shown in Figure~\ref{fig:hr}. While all models shrink the hazard ratio towards 1, it can be seen that this effect is slightly more pronounced for the gamma than for the IG, while the PS exhibits a constant ``average'' shrinkage. This type of behaviour from the PS is seen as a strength of the model \citep{hougaard2012analysis}.
-
-<<cgd_ig, include=FALSE, echo=FALSE>>=
+The conditional and marginal hazard betw ratios from different distributions can also be visualized easily.  We also fitted an IG frailty model on the same data, and plots of the hazard ratio between two males from different treatment arms created below are shown in Figure~\ref{fig:hr}.
+<<bladder2_hazardratios>>==
 ig <- emfrail(Surv(tstart, tstop, status) ~ sex + treat + cluster(id),
   data = cgd,
   distribution = emfrail_dist(dist = "pvf"))
-@
 
-\begin{figure}
-\begin{center}
-<<bladder2_hazardratios>>==
 newdata <- data.frame(treat = c("placebo", "rIFN-g"),
   sex = c("male", "male"))
 
@@ -436,14 +434,18 @@ pl2 <- autoplot(stab, type = "hr", newdata = newdata) +
 pl3 <- autoplot(ig, type = "hr", newdata = newdata) +
   ggtitle("IG") + theme_minimal()
 @
+While all models shrink the hazard ratio towards 1, it can be seen that this effect is slightly more pronounced for the gamma than for the IG, while the PS exhibits a constant ``average'' shrinkage. This type of behaviour from the PS is seen as a strength of the model \citep{hougaard2012analysis}.
 
+
+\begin{figure}
+\begin{center}
 <<cgd_hr_plots,  include=FALSE,echo=FALSE,results=hide>>=
 pdf("cgd_hr.pdf", width = 9, height = 3)
 gridExtra::grid.arrange(pl1, pl2, pl3, nrow = 1)
 dev.off()
 @
-\includegraphics[width = 16.5cm, height = 5.5cm]{cgd_hr}
-\caption{Conditional and marginal hazard ratio between two males from the placebo and \mbox{rIFN-g}  treatment arms  from the gamma, PS and IG frailty models}
+\includegraphics[width = 15.5cm, height = 5.16cm]{cgd_hr}
+\caption{Conditional and marginal hazard ratio between two males from the placebo and \mbox{rIFN-g}  treatment arms  from the gamma, PS and IG frailty models as produced by \code{autoplot.emfrail()} with \code{type = "hr"}.}
 \label{fig:hr}
 \end{center}
 \end{figure}
@@ -560,13 +562,13 @@ We now consider how $\alpha$ and $\gamma$ can be represented as a function of a 
 \paragraph{The gamma distribution}
 For $Y$ a gamma distributed random variable, $\psi(c;\gamma) = \log(\gamma + c) - \log(\gamma)$, the derivatives of which are
 $$\psi^{(k)} (c; \gamma) = (-1)^{k-1} (k-1)! (\gamma + c)^{-k}.$$
-For identifiability, the restriction $\mathrm{E}Y = 1$ is imposed; this leads to $\alpha = \gamma$.
+For identifiability, the restriction $\E Y = 1$ is imposed; this leads to $\alpha = \gamma$.
 The distribution is parametrized with $\theta >0$, $\theta = \alpha = \gamma$.
-The variance of $Y$ is  $\mathrm{Var} Y = \theta^{-1}$.
+The variance of $Y$ is  $\VAR Y = \theta^{-1}$.
 Kendall's $\tau$ is then $\tau = \frac{1}{1 + 2 \theta}$ and the median concordance is
 $\kappa = 4 \left( 2^{1 + 1 / \theta} - 1 \right)^{-\theta} - 1$. Furthermore,
-$\mathrm{E} \log Y = \psi(\theta) - \log \theta$ and
-$\mathrm{Var} \log Y = \psi'(\theta)$ where $\psi$ and $\psi'$ are the digamma and trigamma functions.
+$\E \log Y = \psi(\theta) - \log \theta$ and
+$\VAR \log Y = \psi'(\theta)$ where $\psi$ and $\psi'$ are the digamma and trigamma functions.
 
 \paragraph{The positive stable distribution}
 For $Y$ a positive stable random variable,
@@ -574,7 +576,7 @@ $\psi(c;\gamma) = c^\gamma$ with $\gamma \in (0,1)$, the derivatives of which ar
 $$
 \psi^{(k)}(c; \gamma) = \frac{\Gamma(k - \beta)}{\Gamma(1 - \gamma)} (-1)^{k - 1} c^{\gamma - 1}.
 $$
-For identifiability, the restriction $\alpha = 1$ is made; $\mathrm{E}Y$ is undefined and $\mathrm{Var}Y = \infty$.
+For identifiability, the restriction $\alpha = 1$ is made; $\E Y$ is undefined and $\VAR Y = \infty$.
 The distribution is parametrized with  $\theta >0$, $\gamma = \frac{\theta}{\theta + 1}$.
 
 % This parametrization is equivalent to that of \cite{munda2012parfm}. In \cite{hougaard2012analysis}, the parameter
@@ -582,8 +584,8 @@ The distribution is parametrized with  $\theta >0$, $\gamma = \frac{\theta}{\the
 Kendall's $\tau$ is then
 $\tau = 1 - \frac{\theta}{\theta + 1}$ and the median concordance is
 $\kappa = 2^{2 - 2^{\frac{\theta}{\theta + 1}}} - 1$.
-Furthermore, $\mathrm{E} \log Y = - \left(\left\{\frac{\theta}{1 + \theta}\right\}^{-1} - 1\right) \psi(1)$ and
-$\mathrm{Var} \log Y = \left( \left\{\frac{\theta}{1 + \theta} \right\}^{-2} - 1 \right) \psi'(1)$.
+Furthermore, $\E \log Y = - \left(\left\{\frac{\theta}{1 + \theta}\right\}^{-1} - 1\right) \psi(1)$ and
+$\VAR \log Y = \left( \left\{\frac{\theta}{1 + \theta} \right\}^{-2} - 1 \right) \psi'(1)$.
 
 In the case of the PS distribution, the marginal hazard ratio is an attenuated version of the conditional hazard ratio. If the conditional log-hazard ratio is $\beta$, the marginal hazard ratio  is equal to $\beta \frac{\theta}{\theta + 1}$.
 
@@ -600,22 +602,22 @@ $$
 $$
 The expectation of this distribution can be calculated as minus the first derivative of the Laplace transform calculated in 0, i.e.,
 $$
-\mathrm{E} Y = \alpha \psi'(0;\gamma) \mathcal{L}(0;\alpha, \gamma) = \frac{\alpha}{\gamma} m.
+\E Y = \alpha \psi'(0;\gamma) \mathcal{L}(0;\alpha, \gamma) = \frac{\alpha}{\gamma} m.
 $$
 The second moment of the distribution can be calculated as the second derivative of the Laplace transform at 0,
 $$
-\mathrm{E} Y^2 = \alpha^2 \psi'^2(0) -\alpha \psi''(0) = \frac{\alpha^2}{\gamma^2}m^2 + \frac{\alpha}{\gamma^2} m(m+1).
+\E Y^2 = \alpha^2 \psi'^2(0) -\alpha \psi''(0) = \frac{\alpha^2}{\gamma^2}m^2 + \frac{\alpha}{\gamma^2} m(m+1).
 $$
-For identifiability, we set $\mathrm{E} Y = 1$. The distribution is parametrized through a parameter $\theta >0$ which is determined by
+For identifiability, we set $\E Y = 1$. The distribution is parametrized through a parameter $\theta >0$ which is determined by
 $\gamma = (m + 1) \theta$ and
-$\alpha = \mathrm{sign}(m) \frac{m + 1}{m} \theta$. This results in $\mathrm{Var} Y = \theta^{-1}$.
+$\alpha = \mathrm{sign}(m) \frac{m + 1}{m} \theta$. This results in $\VAR Y = \theta^{-1}$.
 
 A slightly different parametrization is presented in \cite{hougaard2012analysis}, dependent on the parameter $\eta_H$. The correspondence is obtained by setting $\eta_H = (m+1) \theta$.
 
 The PVF family of distributions includes the gamma as a limiting case when $m \rightarrow 0$. When $\gamma \rightarrow 0$ the positive stable distribution is obtained. When $m = -1$ the distribution is degenerate, and with $m = 1$ a non-central gamma distribution is obtained. Of special interest is the case $ m = -0.5$, when the inverse Gaussian distribution is obtained.  With $m >0$, the distribution is compound Poisson with mass at 0. In this case, $P(Y = 0) = \exp(- \frac{m+1}{m} \theta)$.
 
 For $m < 0$, closed forms for Kendall's $\tau$ and median concordance are given in \citet[Section 7.5]{hougaard2012analysis}.
-% For the inverse Gaussian, also $\mathrm{E} \log Y$ and $\mathrm{Var} \log Y$ are available.
+% For the inverse Gaussian, also $\E \log Y$ and $\VAR \log Y$ are available.
 
 
 \subsection*{Left truncation}
@@ -685,7 +687,7 @@ $$
 We implemented a recursive algorithm in \proglang{C++} which resides in the \code{emfrail_estep.cpp} which loops through these partitions, calculates the corresponding derivatives of $\psi$ and the coefficients.
 
 \section*{Appendix A3: Standard errors}
-The outer maximization of $\widehat{L}(\theta)$ is carried out on the log-scale, as described in section~\ref{sec:Estimation}, and the numeric hessian is used to obtain $\mathrm{Var}(\widehat\theta)$.
+The outer maximization of $\widehat{L}(\theta)$ is carried out on the log-scale, as described in section~\ref{sec:Estimation}, and the numeric hessian is used to obtain $\VAR (\widehat\theta)$.
 Afterwards, the delta method is employed to derive standard errors for $\theta$ and the other functionals of $\theta$ described in Appendix A1. However, the standard error is not very meaningul for parameters with skewed distributions. Confidence intervals are constructed in two ways.
 
 The first type of confidence intervals provided by \pkg{frailtyEM} are based on the the asymptotic normality of $\widehat{\log\theta}$, by constructing a 95\% symmetric confidence interval on the log-scale, and then translating it to the other functionals of $\theta$.
