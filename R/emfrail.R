@@ -575,8 +575,8 @@ emfrail <- function(formula,
          inner_control = control$inner_control)
 
   if(lower_llik - outer_m$minimum < 1.92) {
-    theta_low <-  -Inf
-    warning("tolerance limit reached should maybe take a lower value for control$lik_ci_intervals[1]")
+    theta_low <- control$lik_ci_intervals$interval[1]
+    warning("tolerance limit reached; should maybe take a lower value for control$lik_ci_intervals[1]")
   } else
   theta_low <- uniroot(function(x, ...) outer_m$minimum - em_fit(x, ...) + 1.92,
                        interval = c(control$lik_ci_intervals$interval[1], outer_m$estimate),
