@@ -6,7 +6,7 @@
 \usage{
 emfrail_control(opt_fit = TRUE, se = TRUE, se_adj = TRUE,
   ca_test = TRUE, only_ca_test = FALSE, lik_ci = TRUE,
-  lik_ci_intervals = list(interval = c(-2.5, 20), interval_stable = c(0, 20)),
+  lik_ci_intervals = list(interval = c(-3, 20), interval_stable = c(0, 20)),
   nlm_control = list(stepmax = 1), inner_control = list(eps = 1e-04, maxit =
   Inf, fast_fit = TRUE, verbose = FALSE, lower_tol = 20, lik_tol = 1))
 }
