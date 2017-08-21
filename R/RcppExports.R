@@ -19,14 +19,14 @@
 #' @importFrom Rcpp evalCpp
 #' @keywords internal
 Estep <- function(c, c_lt, delta, alpha, bbeta, pvfm, dist) {
-    .Call('frailtyEM_Estep', PACKAGE = 'frailtyEM', c, c_lt, delta, alpha, bbeta, pvfm, dist)
+    .Call(`_frailtyEM_Estep`, c, c_lt, delta, alpha, bbeta, pvfm, dist)
 }
 
 inf_mat_match <- function(left, right, elp, maxlength) {
-    .Call('frailtyEM_inf_mat_match', PACKAGE = 'frailtyEM', left, right, elp, maxlength)
+    .Call(`_frailtyEM_inf_mat_match`, left, right, elp, maxlength)
 }
 
 sumxxt <- function(x, L) {
-    .Call('frailtyEM_sumxxt', PACKAGE = 'frailtyEM', x, L)
+    .Call(`_frailtyEM_sumxxt`, x, L)
 }
 

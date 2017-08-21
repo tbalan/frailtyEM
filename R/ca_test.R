@@ -62,7 +62,7 @@ ca_test_fit <- function(mcox, X, atrisk, exp_g_x, cumhaz) {
     cumhaz[(pos_left+1):length(cumhaz)] <- cumhaz[(pos_left+1):length(cumhaz)] - cumhaz[pos_left]
     cumhaz[1:(pos_left+1)] <- 0
     cumhaz[pos_right:length(cumhaz)] <- cumhaz[pos_right]
-
+    ### HERE SHOULDNT IT BE -CUMHAZ ???!?!?!?
     cumhaz
     # stop it after pos_right
 
@@ -105,8 +105,6 @@ ca_test_fit <- function(mcox, X, atrisk, exp_g_x, cumhaz) {
   mp_t <- mapply(function(a,b) a * b, mi_t, pi_t, SIMPLIFY = FALSE) %>%
     lapply(sum)
 
-  pi_t
-
   pp_t <- pi_t %>%
     lapply(function(x) x^2)  %>%
     lapply(sum)
@@ -114,15 +112,13 @@ ca_test_fit <- function(mcox, X, atrisk, exp_g_x, cumhaz) {
 
   qi_t <- mapply(function(a,b,c,d) 2 * (a - b - c + d), mi_t, mp_t, pi_t, pp_t, SIMPLIFY = FALSE)
 
-  mi_t
-
-  # Main shit in V
+  # Main part of V
   V1 <- qi_t %>%
     lapply(function(x) x^2) %>%
     mapply(function(a,b,c) a * b * c, ., pi_t, atrisk$nevent, SIMPLIFY = FALSE) %>%
     do.call(sum, .)
 
-  # second part in V
+  # second part of V
   theta2i_t <- pij_t %>%
     lapply(function(x) x * X) %>%
     lapply(as.data.frame) %>%

@@ -1,3 +1,9 @@
+### frailtyEM 0.7.1-0
+- added a warning for when the limits for searching of the likelihood based confidence interval are reached.
+- removed that message with calculating information matrix
+- muia
+
+
 ### frailtyEM 0.7.0-2
 - added a warning for when the limits for searching of the likelihood based confidence interval are reached.
 - removed that message with calculating information matrix

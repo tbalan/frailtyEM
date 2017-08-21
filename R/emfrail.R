@@ -405,8 +405,6 @@ emfrail <- function(formula,
 
   nev_id <- rowsum(Y[,3], id) # nevent per id or am I going crazy
 
-
-  # for the baseline hazard how the fuck is that gonna happen?
   # Idea: nrisk has the sum of elp who leave later at every tstop
   # esum has the sum of elp who enter at every tstart
   # indx groups which esum is right after each nrisk;
