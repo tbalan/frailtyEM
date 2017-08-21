@@ -48,3 +48,15 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+
+static const R_CallMethodDef CallEntries[] = {
+    {"_frailtyEM_Estep", (DL_FUNC) &_frailtyEM_Estep, 7},
+    {"_frailtyEM_inf_mat_match", (DL_FUNC) &_frailtyEM_inf_mat_match, 4},
+    {"_frailtyEM_sumxxt", (DL_FUNC) &_frailtyEM_sumxxt, 2},
+    {NULL, NULL, 0}
+};
+
+RcppExport void R_init_frailtyEM(DllInfo *dll) {
+    R_registerRoutines(dll, NULL, CallEntries, NULL, NULL);
+    R_useDynamicSymbols(dll, FALSE);
+}

@@ -1,7 +1,5 @@
 ### frailtyEM 0.7.1-0
-- added a warning for when the limits for searching of the likelihood based confidence interval are reached.
-- removed that message with calculating information matrix
-- muia
+- added a ca_test() function for `coxph` objects. Basically this is also done in `emfrail()`, but now you can also use `strata` or other things that are not supported by `emfrail().`
 
 
 ### frailtyEM 0.7.0-2
