@@ -737,9 +737,11 @@ emfrail <- function(formula,
   # these are things that make the predict work and other methods
   terms_2 <- delete.response(attr(mf, "terms"))
   pos_cluster_2 <- grep("cluster", attr(terms_2, "term.labels"))
-  terms <- drop.terms(terms_2, pos_cluster_2)
-  myxlev <- .getXlevels(terms, mf)
-  attr(res, "metadata") <- list(terms, myxlev)
+  if(!is.null(mcox$coefficients)) {
+    terms <- drop.terms(terms_2, pos_cluster_2)
+    myxlev <- .getXlevels(terms, mf)
+    attr(res, "metadata") <- list(terms, myxlev)
+  }
   attr(res, "call") <-  Call
   attr(res, "class") <- "emfrail"
 

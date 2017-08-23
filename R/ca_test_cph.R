@@ -6,20 +6,32 @@
 #' @export
 #'
 #' @examples
-ca_test.coxph <- function(object) {
+#'
+ca_test <- function(object) {
+
+  # Check input
+  if(!inherits(object, "coxph"))
+    warning("input should be a coxph object")
+  if(is.null(object$model))
+    stop("object should be created with model=TRUE")
+  if(length(grep("cluster", names(object$model)))==0)
+    stop("formula should have a +cluster() statement")
+  if(is.null(object$x))
+    stop("object should be created with x=TRUE")
+
 
   # the real linear predictors
   lp <- object$linear.predictors +
     as.numeric(object$means %*% object$coefficients)
   elp <- exp(lp)
 
-  # everything must be calculated within strata
-
   Y <- object$y
   if(ncol(Y) == 2) Y <- cbind(0, Y)
   Y <- cbind(as.data.frame(Y), elp = elp)
 
-  Y$strata <- object$model[,grep("strata", names(object$model))]
+  if(length(grep("strata", names(object$model)))==0)
+    Y$strata <- rep(1, nrow(Y)) else
+      Y$strata <- object$model[,grep("strata", names(object$model))]
 
   Ysp <- split(Y, Y$strata)
   time <- sort(unique(Y[,2]))
@@ -31,7 +43,8 @@ ca_test.coxph <- function(object) {
   indx2 <- lapply(Ysp, function(x) findInterval(x[,1], time))
 
   # This gives up t0 which time point does each line last
-  time_to_stop <- mapply(function(x,y) match(x[,2], y), Ysp, timesp, SIMPLIFY = FALSE)
+  # time_to_stop <- mapply(function(x,y) match(x[,2], y),
+  #                        Ysp, timesp, SIMPLIFY = FALSE)
   time_to_stop <- lapply(Ysp, function(x) match(x[,2], time))
 
 
@@ -84,7 +97,7 @@ ca_test.coxph <- function(object) {
 
   Mi <- Mi_strata %>%
     lapply(as.data.frame) %>%
-    lapply(rownames_to_column) %>%
+    lapply(tibble::rownames_to_column) %>%
     do.call(rbind, .) %>%
     with(rowsum(V1, rowname)) %>%
     as.numeric()  # already by cluster
@@ -121,6 +134,7 @@ ca_test.coxph <- function(object) {
   # Calculate baseline cumulative hazard
 
   BH <- basehaz(object, centered = FALSE)
+  if(is.null(BH$strata)) BH$strata <- rep(1, nrow(BH))
   BHsp <- split(BH, BH$strata)
 
 
@@ -178,13 +192,19 @@ ca_test.coxph <- function(object) {
 
   Mit_all <-
     Mit[order(as.numeric(rownames(Mit))),]
+  # clusters by time points
 
+  # pi_ht is clusters by time points
+  # but I walso clusters that are missing within each strata
+  # and add them there with zeros.
   pi_ht_all <- pi_ht %>%
     lapply(function(x) {
       rnames <- rownames(x)
-      allnames <- as.character(unique(id))
+      allnames <- as.character(unique(do.call(c, order_id)))
       missnames <- which(!(allnames %in% rnames))
-      missmat <- matrix(0, nrow = length(missnames), ncol = ncol(x), dimnames = list(missnames))
+      missmat <- matrix(0, nrow = length(missnames),
+                        ncol = ncol(x),
+                        dimnames = allnames[missnames])
       wholemat <- rbind(x, missmat)
       wholemat[order(as.numeric(rownames(wholemat))),]
     })
@@ -221,18 +241,21 @@ ca_test.coxph <- function(object) {
     do.call("+", .)
 
   # Jhat
+
+  X <- object$model
+
   xsp <- split(as.data.frame(object$x), Y$strata)
 
 
 
-  lapply(function(x) {
-    rnames <- rownames(x)
-    allnames <- as.character(unique(id))
-    missnames <- which(!(allnames %in% rnames))
-    missmat <- matrix(0, nrow = length(missnames), ncol = ncol(x), dimnames = list(allnames[missnames]))
-    wholemat <- rbind(x, missmat)
-    wholemat[order(as.numeric(rownames(wholemat))),]
-  })
+  # lapply(function(x) {
+  #   rnames <- rownames(x)
+  #   allnames <- as.character(unique(id))
+  #   missnames <- which(!(allnames %in% rnames))
+  #   missmat <- matrix(0, nrow = length(missnames), ncol = ncol(x), dimnames = list(allnames[missnames]))
+  #   wholemat <- rbind(x, missmat)
+  #   wholemat[order(as.numeric(rownames(wholemat))),]
+  # })
 
 
   zipit <- mapply(function(a,b) {
@@ -244,12 +267,13 @@ ca_test.coxph <- function(object) {
       lapply(a, function(x) rowsum(x, b, reorder = FALSE))
     }, ., order_id, SIMPLIFY = FALSE)
 
+  # zipit is a list(strata)(covariate)(clusters within strata X total times)
   # Add the missing cluster from all the matrices in zipit
 
   zipit_all <- lapply(zipit, function(y) {
     lapply(y, function(x) {
       rnames <- rownames(x)
-      allnames <- as.character(unique(id))
+      allnames <- unique(as.character(do.call(c, order_id)))
       missnames <- which(!(allnames %in% rnames))
       missmat <- matrix(0, nrow = length(missnames), ncol = ncol(x), dimnames = list(allnames[missnames]))
       wholemat <- rbind(x, missmat)

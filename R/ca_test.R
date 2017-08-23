@@ -112,13 +112,14 @@ ca_test_fit <- function(mcox, X, atrisk, exp_g_x, cumhaz) {
 
   qi_t <- mapply(function(a,b,c,d) 2 * (a - b - c + d), mi_t, mp_t, pi_t, pp_t, SIMPLIFY = FALSE)
 
-  # Main part of V
+  # Main part of V ////
   V1 <- qi_t %>%
     lapply(function(x) x^2) %>%
     mapply(function(a,b,c) a * b * c, ., pi_t, atrisk$nevent, SIMPLIFY = FALSE) %>%
     do.call(sum, .)
 
-  # second part of V
+  # second part of V ///// probably this should be 0 without covariates
+  if(!is.null(mcox$var)) {
   theta2i_t <- pij_t %>%
     lapply(function(x) x * X) %>%
     lapply(as.data.frame) %>%
@@ -130,6 +131,9 @@ ca_test_fit <- function(mcox, X, atrisk, exp_g_x, cumhaz) {
     apply(., 2, sum)
 
   V2 <- t(theta_h) %*% mcox$var %*% theta_h
+  } else V2 <- 0
+
+
 
   V <- V1 + V2
 
