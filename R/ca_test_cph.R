@@ -5,8 +5,11 @@
 #' @return A named vector containing the test statistic, variance, and p-value
 #' @export
 #'
+#' @importFrom tibble rownames_to_column
+#' @importFrom survival basehaz
 #' @examples
-#' mcox1 <- coxph(Surv(start, stop, status==1) ~ treatment + cluster(id), bladder1, model = TRUE, x = TRUE)
+#' mcox1 <- coxph(Surv(start, stop, status==1) ~ treatment + cluster(id),
+#' bladder1, model = TRUE, x = TRUE)
 #' ca_test(mcox1)
 
 ca_test <- function(object) {
@@ -97,12 +100,14 @@ ca_test <- function(object) {
     rowsum(a, b)
   }, M, order_id, SIMPLIFY = FALSE)
 
-  Mi <- Mi_strata %>%
+  Mi_1 <- Mi_strata %>%
     lapply(as.data.frame) %>%
     lapply(tibble::rownames_to_column) %>%
-    do.call(rbind, .) %>%
-    with(rowsum(V1, rowname)) %>%
-    as.numeric()  # already by cluster
+    do.call(rbind, .)
+
+  Mi <- as.numeric(rowsum(Mi_1$V1, Mi_1$rowname))
+    # with(rowsum(V1, rowname)) %>%
+    # as.numeric()  # already by cluster
 
 
   death <- (Y[, 3] == 1)

@@ -16,6 +16,7 @@ A named vector containing the test statistic, variance, and p-value
 Commenges-Andersen test for heterogeneity
 }
 \examples{
-mcox1 <- coxph(Surv(start, stop, status==1) ~ treatment + cluster(id), bladder1, model = TRUE, x = TRUE)
+mcox1 <- coxph(Surv(start, stop, status==1) ~ treatment + cluster(id),
+bladder1, model = TRUE, x = TRUE)
 ca_test(mcox1)
 }

@@ -1,6 +1,9 @@
+### frailtyEM 0.7.1-3
+- `ca_test()` now works for `coxph` models properly as long as they have covariates
+- fixed a bug where the CA test would not give the correct results in `emfrail`. 
+
 ### frailtyEM 0.7.1-0
 - added a ca_test() function for `coxph` objects. Basically this is also done in `emfrail()`, but now you can also use `strata` or other things that are not supported by `emfrail().`
-
 
 ### frailtyEM 0.7.0-2
 - added a warning for when the limits for searching of the likelihood based confidence interval are reached.
