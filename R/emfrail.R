@@ -423,7 +423,7 @@ emfrail <- function(formula,
   etime <- c(0, sort(unique(Y[, 1])),  max(Y[, 1]) + min(diff(time)))
   indx <- findInterval(time, etime, left.open = TRUE) # left.open  = TRUE is very important
 
-  # this gives for every tstart (line variable) after which event time did it come
+  # this gives for every tstart (line variable), after which event time did it come
   # indx2 <- findInterval(Y[,1], time, left.open = FALSE, rightmost.closed = TRUE)
   indx2 <- findInterval(Y[,1], time)
 
@@ -590,8 +590,7 @@ emfrail <- function(formula,
                        maxiter = 100)$root
 
 
-  # this says that if I can't get a significant difference on the right side
-  # then screw this it's infinity
+  # this says that if I can't get a significant difference on the right side, then it's infinity
   if(upper_llik  - outer_m$minimum < 1.92) theta_high <- Inf else
     theta_high <- uniroot(function(x, ...) outer_m$minimum - em_fit(x, ...) + 1.92,
                           interval = c(outer_m$estimate, control$lik_ci_intervals$interval[2]),
@@ -695,7 +694,6 @@ emfrail <- function(formula,
 
     lfr2 <- (digamma(numerator))^2 + trigamma(numerator) - (log(denominator))^2 - 2 * log(denominator) * lfr
 
-    # score test 1 I think
     r <- cor(lfr, Mres_id)
     tr <- r* sqrt((length(fr) - 2) / (1 - r^2))
     p.cor <- pchisq(tr^2, df = 1, lower.tail = F)
@@ -706,8 +704,6 @@ emfrail <- function(formula,
   if(!isTRUE(model)) model_frame <- NULL else
     model_frame <- mf
   if(!isTRUE(model.matrix)) X <- NULL
-
-  # other stuff that I can calculate
 
 
 

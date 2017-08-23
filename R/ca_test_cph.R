@@ -12,7 +12,7 @@
 #' bladder1, model = TRUE, x = TRUE)
 #' ca_test(mcox1)
 
-ca_test <- function(object) {
+ca_test <- function(object, cluster_id = NULL) {
 
   # Check input
   if(!inherits(object, "coxph"))
