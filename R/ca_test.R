@@ -62,8 +62,8 @@ ca_test_fit <- function(mcox, X, atrisk, exp_g_x, cumhaz) {
     cumhaz[(pos_left+1):length(cumhaz)] <- cumhaz[(pos_left+1):length(cumhaz)] - cumhaz[pos_left]
     cumhaz[1:(pos_left+1)] <- 0
     cumhaz[pos_right:length(cumhaz)] <- cumhaz[pos_right]
-    ### HERE SHOULDNT IT BE -CUMHAZ ???!?!?!?
-    cumhaz
+
+    return(-cumhaz)
     # stop it after pos_right
 
   }, atrisk$indx2, atrisk$time_to_stop, SIMPLIFY = FALSE) %>%

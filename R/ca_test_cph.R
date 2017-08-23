@@ -6,7 +6,9 @@
 #' @export
 #'
 #' @examples
-#'
+#' mcox1 <- coxph(Surv(start, stop, status==1) ~ treatment + cluster(id), bladder1, model = TRUE, x = TRUE)
+#' ca_test(mcox1)
+
 ca_test <- function(object) {
 
   # Check input
@@ -27,7 +29,7 @@ ca_test <- function(object) {
 
   Y <- object$y
   if(ncol(Y) == 2) Y <- cbind(0, Y)
-  Y <- cbind(as.data.frame(Y), elp = elp)
+  Y <- as.data.frame(cbind(Y[,1], Y[,2], Y[,3], elp = elp))
 
   if(length(grep("strata", names(object$model)))==0)
     Y$strata <- rep(1, nrow(Y)) else
