@@ -34,8 +34,8 @@ Suggests:
 Collate: 
     'RcppExports.R'
     'autoplot.emfrail.R'
-    'ca_test.R'
     'ca_test_cph.R'
+    'ca_test_fit.R'
     'em_fit.R'
     'emfrail_aux.R'
     'emfrail.R'
