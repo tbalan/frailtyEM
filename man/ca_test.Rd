@@ -4,7 +4,7 @@
 \alias{ca_test}
 \title{Commenges-Andersen test for heterogeneity}
 \usage{
-ca_test(object, cluster_id = NULL)
+ca_test(object)
 }
 \arguments{
 \item{object}{A \code{coxph} object with a \code{cluster()} statement in the right-hand side of the formula.}
