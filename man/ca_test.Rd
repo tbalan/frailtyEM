@@ -19,4 +19,8 @@ Commenges-Andersen test for heterogeneity
 mcox1 <- coxph(Surv(start, stop, status==1) ~ treatment + cluster(id),
 bladder1, model = TRUE, x = TRUE)
 ca_test(mcox1)
+
+}
+\references{
+Commenges, D. and Andersen, P.K., 1995. Score test of homogeneity for survival data. Lifetime Data Analysis, 1(2), pp.145-156.
 }
