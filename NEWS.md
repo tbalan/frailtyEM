@@ -2,6 +2,7 @@
 - fixed some comments and some documentation
 - fixed the `ca_test()`, a small bug that was leading to wrong answers sometimes. Now it should give the sam result as the one in `emfrail`.
 
+
 ### frailtyEM 0.7.1-3
 - `ca_test()` now works for `coxph` models properly as long as they have covariates
 - fixed a bug where the CA test would not give the correct results in `emfrail`. 
