@@ -11,6 +11,8 @@
 #' mcox1 <- coxph(Surv(start, stop, status==1) ~ treatment + cluster(id),
 #' bladder1, model = TRUE, x = TRUE)
 #' ca_test(mcox1)
+#'
+#' @references Commenges, D. and Andersen, P.K., 1995. Score test of homogeneity for survival data. Lifetime Data Analysis, 1(2), pp.145-156.
 
 ca_test <- function(object) {
 
@@ -145,15 +147,12 @@ ca_test <- function(object) {
   BHsp <- split(BH, BH$strata)
 
 
-
   alltp <- sort(unique(BH$time))
-
   # pos_leftsp <- mapply(function(a,b) findInterval(a[,1], b$time), Ysp, BHsp, SIMPLIFY = FALSE)
   # pos_rightsp <- mapply(function(a,b) match(a[,2], b$time), Ysp, BHsp, SIMPLIFY = FALSE)
   pos_leftsp <- lapply(Ysp, function(x) findInterval(x[,1], alltp))
   pos_rightsp <- lapply(Ysp, function(x) match(x[,2], alltp))
 
-  cumhaz <- lapply(BHsp, function(x) x$hazard)
 
   # Idea is to have this at ALL event time points, not only those in the strata
   cumhazsp <- lapply(BHsp, function(bh) {
@@ -186,7 +185,10 @@ ca_test <- function(object) {
       a
     }, x,y,z, SIMPLIFY = FALSE)
 
-  }, Lij_elp_path, time_to_stop, deathsp, SIMPLIFY = FALSE)
+  }, Lij_elp_path, time_to_stop, deathsp, SIMPLIFY = FALSE) %>%
+    lapply(function(x) {
+      lapply(x, function(y) c(0, y[-length(y)]))
+    })
 
   # Now to get Mi so sum these according to clusters
   # Each row is th Mi path of a cluster; the cluster is the name of the row
@@ -265,6 +267,8 @@ ca_test <- function(object) {
   # })
 
 
+
+
   zipit <- mapply(function(a,b) {
     lapply(a, function(vec) {
       vec * b
@@ -273,6 +277,8 @@ ca_test <- function(object) {
     mapply(function(a,b) {
       lapply(a, function(x) rowsum(x, b, reorder = FALSE))
     }, ., order_id, SIMPLIFY = FALSE)
+
+
 
   # zipit is a list(strata)(covariate)(clusters within strata X total times)
   # Add the missing cluster from all the matrices in zipit
@@ -288,11 +294,68 @@ ca_test <- function(object) {
     })
   })
 
-  J <- mapply(function(a,b) {
+  # all.equal(zipit_all, zipit)
+
+  # In the other place:
+
+  # This is kind of how it gets calculated in the other place
+  # theta2 <- pij_hrowh_t %>%
+  #   lapply(as.data.frame) %>%
+  #   mapply(function(a,b)  {
+  #     lapply(b, function(bb) a * bb)
+  #   }, xsp, ., SIMPLIFY = FALSE) %>%
+  #   mapply(function(a,b)
+  #     lapply(a, function(x) rowsum(x, b)),
+  #     ., order_id, SIMPLIFY = FALSE)
+  #
+  # qit <- H_hi_t %>%
+  #   lapply(function(x) as.list(as.data.frame(x)))
+  #
+  # mapply(function(a,b,c) {
+  #   mapply(function(x,y,z) {
+  #     x * y * z
+  #   },a,b,c, SIMPLIFY = FALSE)
+  # }, nevent, qit, theta2, SIMPLIFY = FALSE) %>%
+  #   lapply(function(x) do.call(rbind, x)) %>%
+  #   lapply(function(x) apply(x, 2, sum))
+
+  # Take just the first cluster
+  # ver1 <- lapply(1:100, function(clus) {
+  #   qit1 <- qit[[1]] %>%
+  #     lapply(function(x) x[clus]) %>%
+  #     do.call(c, .)
+  #
+  #   theta21 <- theta2[[1]] %>%
+  #     lapply(function(x) x[clus,]) %>%
+  #     do.call(rbind, .)
+  #
+  #   (nevent[[1]] * qit1 * theta21) %>% apply(., 2, sum)
+  # })
+  #
+  #
+  #
+  # # first cluster
+  # ver2 <- lapply(1:100, function(clus) {
+  #   H1 <- H_hi_t[[1]][clus,]
+  #   zipit_1 <- as.data.frame(lapply(zipit_all[[1]], function(x) x[clus,]))
+  #   (nevent[[1]] * H1 * zipit_1) %>% apply(., 2, sum)
+  # })
+  #
+  # all.equal(ver1, ver2)
+  #
+  # ver1 %>%
+  #   do.call(rbind, .) %>%
+  #   apply(2, sum)
+  # ver2 %>%
+  #   do.call(rbind, .) %>%
+  #   apply(2, sum)
+
+
+  J <- mapply(function(a,b,c) {
     lapply(b, function(x) {
-      sum(apply(a * x, 1, sum))
+      sum(apply(a * x, 1, function(y) sum(y *c)))
     })
-  }, H_hi_t, zipit_all, SIMPLIFY = FALSE) %>%
+  }, H_hi_t, zipit_all, nevent, SIMPLIFY = FALSE) %>%
     lapply(function(x) do.call(c, x)) %>%
     do.call(rbind, .) %>%
     apply(., 2, sum)

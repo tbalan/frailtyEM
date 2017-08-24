@@ -82,6 +82,10 @@ The linear predictor is taken as fixed, so the variability in the estimation of 
 Does not support left truncation (at the moment). That is because, if \code{individual == TRUE} and \code{tstart} and \code{tstop} are
 specified, for the marginal estimates the distribution of the frailty is used to calculate the integral, and not
 the distribution of the frailty given the truncation.
+
+For performance reasons, consider running with \code{conf_int = NULL}; the reason is that the \code{deltamethod} function that is used
+to calculate the confidence intervals easily becomes slow when there is a large number of time points
+for the cumulative hazard.
 }
 \examples{
 kidney$sex <- ifelse(kidney$sex == 1, "male", "female")

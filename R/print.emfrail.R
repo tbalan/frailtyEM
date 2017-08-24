@@ -26,7 +26,7 @@ print.emfrail <- function(x, ...) {
 
   if(!is.null(x$ca_test)) {
     cat("\n")
-    cat("Commenges-Andersen test for heterogeneity: p-val", format(x$ca_test[3], digits = 3))
+    cat("Score test for heterogeneity: p-val", format(x$ca_test[3], digits = 3))
   }
 
   if(!is.null(x$cens_test)) {

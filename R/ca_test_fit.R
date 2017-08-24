@@ -8,9 +8,11 @@
 #'
 #' @return A list with the test statistic, variance, and p-value
 #'
-#' @details This is my implementation of Commenges & Andersen (1995) test for heterogeneity, with a few adjustments to make it work with recurrent events data (?).
+#' @details This is an implementation of Commenges & Andersen (1995) test for heterogeneity, with a few adjustments to make it work with recurrent events data (?).
 #' It could be made much faster and more efficient, but since it's not such an essential part, I'll let someone else do it.
 #' @keywords internal
+#'
+#' @references Commenges, D. and Andersen, P.K., 1995. Score test of homogeneity for survival data. Lifetime Data Analysis, 1(2), pp.145-156.
 #'
 if(getRversion() >= "2.15.1")  utils::globalVariables(".")
 ca_test_fit <- function(mcox, X, atrisk, exp_g_x, cumhaz) {
@@ -96,7 +98,7 @@ ca_test_fit <- function(mcox, X, atrisk, exp_g_x, cumhaz) {
 
   qi_t <- mapply(function(a,b,c,d) 2 * (a - b - c + d), mi_t, mp_t, pi_t, pp_t, SIMPLIFY = FALSE)
 
-  # Main part of V ////
+  # Main part of V
   V1 <- qi_t %>%
     lapply(function(x) x^2) %>%
     mapply(function(a,b,c) a * b * c, ., pi_t, atrisk$nevent, SIMPLIFY = FALSE) %>%

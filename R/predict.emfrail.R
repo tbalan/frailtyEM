@@ -63,6 +63,10 @@
 #' specified, for the marginal estimates the distribution of the frailty is used to calculate the integral, and not
 #' the distribution of the frailty given the truncation.
 #'
+#' For performance reasons, consider running with \code{conf_int = NULL}; the reason is that the \code{deltamethod} function that is used
+#' to calculate the confidence intervals easily becomes slow when there is a large number of time points
+#' for the cumulative hazard.
+#'
 #' @export
 #'
 #'
@@ -179,6 +183,7 @@ predict.emfrail <- function(object,
   # Here we start putting a bunch of standard errors and stuff inside
   # for each lp we will get a data frame with a "bounds" attribute.
   # this attributie is meant to keep track of which columns we have in the data frame
+
   if(("regular" %in% conf_int) | ("adjusted" %in% conf_int)) {
     varH <-   object$var[(ncoef + 1):nrow(object$var), (ncoef + 1):nrow(object$var)]
     varH_adj <- object$var_adj[(ncoef + 1):nrow(object$var_adj), (ncoef + 1):nrow(object$var_adj)]
@@ -241,8 +246,7 @@ predict.emfrail <- function(object,
 
   res <- lapply(res, function(x) {
 
-    # bounds gets kicked out by cbind
-
+    # bounds is made into a column because cbind does not keep attributes
     bounds <- attr(x, "bounds")
     if("survival" %in% quantity & "conditional" %in% type) {
       x <- cbind(x,
