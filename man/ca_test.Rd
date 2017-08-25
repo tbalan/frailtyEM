@@ -9,7 +9,7 @@ ca_test(object, id = NULL)
 \arguments{
 \item{object}{A \code{coxph} object with a \code{cluster()} statement in the right-hand side of the formula.}
 
-\item{id}{Optionally, a vector determining the grouping to be tested. See details}
+\item{id}{Optionally, a vector determining the grouping to be tested. See details.}
 }
 \value{
 A named vector containing the test statistic, variance, and p-value
