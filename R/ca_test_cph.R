@@ -1,7 +1,7 @@
 #' Commenges-Andersen test for heterogeneity
 #'
 #' @param object A \code{coxph} object with a \code{cluster()} statement in the right-hand side of the formula.
-#' @param cluster Optionally, a vector determining the grouping to be tested. See details
+#' @param id Optionally, a vector determining the grouping to be tested. See details
 #'
 #' @return A named vector containing the test statistic, variance, and p-value
 #' @export
