@@ -1,9 +1,15 @@
 #' Commenges-Andersen test for heterogeneity
 #'
 #' @param object A \code{coxph} object with a \code{cluster()} statement in the right-hand side of the formula.
+#' @param cluster Optionally, a vector determining the grouping to be tested. See details
 #'
 #' @return A named vector containing the test statistic, variance, and p-value
 #' @export
+#'
+#' @details The Cox model with a \code{+cluster()} statement has the same point estimates
+#' as the one without that statmenet. The only difference is in the adjusted standard errors.
+#' In some cases, a model with \code{+cluster()} statments can't be fitted. For example, when there
+#' are no covariates. In that case, a vector may be passed on in the \code{cluster} argument.
 #'
 #' @importFrom tibble rownames_to_column
 #' @importFrom survival basehaz
@@ -14,7 +20,7 @@
 #'
 #' @references Commenges, D. and Andersen, P.K., 1995. Score test of homogeneity for survival data. Lifetime Data Analysis, 1(2), pp.145-156.
 
-ca_test <- function(object) {
+ca_test <- function(object, id = NULL) {
 
   # Check input
   if(!inherits(object, "coxph"))
@@ -22,7 +28,9 @@ ca_test <- function(object) {
   if(is.null(object$model))
     stop("object should be created with model=TRUE")
   if(length(grep("cluster", names(object$model)))==0)
-    stop("formula should have a +cluster() statement")
+    if(is.null(id)) stop("could not find cluster; please specify in the Cox model or id")
+  if(!is.null(id) & length(grep("cluster", names(object$model)))!=0)
+    warning("cluster specified in both arguments, ignoring id")
   if(is.null(object$x))
     stop("object should be created with x=TRUE")
 
@@ -78,7 +86,16 @@ ca_test <- function(object) {
 
   # need pij_ht
   # pij (strata)(all_times)(alllines_within_strata)
-  id <- object$model[,grep("cluster", names(object$model))]
+
+  if(!is.null(id) & length(grep("cluster", names(object$model)))==0) {
+    id <- as.numeric(id)
+    if(length(id) != nrow(Y)) stop("id not of the same length as the data")
+    varmat <- object$var
+  } else {
+    id <- object$model[,grep("cluster", names(object$model))]
+    varmat <- object$naive.var
+  }
+
 
   order_id <- split(findInterval(id, unique(id)), Y$strata)
   # order_id (strata)(alllines_within_strata)
@@ -360,7 +377,7 @@ ca_test <- function(object) {
     do.call(rbind, .) %>%
     apply(., 2, sum)
 
-  denominator <-  Ihat - t(J) %*% object$naive.var %*% J
+  denominator <-  Ihat - t(J) %*% varmat %*% J
 
   c(tstat = T_stat, var = denominator, pval = pchisq(T_stat^2 / denominator, 1, lower.tail = FALSE))
 
