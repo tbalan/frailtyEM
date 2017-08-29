@@ -36,9 +36,15 @@ ca_test <- function(object, id = NULL) {
 
 
   # the real linear predictors
-  lp <- object$linear.predictors +
-    as.numeric(object$means %*% object$coefficients)
-  elp <- exp(lp)
+  if(!is.null(object$means)) {
+    lp <- object$linear.predictors +
+      as.numeric(object$means %*% object$coefficients)
+    elp <- exp(lp)
+  } else {
+    lp <- object$linear.predictors
+    elp <- exp(lp)
+  }
+
 
   Y <- object$y
   if(ncol(Y) == 2) Y <- cbind(0, Y)
