@@ -25,8 +25,8 @@ ca_test <- function(object, id = NULL) {
   # Check input
   if(!inherits(object, "coxph"))
     warning("input should be a coxph object")
-  if(is.null(object$model))
-    stop("object should be created with model=TRUE")
+  # if(is.null(object$model))
+  #   stop("object should be created with model=TRUE")
   if(length(grep("cluster", names(object$model)))==0)
     if(is.null(id)) stop("could not find cluster; please specify in the Cox model or id")
   if(!is.null(id) & length(grep("cluster", names(object$model)))!=0)
@@ -70,16 +70,46 @@ ca_test <- function(object, id = NULL) {
 
 
   # Time for S0_ht = for each strata, sum of Yij(t) elp(ij) within that strata
+  # indx2_1 <- indx2[[1]]
+  # tts_1 <- time_to_stop[[1]]
+  # Y1 <- Ysp[[1]]
+  #
+  # r1 <- lapply(seq_along(time), function(x) {
+  #   sum(Y1$elp[indx2_1 < x & x <= tts_1])
+  # }) %>%
+  #   do.call(c, .)
+  #
+  # r1 %>% str()
+
   S0_ht <- mapply(function(b,c,d) {
     lapply(seq_along(time), function(x) {
-      b$elp[c < x & x <= d] %>%
-        Reduce("+", .)
+      sum(b$elp[c < x & x <= d])
     })
   }, Ysp, indx2, time_to_stop, SIMPLIFY = FALSE) %>%
-    lapply(function(z) do.call(c, z))
+    lapply(function(x) do.call(c, x)) %>%
+    lapply(function(x) {
+      x[x==0] <- -3
+      x
+    })
 
+  # The last part is there to avioid dividing 0 by 0
 
   # Time for pij(s) = Y_{ij}(s) exp(beta' x_{ij}) / S0(s)
+
+
+  # this part means: take Y, indx2 is the tstart coded, time_to_stop
+  # So within each transition, get a
+  # (strata) for each time point - get Y(t) * exp(beta'x) as a vector of time for each row
+
+  # part1 is a list of length(strata) - list of length(all time points) -
+  # vectors of all rows and how they contribute to that time point
+
+
+  # p1 <- mapply(function(b,c,d) {
+  #   lapply(seq_along(time), function(x) {
+  #     b$elp * as.numeric(c < x & x <= d)
+  #   })
+  # }, Ysp, indx2, time_to_stop, SIMPLIFY = FALSE)
 
   pij_ht_rowh <- mapply(function(b,c,d) {
     lapply(seq_along(time), function(x) {
@@ -106,10 +136,13 @@ ca_test <- function(object, id = NULL) {
   order_id <- split(findInterval(id, unique(id)), Y$strata)
   # order_id (strata)(alllines_within_strata)
 
+
+
   pij_hrowh_t <- pij_ht_rowh %>%
     lapply(function(x) do.call(cbind, x)) %>%
     lapply(function(x) split(x, 1:nrow(x))) %>%
     lapply(function(x) do.call(rbind, x))
+
 
   # This is each for each strata, a matrix with each row a cluster that exists in that strata
   # and each column one time point
@@ -151,7 +184,7 @@ ca_test <- function(object, id = NULL) {
     lapply(function(x) apply(x, 2, sum)) %>%
     mapply(function(a,b) a * b, ., nevent, SIMPLIFY = FALSE) %>%
     lapply(sum) %>%
-    do.call("+", .)
+    do.call(sum, .)
 
   T_stat <- sum(Mi^2) - sum(death) + thirdterm
 
@@ -165,7 +198,9 @@ ca_test <- function(object, id = NULL) {
 
   # Calculate baseline cumulative hazard
 
-  BH <- basehaz(object, centered = FALSE)
+  if(!is.null(object$coefficients))
+    BH <- basehaz(object, centered = FALSE) else
+      BH <- basehaz(object)
   if(is.null(BH$strata)) BH$strata <- rep(1, nrow(BH))
   BHsp <- split(BH, BH$strata)
 
@@ -236,10 +271,11 @@ ca_test <- function(object, id = NULL) {
       missnames <- which(!(allnames %in% rnames))
       missmat <- matrix(0, nrow = length(missnames),
                         ncol = ncol(x),
-                        dimnames = allnames[missnames])
+                        dimnames = list(allnames[missnames]))
       wholemat <- rbind(x, missmat)
       wholemat[order(as.numeric(rownames(wholemat))),]
     })
+
 
 
   # First element
@@ -270,11 +306,11 @@ ca_test <- function(object, id = NULL) {
     }, ., nevent, SIMPLIFY = FALSE) %>%
     lapply(function(x) apply(x, 1, sum)) %>%
     lapply(sum) %>%
-    do.call("+", .)
+    do.call(sum, .)
 
   # Jhat
 
-  X <- object$model
+  # X <- object$model
 
   xsp <- split(as.data.frame(object$x), Y$strata)
 
@@ -374,14 +410,21 @@ ca_test <- function(object, id = NULL) {
   #   apply(2, sum)
 
 
-  J <- mapply(function(a,b,c) {
-    lapply(b, function(x) {
-      sum(apply(a * x, 1, function(y) sum(y *c)))
-    })
-  }, H_hi_t, zipit_all, nevent, SIMPLIFY = FALSE) %>%
-    lapply(function(x) do.call(c, x)) %>%
-    do.call(rbind, .) %>%
-    apply(., 2, sum)
+  if(!is.null(varmat)) {
+    J <- mapply(function(a,b,c) {
+      lapply(b, function(x) {
+        sum(apply(a * x, 1, function(y) sum(y *c)))
+      })
+    }, H_hi_t, zipit_all, nevent, SIMPLIFY = FALSE) %>%
+      lapply(function(x) do.call(c, x)) %>%
+      do.call(rbind, .) %>%
+      apply(., 2, sum)
+  } else {
+    J <- 0
+    varmat <- 0
+  }
+
+
 
   denominator <-  Ihat - t(J) %*% varmat %*% J
 

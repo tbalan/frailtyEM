@@ -593,12 +593,12 @@ In the case of the PS distribution, the marginal hazard ratio is an attenuated v
 \paragraph{The PVF distributions}
 For $Y$ a PVF distribution with fixed parameter $m \in \mathbb{R}$, $m > -1$ and $m \neq 0$,
 $$
-\psi(c; \gamma) = \mathrm{sign}(m) (1 - \gamma^m (\gamma + c)^{-m})
+\psi(c; \gamma) = (1 - \gamma^m (\gamma + c)^{-m}).
 $$
-where $\mathrm{sign}(\cdot)$ denotes the sign. This is the same parametrizaion as in \cite{aalen2008survival}.
+This is the same parametrizaion as in \cite{aalen2008survival}.
 The derivatives of $\psi$ are
 $$
-\psi^{(k)}(c; \gamma) = \mathrm{sign}(m) (-\gamma)^m (\gamma + c)^{-m-k} (-1)^{k+1} \frac{\Gamma(m + k)}{\Gamma(m)}.
+\psi^{(k)}(c; \gamma) =  (-\gamma)^m (\gamma + c)^{-m-k} (-1)^{k+1} \frac{\Gamma(m + k)}{\Gamma(m)}.
 $$
 The expectation of this distribution can be calculated as minus the first derivative of the Laplace transform calculated in 0, i.e.,
 $$
@@ -610,7 +610,8 @@ $$
 $$
 For identifiability, we set $\E Y = 1$. The distribution is parametrized through a parameter $\theta >0$ which is determined by
 $\gamma = (m + 1) \theta$ and
-$\alpha = \mathrm{sign}(m) \frac{m + 1}{m} \theta$. This results in $\VAR Y = \theta^{-1}$.
+$\alpha = \frac{m + 1}{m} \theta$.
+This results in $\VAR Y = \theta^{-1}$.
 
 A slightly different parametrization is presented in \cite{hougaard2012analysis}, dependent on the parameter $\eta_H$. The correspondence is obtained by setting $\eta_H = (m+1) \theta$.
 
@@ -652,7 +653,7 @@ $$
 $$
 This can be exploited also in the case of left truncation, since the gamma frailty is preserved, as shown in the previous section.
 
-The inverse gaussian distribution is obtained when the PVF parameter is $m=-\frac{1}{2}$. Under the current parametrization, we have $\beta = \theta / 2$ and $\alpha = \theta$. In this case, the Laplace transform is
+The inverse gaussian distribution is obtained when the PVF parameter is $m=-\frac{1}{2}$. Under the current parametrization, we have $\gamma = \theta / 2$ and $\alpha = \theta$. In this case, the Laplace transform is
 $$
 \mathcal{L}(c; \theta) = \exp \left\{\theta \left(1 - \sqrt{1 + 2c/\theta }\right) \right\}.
 $$
