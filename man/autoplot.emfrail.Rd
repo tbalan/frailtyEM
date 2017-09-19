@@ -68,12 +68,14 @@ autoplot(mod_rec, type = "pred", quantity = "survival", newdata = newdata1[1,])
 
 # predicted survival for an individual that switches from
 # placebo to pyridoxine at time = 15
+\dontrun{
 newdata2 <- data.frame(treatment = c("placebo", "pyridoxine"),
                        number = c(1, 3),
                        tstart = c(0, 15),
                        tstop = c(15, Inf))
 
 autoplot(mod_rec, type = "pred", quantity = "survival", newdata = newdata2, individual = TRUE)
+}
 }
 \seealso{
 \code{\link{predict.emfrail}}, \code{\link{summary.emfrail}}, \code{\link{plot.emfrail}}.

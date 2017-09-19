@@ -1,6 +1,6 @@
 ## Test environments
-* local OS X install, R 3.4.0
-* ubuntu 12.04, x86_64-pc-linux-gnu (64-bit) R 3.4.0
+* local OS X install, R 3.4.1
+* ubuntu 14.04, x86_64-pc-linux-gnu (64-bit) R 3.4.1
 * win-builder (devel and release)
 
 ## R CMD check results

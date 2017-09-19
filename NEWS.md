@@ -1,5 +1,14 @@
+# frailtyEM 0.7.2
+As compared to the previous CRAN release, 0.7.0:
+
+- `ca_test()` now provides an interface to use the Commenges-Andersen test for heterogeneity outside the `emfrail()` function. It takes as input a `coxph` object. Therefore, it can work with other baseline hazard estimators and with strata. 
+- Various fixes in the documentation and vignette, mostly typos. 
+
+As usual, feedback is welcome. 
+
 ### frailtyEM 0.7.1-6
 - Various fixes for `ca_test()`: no more model frame needed, works well with strata.
+- fixed some small things in vignette
 
 ### frailtyEM 0.7.1-4
 - fixed some comments and some documentation

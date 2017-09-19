@@ -24,10 +24,12 @@ In some cases, a model with \code{+cluster()} statments can't be fitted. For exa
 are no covariates. In that case, a vector may be passed on in the \code{cluster} argument.
 }
 \examples{
-mcox1 <- coxph(Surv(start, stop, status==1) ~ treatment + cluster(id),
-bladder1, model = TRUE, x = TRUE)
+mcox1 <- coxph(Surv(time, status) ~ rx + sex + cluster(litter),
+rats, model = TRUE, x = TRUE)
 ca_test(mcox1)
 
+mcox2 <- coxph(Surv(time, status) ~ 1, rats, x = TRUE)
+ca_test(mcox2, rats$litter)
 }
 \references{
 Commenges, D. and Andersen, P.K., 1995. Score test of homogeneity for survival data. Lifetime Data Analysis, 1(2), pp.145-156.

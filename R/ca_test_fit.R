@@ -121,7 +121,7 @@ ca_test_fit <- function(mcox, X, atrisk, exp_g_x, cumhaz) {
 
 
 
-  V <- V1 + V2
+  V <- V1 - V2
 
   c(tstat = T_stat, var = V, pval = pchisq(T_stat^2 / V, 1, lower.tail = FALSE))
 }

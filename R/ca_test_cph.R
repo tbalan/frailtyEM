@@ -14,10 +14,12 @@
 #' @importFrom tibble rownames_to_column
 #' @importFrom survival basehaz
 #' @examples
-#' mcox1 <- coxph(Surv(start, stop, status==1) ~ treatment + cluster(id),
-#' bladder1, model = TRUE, x = TRUE)
+#' mcox1 <- coxph(Surv(time, status) ~ rx + sex + cluster(litter),
+#' rats, model = TRUE, x = TRUE)
 #' ca_test(mcox1)
 #'
+#' mcox2 <- coxph(Surv(time, status) ~ 1, rats, x = TRUE)
+#' ca_test(mcox2, rats$litter)
 #' @references Commenges, D. and Andersen, P.K., 1995. Score test of homogeneity for survival data. Lifetime Data Analysis, 1(2), pp.145-156.
 
 ca_test <- function(object, id = NULL) {
@@ -25,8 +27,8 @@ ca_test <- function(object, id = NULL) {
   # Check input
   if(!inherits(object, "coxph"))
     warning("input should be a coxph object")
-  # if(is.null(object$model))
-  #   stop("object should be created with model=TRUE")
+  if(is.null(object$model) & is.null(id))
+    stop("object should be created with model=TRUE or id specified")
   if(length(grep("cluster", names(object$model)))==0)
     if(is.null(id)) stop("could not find cluster; please specify in the Cox model or id")
   if(!is.null(id) & length(grep("cluster", names(object$model)))!=0)

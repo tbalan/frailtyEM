@@ -1,6 +1,6 @@
 em_fit <- function(logfrailtypar, dist, pvfm,
                    Y, Xmat, # id,  # this is some data stuff
-                   atrisk, # a list with a shit load of things that will not change with the EM
+                   atrisk, # a list with stuff that won't change in the EM
                    basehaz_line,  # need for log-likelihood
                    mcox = list(),
                    Cvec, lt = FALSE, Cvec_lt, # we need to start somewhere with the Cvec (E step comes first)
@@ -177,7 +177,7 @@ em_fit <- function(logfrailtypar, dist, pvfm,
                tev = tev, # event time points
                haz = haz_tev, # the Breslow estimator for ech tev
                nev_id = atrisk$nev_id,
-               Cvec = Cvec, #the Lambdatildei, I don't think I need that. But maybe I do?
+               Cvec = Cvec, #the Lambdatildei
                estep = e_step_val, # the E step object, just keep it like that.
                coef = mcox$coefficients, # the maximized coefficients. I need this.
                Vcov = Vcov)
@@ -425,7 +425,7 @@ em_fit <- function(logfrailtypar, dist, pvfm,
                tev = tev, # event time points
                haz = haz_tev, # the Breslow estimator for ech tev
                nev_id = atrisk$nev_id,
-               Cvec = Cvec, #the Lambdatildei, I don't think I need that. But maybe I do?
+               Cvec = Cvec, #the Lambdatildei
                estep = e_step_val, # the E step object, just keep it like that.
                coef = mcox$coefficients, # the maximized coefficients. I need this.
                Vcov = Vcov,

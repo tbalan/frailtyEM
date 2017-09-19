@@ -574,7 +574,7 @@ $\VAR \log Y = \psi'(\theta)$ where $\psi$ and $\psi'$ are the digamma and triga
 For $Y$ a positive stable random variable,
 $\psi(c;\gamma) = c^\gamma$ with $\gamma \in (0,1)$, the derivatives of which are
 $$
-\psi^{(k)}(c; \gamma) = \frac{\Gamma(k - \beta)}{\Gamma(1 - \gamma)} (-1)^{k - 1} c^{\gamma - 1}.
+\psi^{(k)}(c; \gamma) = \frac{\Gamma(k - \beta)}{\Gamma(1 - \gamma)} (-1)^{k - 1} c^{\gamma - k}.
 $$
 For identifiability, the restriction $\alpha = 1$ is made; $\E Y$ is undefined and $\VAR Y = \infty$.
 The distribution is parametrized with  $\theta >0$, $\gamma = \frac{\theta}{\theta + 1}$.
