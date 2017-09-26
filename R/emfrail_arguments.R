@@ -35,7 +35,7 @@
 #' automatically be changed to FALSE. When the number of events in a cluster / individual is not very small, the cases for which
 #' fast fitting is available will show an improvement in performance.
 #'
-#' The starting value of the outer optimization may be set in the \code{.distribution} argument.
+#' The starting value of the outer optimization may be set in the \code{distribution} argument.
 #'
 #' @seealso \code{\link{emfrail}}, \code{\link{emfrail_dist}}, \code{\link{emfrail_pll}}
 #' @examples
