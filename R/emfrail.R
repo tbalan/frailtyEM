@@ -486,8 +486,6 @@ emfrail <- function(formula,
     control$lik_ci_intervals$interval <- control$lik_ci_intervals$interval_stable
   }
 
-  # add a bit to the interval so that it gets to the Cox likelihood, if it is at that end of the parameter space
-
   # Maybe try nlm as well. Looks alright!
 
   # outer_m <- optimize(f = em_fit,
@@ -628,7 +626,16 @@ emfrail <- function(formula,
 
 
   # adjusted standard errors
-  if(isTRUE(control$se) & isTRUE(control$se_adj)) {
+
+  if(isTRUE(control$se) &( attr(inner_m$Vcov, "class") == "try-error")) {
+    inner_m$Vcov <- matrix(NA, length(inner_m$coef) + length(inner_m$haz))
+    warning("Information matrix is singular")
+  }
+
+  # adjusted SE: only go on if requested and if Vcov was calculated
+  if(isTRUE(control$se) &
+     isTRUE(control$se_adj) &
+     !all(is.na(inner_m$Vcov))) {
 
     # absolute value should be redundant. but sometimes the "hessian" might be 0.
     # in that case it might appear negative; this happened only on Linux...
@@ -645,7 +652,7 @@ emfrail <- function(formula,
                               Y = Y, Xmat = X, atrisk = atrisk, basehaz_line = basehaz_line,
                               mcox = list(coefficients = g, loglik = mcox$loglik),  # a "fake" cox model
                               Cvec = Cvec, lt = distribution$left_truncation,
-                              Cvec_lt = Cvec_lt, se = TRUE,
+                              Cvec_lt = Cvec_lt, se = FALSE,
                               inner_control = control$inner_control,
                               return_loglik = FALSE)
 
@@ -654,7 +661,7 @@ emfrail <- function(formula,
                              Y = Y, Xmat = X, atrisk = atrisk, basehaz_line = basehaz_line,
                              mcox = list(coefficients = g, loglik = mcox$loglik),  # a "fake" cox model
                              Cvec = Cvec, lt = distribution$left_truncation,
-                             Cvec_lt = Cvec_lt, se = TRUE,
+                             Cvec_lt = Cvec_lt, se = FALSE,
                              inner_control = control$inner_control, return_loglik = FALSE)
 
 
@@ -669,9 +676,12 @@ emfrail <- function(formula,
     #adj_se <- sqrt(diag(deta_dtheta %*% (1/(attr(opt_object, "details")[[3]])) %*% t(deta_dtheta)))
 
     # vcov_adj = inner_m$Vcov + deta_dtheta %*% (1/(attr(outer_m, "details")[[3]])) %*% t(deta_dtheta)
-    vcov_adj = inner_m$Vcov + deta_dtheta %*% (1/outer_m$hessian) %*% t(deta_dtheta)
+   vcov_adj = inner_m$Vcov + deta_dtheta %*% (1/outer_m$hessian) %*% t(deta_dtheta)
 
-  } else vcov_adj = matrix(NA, nrow(inner_m$Vcov), nrow(inner_m$Vcov))
+  } else
+    if(all(is.na(inner_m$Vcov)))
+      vcov_adj <- inner_m$Vcov else
+        vcov_adj = matrix(NA, nrow(inner_m$Vcov), nrow(inner_m$Vcov))
 
 
 

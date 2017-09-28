@@ -416,7 +416,7 @@ em_fit <- function(logfrailtypar, dist, pvfm,
 
   #Imat %>% solve %>% diag %>% sqrt
 
-  Vcov = try(solve(Imat))
+  Vcov = try(solve(Imat), silent = TRUE)
 
 
   # with this one we will also need SE estimates and all the stuff

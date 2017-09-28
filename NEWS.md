@@ -1,3 +1,10 @@
+# frailtyEM 0.7.3
+
+- added a check on whether inverting the information matrix works; a more meaningful warning, and the `emfrail` object plays nicer with the methods
+- removed some redundant calculations that were used when calculating the adjusted standard errors
+- fixed some references in the documentations
+
+
 # frailtyEM 0.7.2
 As compared to the previous CRAN release, 0.7.0:
 
