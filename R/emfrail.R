@@ -627,7 +627,7 @@ emfrail <- function(formula,
 
   # adjusted standard errors
 
-  if(isTRUE(control$se) &( attr(inner_m$Vcov, "class") == "try-error")) {
+  if(isTRUE(control$se) & isTRUE(attr(inner_m$Vcov, "class") == "try-error")) {
     inner_m$Vcov <- matrix(NA, length(inner_m$coef) + length(inner_m$haz))
     warning("Information matrix is singular")
   }
