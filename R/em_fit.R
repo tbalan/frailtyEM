@@ -296,7 +296,7 @@ em_fit <- function(logfrailtypar, dist, pvfm,
   #   do.call(c, .)
 
 
-  # tl_ord <- findInterval(Y[,1], tev)
+  tl_ord <- findInterval(Y[,1], tev)
   tr_ord <- findInterval(Y[,2], tev, left.open = FALSE, rightmost.closed = FALSE)
 
   dl2_dh <- tryCatch(inf_mat_match(
