@@ -11,13 +11,13 @@ install.packages("frailtyEM")
 and the development version from `GitHub`:
 
 ``` r
-devtools::install_github("teddybalan/frailtyEM")
+devtools::install_github("tbalan/frailtyEM")
 ```
 
 The bulk of the documentation of the package can be found in the vignette. If the package is installed from `GitHub`, then the vignette is installed if the pacakge is installed like this:
 
 ``` r
-devtools::install_github("teddybalan/frailtyEM", build_vignettes = TRUE)
+devtools::install_github("tbalan/frailtyEM", build_vignettes = TRUE)
 ```
 
 ### Functions

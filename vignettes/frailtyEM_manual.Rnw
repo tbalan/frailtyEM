@@ -540,7 +540,7 @@ Evaluating goodness of fit for shared frailty models is still a complicated issu
 In this paper we have not exemplified the left truncation adjustment. In this respect, the implementation from \pkg{frailtyEM} is very similar to that from the \pkg{parfm} package. However, performing of a larger simulation study to assess the effects of left truncation in clustered failure data with semiparametric frailty models is now possible. The scenario of time dependent covariates and left truncation is not supported at this time. This is because this would require also specifying values of these covariates from time 0 to the left truncation time, which would probably involve some speculation.
 
 Technically, extending the package to other distributions is possible, as long as their Laplace transform and the corresponding derivatives may be specified in closed form. An interesting extension would be to choose discrete distributions from the infinitely divisible family for the random effect, such as the Poisson distribution.
-The newest features will be implemented in the development version of the package at \url{https://github.com/teddybalan/frailtyEM}.
+The newest features will be implemented in the development version of the package at \url{https://github.com/tbalan/frailtyEM}.
 
 
 %
