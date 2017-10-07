@@ -529,26 +529,7 @@ emfrail <- function(formula,
                       inner_control = control$inner_control), control$nlm_control))
 
 
-#
-#   outer_m <- nlm(f = em_fit,
-#                  p = 2, hessian = TRUE,
-#                  dist = distribution$dist, pvfm = distribution$pvfm,
-#                  Y = Y, Xmat = X, atrisk = atrisk, basehaz_line = basehaz_line,
-#                  mcox = list(coefficients = g, loglik = mcox$loglik),  # a "fake" cox model
-#                  Cvec = Cvec, lt = distribution$left_truncation,
-#                  Cvec_lt = Cvec_lt, se = FALSE,
-#                  inner_control = control$inner_control, stepmax = 3)
-
-
-
-  # do.call(nlm, c(list(f = em_fit, p = 2, hessian = TRUE, dist = distribution$dist, pvfm = distribution$pvfm,
-  #                Y = Y, Xmat = X, atrisk = atrisk, basehaz_line = basehaz_line,
-  #                mcox = list(coefficients = g, loglik = mcox$loglik),  # a "fake" cox model
-  #                Cvec = Cvec, lt = distribution$left_truncation,
-  #                Cvec_lt = Cvec_lt,
-  #                control = control), control$opt_control))
-
-    # likelihood-based confidence intervals
+  # likelihood-based confidence intervals
   theta_low <- theta_high <- NULL
   if(isTRUE(control$lik_ci)) {
 

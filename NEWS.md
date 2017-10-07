@@ -1,3 +1,8 @@
+# frailtyEM 0.7.4
+
+- removed more redundant calculations that were happening in the standard errors section
+- cleaned up some code and made more meaningful comments for further development
+
 # frailtyEM 0.7.3
 
 - added a check on whether inverting the information matrix works; a more meaningful warning, and the `emfrail` object plays nicer with the methods
