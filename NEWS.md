@@ -1,3 +1,8 @@
+# frailtyEM 0.7.5
+
+- fixed a bug when the test for dependent censoring would give the wrong answer
+
+
 # frailtyEM 0.7.4
 
 - removed more redundant calculations that were happening in the standard errors section

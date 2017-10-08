@@ -665,7 +665,7 @@ emfrail <- function(formula,
         vcov_adj = matrix(NA, nrow(inner_m$Vcov), nrow(inner_m$Vcov))
 
 
-
+  browser()
   if(length(pos_terminal_X1) > 0 & distribution$dist == "gamma") {
     Y[,3] <- X1[,pos_terminal_X1]
 
