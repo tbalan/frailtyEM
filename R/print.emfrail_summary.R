@@ -245,6 +245,7 @@ print.emfrail_summary <- function(x, print_opts = list(coef = TRUE,
     if(!is.null(x$cens_test)) {
       cat("\n")
       cat("Score test for dependent censoring: p-val", format(x$cens_test[2], digits = 3))
+      cat("\n")
     }
 
     # if(!is.null(x$pvf_pars))
