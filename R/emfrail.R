@@ -673,7 +673,7 @@ emfrail <- function(formula,
                         weights = NULL, method = "breslow", rownames = NULL)$residuals
     Mres_id <- rowsum(Mres, atrisk$order_id)
 
-    theta <- exp(outer_m$minimum)
+    theta <- exp(outer_m$estimate)
 
     fr <- with(inner_m, estep[,1] / estep[,2])
 
