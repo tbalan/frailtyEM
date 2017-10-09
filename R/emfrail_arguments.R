@@ -120,7 +120,8 @@ emfrail_control <- function(opt_fit = TRUE,
 #'
 #' @details The \code{theta} argument must be positive. In the case of gamma or PVF, this is the inverse of
 #'  the frailty variance, i.e. the larger the \code{theta} is,
-#'  the closer the model is to a Cox model. For the positive stable distribution, the \eqn{\gamma} parameter of the Laplace trnasform is
+#'  the closer the model is to a Cox model. When \code{dist = "pvf"} and \code{pvfm = -0.5}, the inverse Gaussian
+#'  distribution is obtained. For the positive stable distribution, the \eqn{\gamma} parameter of the Laplace transform is
 #'  \eqn{\theta / (1 + \theta)}, with the \eqn{alpha} parameter fixed to 1.
 #'
 #' @seealso \code{\link{emfrail}, \link{emfrail_control}}
