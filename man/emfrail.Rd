@@ -32,10 +32,10 @@ An object of class \code{emfrail} that contains the following fields:
 \item{var}{The variance-covariance matrix corresponding to the coefficients and hazard, assuming \eqn{\theta} constant}
 \item{var_adj}{The variance-covariance matrx corresponding to the
 coefficients and hazard, adjusted for the estimation of theta}
-\item{theta}{The point estimate of \eqn{\theta}. For the gamma and
+\item{logtheta}{The logarithm of the point estimate of \eqn{\theta}. For the gamma and
 PVF family of distributions, this is the inverse of the estimated frailty variance.}
-\item{var_theta}{The variance of the estimated \eqn{\theta}}
-\item{ci_theta}{The likelihood-based 95\% confidence interval for \eqn{\theta}}
+\item{var_logtheta}{The variance of the estimated logarithm of \eqn{\theta}}
+\item{ci_logtheta}{The likelihood-based 95\% confidence interval for the logarithm of \eqn{\theta}}
 \item{frail}{The posterior (empirical Bayes) estimates of the frailty for each cluster}
 \item{residuals}{A list with two elements, cluster which is a vector that the sum of the
 cumulative hazards from each cluster for a frailty value of 1, and
