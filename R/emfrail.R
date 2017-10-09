@@ -480,47 +480,10 @@ emfrail <- function(formula,
 
 
 
-  # With the stable distribution, a problem pops up for small values, i.e. very large association (tau large)
-  # So there is another interval...
-  if(distribution$dist == "stable") {
-    control$lik_ci_intervals$interval <- control$lik_ci_intervals$interval_stable
-  }
-
-  # Maybe try nlm as well. Looks alright!
-
-  # outer_m <- optimize(f = em_fit,
-  #                     interval = control$opt_control$interval + c(0, 0.1),
-  #                     dist = distribution$dist, pvfm = distribution$pvfm,
-  #          Y = Y, Xmat = X, atrisk = atrisk, basehaz_line = basehaz_line,
-  #          mcox = list(coefficients = g, loglik = mcox$loglik),  # a "fake" cox model
-  #          Cvec = Cvec, lt = distribution$left_truncation,
-  #          Cvec_lt = Cvec_lt,
-  #          control = control)
-
-  # Hessian
-  # hess <- numDeriv::hessian(func = em_fit,
-  #         x = outer_m$minimum,
-  #         dist = distribution$dist, pvfm = distribution$pvfm,
-  #         Y = Y, Xmat = X, atrisk = atrisk, basehaz_line = basehaz_line,
-  #         mcox = list(coefficients = g, loglik = mcox$loglik),  # a "fake" cox model
-  #         Cvec = Cvec, lt = distribution$left_truncation,
-  #         Cvec_lt = Cvec_lt,
-  #         control = control)
-
-  #
-  # outer_m <- optim(fn = em_fit,
-  #                par = 2, hessian = TRUE,
-  #                dist = distribution$dist, pvfm = distribution$pvfm,
-  #                Y = Y, Xmat = X, atrisk = atrisk, basehaz_line = basehaz_line,
-  #                mcox = list(coefficients = g, loglik = mcox$loglik),  # a "fake" cox model
-  #                Cvec = Cvec, lt = distribution$left_truncation,
-  #                Cvec_lt = Cvec_lt, se = FALSE,
-  #                inner_control = control$inner_control)
-
 
 
   outer_m <- do.call(nlm, args = c(list(f = em_fit,
-                      p = 2, hessian = TRUE,
+                      p = log(distribution$theta), hessian = TRUE,
                       dist = distribution$dist, pvfm = distribution$pvfm,
                       Y = Y, Xmat = X, atrisk = atrisk, basehaz_line = basehaz_line,
                       mcox = list(coefficients = g, loglik = mcox$loglik),  # a "fake" cox model
@@ -532,6 +495,12 @@ emfrail <- function(formula,
   # likelihood-based confidence intervals
   theta_low <- theta_high <- NULL
   if(isTRUE(control$lik_ci)) {
+
+    # With the stable distribution, a problem pops up for small values, i.e. very large association (tau large)
+    # So there I use another interval for this
+    if(distribution$dist == "stable") {
+      control$lik_ci_intervals$interval <- control$lik_ci_intervals$interval_stable
+    }
 
   lower_llik <- em_fit(control$lik_ci_intervals$interval[1],
                        dist = distribution$dist,
@@ -624,8 +593,6 @@ emfrail <- function(formula,
     h<- as.numeric(sqrt(abs(1/outer_m$hessian))/2)
     lfp_minus <- max(outer_m$estimate - h , outer_m$estimate - 5)
     lfp_plus <- min(outer_m$estimate + h , outer_m$estimate + 5)
-
-#    message("Calculating adjustment for information matrix...")
 
 
     final_fit_minus <- em_fit(logfrailtypar = lfp_minus,

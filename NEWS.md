@@ -1,3 +1,8 @@
+# frailtyEM 0.7.6
+
+- fixed a bug that was overriding the user-set starting value for the "outer" maximization of the likelihood
+- removed some old commented code
+
 # frailtyEM 0.7.5
 
 - fixed a bug when the test for dependent censoring would give the wrong answer
