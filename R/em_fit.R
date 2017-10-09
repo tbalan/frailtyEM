@@ -327,12 +327,12 @@ em_fit <- function(logfrailtypar, dist, pvfm,
 
   if(!isTRUE(return_loglik)) {
     res = list(loglik = loglik,
-               tev = tev, # event time points
-               haz = haz_tev, # the Breslow estimator for ech tev
+               tev = tev,
+               haz = haz_tev,
                nev_id = atrisk$nev_id,
                Cvec = Cvec,
-               estep = e_step_val, # the E step object, just keep it like that.
-               coef = mcox$coefficients, # the maximized coefficients. I need this.
+               frail = e_step_val[,1] / e_step_val[,2],
+               coef = mcox$coefficients,
                Vcov = Vcov,
                fitted = g_x + logz,
                cumhaz_line = cumhaz_line)

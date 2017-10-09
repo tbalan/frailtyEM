@@ -664,28 +664,28 @@ emfrail <- function(formula,
 
 
 
-  res <- list(coefficients = inner_m$coef,
+  res <- list(coefficients = inner_m$coef, #
                hazard = inner_m$haz,
                var = inner_m$Vcov,
                var_adj = vcov_adj,
                logtheta = outer_m$estimate,
                var_logtheta = 1/outer_m$hessian,
                ci_logtheta = c(theta_low, theta_high),
-               frail = inner_m$estep[,1] / inner_m$estep[,2],
+               frail = inner_m$frail,
                residuals = list(group = inner_m$Cvec,
                                 individual = inner_m$cumhaz_line * inner_m$fitted),
                tev = inner_m$tev,
                nevents_id = inner_m$nev_id,
                loglik = c(mcox$loglik[length(mcox$loglik)], -outer_m$minimum),
-               ca_test = ca_test,
-               cens_test = cens_test,
+               ca_test = ca_test, #
+               cens_test = cens_test, #
                formula = formula,
                distribution = distribution,
                control = control,
-               nobs = nrow(mf),
-               fitted = as.numeric(inner_m$fitted),
-               mf = model_frame,
-               mm = X)
+               nobs = nrow(mf), #
+               fitted = as.numeric(inner_m$fitted), #
+               mf = model_frame, #
+               mm = X) #
 
   # these are things that make the predict work and other methods
   terms_2 <- delete.response(attr(mf, "terms"))
