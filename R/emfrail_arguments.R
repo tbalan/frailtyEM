@@ -75,10 +75,11 @@ emfrail_control <- function(opt_fit = TRUE,
       warning("extreme values for interval, there might be some numerical trouble")
   }
 
+  # make sure the defaults of these function are the same as those from the input!
   inner_c <- function(eps = 0.0001,
                       maxit = Inf,
                       fast_fit = TRUE,
-                      verbose = TRUE,
+                      verbose = FALSE,
                       lower_tol = 20,
                       lik_tol = 1) {
     list(eps = eps,
