@@ -428,7 +428,7 @@ emfrail <- function(formula,
   indx2 <- findInterval(Y[,1], time)
 
   time_to_stop <- match(Y[,2], time)
-  order_id <- findInterval(id, unique(id))
+  order_id <- match(id, unique(id))
 
   atrisk <- list(death = death, nevent = nevent, nev_id = nev_id,
                  order_id = order_id, time = time, indx = indx, indx2 = indx2,

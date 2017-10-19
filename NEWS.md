@@ -1,3 +1,7 @@
+# frailtyEM 0.7.7
+
+- fixed a bug where the `cluster()` specification would be in characters and that would make everything crash
+
 # frailtyEM 0.7.6
 
 - fixed a bug that was overriding the user-set starting value for the "outer" maximization of the likelihood
