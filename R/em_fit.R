@@ -106,12 +106,12 @@ em_fit <- function(logfrailtypar, dist, pvfm,
     cumhaz_line <- (cumhaz_0_line - cumhaz_tstart)
 
     if(isTRUE(lt)) {
-      Cvec_lt <- rowsum(x = cumhaz_tstart * exp(g_x), atrisk$order_id )
+      Cvec_lt <- rowsum(x = cumhaz_tstart * exp(g_x), atrisk$order_id , reorder = FALSE)
     } else {
       Cvec_lt <- 0 * Cvec
     }
 
-    Cvec <- rowsum(cumhaz_line * exp(g_x), atrisk$order_id)
+    Cvec <- rowsum(cumhaz_line * exp(g_x), atrisk$order_id, reorder = FALSE)
 
     ncycles <- ncycles + 1
 
@@ -264,7 +264,7 @@ em_fit <- function(logfrailtypar, dist, pvfm,
   if(length(Xmat) > 0) {
 
 
-    tmp1 <- rowsum(do.call(rbind, x_elp_H0), atrisk$order_id) * sqrt(zz - z^2)
+    tmp1 <- rowsum(do.call(rbind, x_elp_H0), atrisk$order_id, reorder = FALSE) * sqrt(zz - z^2)
     cor_dg <- Reduce("+",lapply(split(tmp1, 1:nrow(tmp1)), function(x) x %*% t(x)))
 
     # I_gg_loss <- cor_dg

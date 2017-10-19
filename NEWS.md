@@ -1,3 +1,8 @@
+# frailtyEM 0.7.8
+
+- fixed a bug where the things would go wrong if the data set wasn't ordered by cluster
+
+
 # frailtyEM 0.7.7
 
 - fixed a bug where the `cluster()` specification would be in characters and that would make everything crash

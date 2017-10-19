@@ -300,12 +300,6 @@ emfrail <- function(formula,
 
   # This part is because the update breaks old code
   extraargs <- list(...)
-  if(length(extraargs) >0) {
-    if(".formula" %in% names(extraargs)) stop(".formula has been deprecated; use formula")
-    if(".data" %in% names(extraargs)) stop(".data has been deprecated; use data")
-    if(".control" %in% names(extraargs)) stop(".control has been deprecated; use control")
-    if(".distribution" %in% names(extraargs)) stop(".distribution has been deprecated; use distribution")
-  }
 
   if(!inherits(formula, "formula")) {
     if(inherits(formula, "data.frame")) warning("You gave a data.frame instead of a formula.
@@ -403,7 +397,9 @@ emfrail <- function(formula,
 
   explp <- exp(mcox$linear.predictors) # these are with centered covariates
 
-  nev_id <- rowsum(Y[,3], id) # nevent per id or am I going crazy
+  order_id <- match(id, unique(id))
+
+  nev_id <- rowsum(Y[,3], order_id, reorder = FALSE) # nevent per id or am I going crazy
 
   # Idea: nrisk has the sum of elp who leave later at every tstop
   # esum has the sum of elp who enter at every tstart
@@ -428,7 +424,6 @@ emfrail <- function(formula,
   indx2 <- findInterval(Y[,1], time)
 
   time_to_stop <- match(Y[,2], time)
-  order_id <- match(id, unique(id))
 
   atrisk <- list(death = death, nevent = nevent, nev_id = nev_id,
                  order_id = order_id, time = time, indx = indx, indx2 = indx2,
@@ -447,7 +442,7 @@ emfrail <- function(formula,
   cumhaz_tstart <- c(0, cumhaz)[atrisk$indx2 + 1]
   cumhaz_line <- (cumhaz_0_line - cumhaz_tstart)  * explp / newrisk
 
-  Cvec <- rowsum(cumhaz_line, atrisk$order_id)
+  Cvec <- rowsum(cumhaz_line, atrisk$order_id, reorder = FALSE)
 
   ca_test <- NULL
 
@@ -460,7 +455,7 @@ emfrail <- function(formula,
     cumhaz_tstop <- cumsum(haz)
     cumhaz_tstart <- c(0, cumhaz_tstop)[indx2 + 1]
 
-    Cvec_lt <- rowsum(cumhaz_tstart, order_id)
+    Cvec_lt <- rowsum(cumhaz_tstart, atrisk$order_id, reorder = FALSE)
     # Cvec_lt <- tapply(X = cumhaz_tstart,
     #                   INDEX = id,
     #                   FUN = sum)
@@ -477,9 +472,6 @@ emfrail <- function(formula,
            Cvec_lt = Cvec_lt, se = FALSE,
            inner_control = control$inner_control))
   }
-
-
-
 
 
   outer_m <- do.call(nlm, args = c(list(f = em_fit,
@@ -638,7 +630,7 @@ emfrail <- function(formula,
     Mres <- survival::agreg.fit(x = X, y = Y, strata = NULL, offset = NULL, init = NULL,
                         control = survival::coxph.control(),
                         weights = NULL, method = "breslow", rownames = NULL)$residuals
-    Mres_id <- rowsum(Mres, atrisk$order_id)
+    Mres_id <- rowsum(Mres, atrisk$order_id, reorder = FALSE)
 
     theta <- exp(outer_m$estimate)
 
