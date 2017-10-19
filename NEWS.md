@@ -1,3 +1,9 @@
+# frailtyEM 0.7.9
+
+- a few under the hood changes: now the frailty estimates are a named vector, so that it is easier to identify 
+to which cluster that specific value belongs to
+- made the catterpillar plot (`autoplot` with `type = "frail"`) nicer
+
 # frailtyEM 0.7.8
 
 - fixed a bug where the things would go wrong if the data set wasn't ordered by cluster

@@ -9,7 +9,7 @@ autoplot <- autoplot
 #' @param type One (or more) of \code{hist} for a histogram of the estimated frailty values,
 #'  \code{hr} for a plot of the conditional and marginal hazard ratio between two cases,
 #'  \code{pred} for the predicted conditional and marginal cumulative hazard or survival for one case,
-#'  \code{frail} for a plot of the ordered frailty estimates with confidence intervals, where available.
+#'  \code{frail} for a caterpillar plot of the ordered frailty estimates with confidence intervals, where available.
 #' @param newdata A \code{data.frame} with values of the covariates. For \code{type == "hr"} the hazard ratio
 #' between the first two rows of \code{newdata} is calculated. For \code{type == "pred"} the prediction
 #' for the first row of \code{newdata} is calculated.
@@ -24,6 +24,13 @@ autoplot <- autoplot
 #' @param ... Further arguments to be passed on to `ggplot` (ignored)
 #'
 #' @return A list of \code{ggplot2} objects corresponding to the required plots, or one \code{ggplot2} if only one plot is selected
+#'
+#' @note It's normal for \code{autoplot} to give a warning of the type \code{Warning: Ignoring unknown aesthetics: id
+#' }. This is because, in \code{ggplot2} terms, the \code{id} aesthetic is not recognized. This is correct, and for any
+#' practical purpose this will not make a difference (you can safely ignore the warnings). However, this makes it
+#' easier to create an interactive plot out of the resulting object.
+#'
+#'
 #' @export autoplot.emfrail
 #' @export
 #' @seealso \code{\link{predict.emfrail}}, \code{\link{summary.emfrail}}, \code{\link{plot.emfrail}}.
@@ -341,11 +348,19 @@ autoplot.emfrail <- function(object,
   }
 
   if("frail" %in% type) {
+
     sobj <- summary.emfrail(object)
 
-    plot1 <- sobj$frail[order(sobj$frail$z),] %>%
-      ggplot(aes_string(x = 1:length(sobj$frail$z), y = "z")) +
-      geom_point(aes_string(id = "id"))
+    frdat <- sobj$frail[order(sobj$frail$z),]
+
+    # it's normal that id gives a warning, that's just there
+    # in case you want to make an interactive plot with ggplotly
+
+    plot1 <- frdat %>%
+      ggplot(aes_string(x = seq_along(frdat$z), y = "z")) +
+      geom_point(aes_string(id = "id")) +
+      scale_x_continuous(labels = frdat$id, breaks = seq_along(frdat$z)) +
+      xlab("cluster")
 
     if(sobj$est_dist$dist == "gamma")
       plot1 <- plot1 +

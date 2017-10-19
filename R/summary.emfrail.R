@@ -362,7 +362,7 @@ summary.emfrail <- function(object,
 
   # The frailty estimates
 
-  z <- data.frame(id = rownames(object$nevents_id),
+  z <- data.frame(id = names(object$frail),
                   z = object$frail)
 
   if(!is.null(gamma_pars)) {

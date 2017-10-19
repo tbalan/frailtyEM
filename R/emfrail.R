@@ -397,9 +397,13 @@ emfrail <- function(formula,
 
   explp <- exp(mcox$linear.predictors) # these are with centered covariates
 
+  # now thing is that maybe this is not very necessary,
+  # but it keeps track of which row belongs to which cluster
+  # and then we don't have to keep on doing this
   order_id <- match(id, unique(id))
 
-  nev_id <- rowsum(Y[,3], order_id, reorder = FALSE) # nevent per id or am I going crazy
+  nev_id <- as.numeric(rowsum(Y[,3], order_id, reorder = FALSE)) # nevent per id or am I going crazy
+  names(nev_id) <- unique(id)
 
   # Idea: nrisk has the sum of elp who leave later at every tstop
   # esum has the sum of elp who enter at every tstart
@@ -654,7 +658,8 @@ emfrail <- function(formula,
     model_frame <- mf
   if(!isTRUE(model.matrix)) X <- NULL
 
-
+  frail <- inner_m$frail
+  names(frail) <- unique(id)
 
   res <- list(coefficients = inner_m$coef, #
                hazard = inner_m$haz,
@@ -663,7 +668,7 @@ emfrail <- function(formula,
                logtheta = outer_m$estimate,
                var_logtheta = 1/outer_m$hessian,
                ci_logtheta = c(theta_low, theta_high),
-               frail = inner_m$frail,
+               frail = frail,
                residuals = list(group = inner_m$Cvec,
                                 individual = inner_m$cumhaz_line * inner_m$fitted),
                tev = inner_m$tev,

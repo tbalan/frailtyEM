@@ -20,7 +20,7 @@ autoplot(object, ...)
 \item{type}{One (or more) of \code{hist} for a histogram of the estimated frailty values,
 \code{hr} for a plot of the conditional and marginal hazard ratio between two cases,
 \code{pred} for the predicted conditional and marginal cumulative hazard or survival for one case,
-\code{frail} for a plot of the ordered frailty estimates with confidence intervals, where available.}
+\code{frail} for a caterpillar plot of the ordered frailty estimates with confidence intervals, where available.}
 
 \item{newdata}{A \code{data.frame} with values of the covariates. For \code{type == "hr"} the hazard ratio
 between the first two rows of \code{newdata} is calculated. For \code{type == "pred"} the prediction
@@ -44,6 +44,12 @@ A list of \code{ggplot2} objects corresponding to the required plots, or one \co
 }
 \description{
 Plots for emfrail objects using \code{ggplot2}
+}
+\note{
+It's normal for \code{autoplot} to give a warning of the type \code{Warning: Ignoring unknown aesthetics: id
+}. This is because, in \code{ggplot2} terms, the \code{id} aesthetic is not recognized. This is correct, and for any
+practical purpose this will not make a difference (you can safely ignore the warnings). However, this makes it
+easier to create an interactive plot out of the resulting object.
 }
 \examples{
 mod_rec <- emfrail(Surv(start, stop, status) ~ treatment + number + cluster(id), bladder1)
