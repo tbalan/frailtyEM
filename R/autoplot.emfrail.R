@@ -4,7 +4,7 @@
 autoplot <- autoplot
 
 #' Plots for emfrail objects using \code{ggplot2}
-#' @importFrom ggplot2 autoplot ggplot geom_step geom_path geom_point geom_histogram geom_abline geom_errorbar aes_string ylim xlab ylab scale_colour_manual aes_string geom_hline
+#' @importFrom ggplot2 autoplot ggplot geom_step geom_path geom_point geom_histogram geom_abline geom_errorbar aes_string ylim xlab ylab scale_colour_manual aes_string geom_hline scale_x_continuous
 #' @param object \code{emfrail} object, typically result of \code{emfrail()}
 #' @param type One (or more) of \code{hist} for a histogram of the estimated frailty values,
 #'  \code{hr} for a plot of the conditional and marginal hazard ratio between two cases,
