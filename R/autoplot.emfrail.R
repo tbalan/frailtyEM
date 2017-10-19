@@ -359,7 +359,7 @@ autoplot.emfrail <- function(object,
     plot1 <- frdat %>%
       ggplot(aes_string(x = seq_along(frdat$z), y = "z")) +
       geom_point(aes_string(id = "id")) +
-      scale_x_continuous(labels = frdat$id, breaks = seq_along(frdat$z)) +
+      scale_x_continuous(labels = as.character(frdat$id), breaks = seq_along(frdat$z)) +
       xlab("cluster")
 
     if(sobj$est_dist$dist == "gamma")
