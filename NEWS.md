@@ -1,39 +1,12 @@
 # frailtyEM 0.7.9
 
-- a few under the hood changes: now the frailty estimates are a named vector, so that it is easier to identify 
-to which cluster that specific value belongs to
-- made the catterpillar plot (`autoplot` with `type = "frail"`) nicer
-
-# frailtyEM 0.7.8
-
-- fixed a bug where the things would go wrong if the data set wasn't ordered by cluster
-
-
-# frailtyEM 0.7.7
-
-- fixed a bug where the `cluster()` specification would be in characters and that would make everything crash
-
-# frailtyEM 0.7.6
-
-- fixed a bug that was overriding the user-set starting value for the "outer" maximization of the likelihood
-- removed some old commented code
-
-# frailtyEM 0.7.5
-
-- fixed a bug when the test for dependent censoring would give the wrong answer
-
-
-# frailtyEM 0.7.4
-
-- removed more redundant calculations that were happening in the standard errors section
-- cleaned up some code and made more meaningful comments for further development
-
-# frailtyEM 0.7.3
-
-- added a check on whether inverting the information matrix works; a more meaningful warning, and the `emfrail` object plays nicer with the methods
-- removed some redundant calculations that were used when calculating the adjusted standard errors
-- fixed some references in the documentations
-
+As compared to the previous CRAN release, 0.7.2:
+- fixed a bug where the estimation would go wrong when the data set was not ordered according to the cluster
+- fixed a bug where `emfrail` would crash when the cluster colum would be a character vector
+- fixed a bug where the test for dependent censoring would not work
+- part of the output is now nicer (e.g. the `frail` vector is named, the `autoplot.emfrail()` gives a nicer plot)
+- removed a bunch of redundant calculations and old pieces of code
+- minor corrections in the vignette
 
 # frailtyEM 0.7.2
 As compared to the previous CRAN release, 0.7.0:

@@ -4,8 +4,8 @@ Title: Fitting Frailty Models with the EM Algorithm
 Version: 0.7.9
 Author: Theodor Adrian Balan, Hein Putter
 Maintainer: Theodor Adrian Balan <t.a.balan@lumc.nl>
-URL: https://github.com/teddybalan/frailtyEM
-BugReports: https://github.com/teddybalan/frailtyEM/issues
+URL: https://github.com/tbalan/frailtyEM
+BugReports: https://github.com/tbalan/frailtyEM/issues
 Description: Contains functions for fitting shared frailty models with a semi-parametric
     baseline hazard with the Expectation-Maximization algorithm. Supported data formats 
     include clustered failures with left truncation and recurrent events in gap-time
