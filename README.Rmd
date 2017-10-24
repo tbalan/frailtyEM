@@ -12,6 +12,8 @@ knitr::opts_chunk$set(
 )
 ```
 
+[![CRAN_Status_Badge](http://www.r-pkg.org/badges/version/frailtyEM)](https://cran.r-project.org/package=frailtyEM)
+
 This is an R package for fitting semiparametric shared frailty models with the EM algorithm. You can check the "issues" section to see about known issues. For the gamma frailty model, the results are identical with those from the `survival` pacakage, although `frailtyEM` provides a more readable output, including confidence intervals for the frailty variance. Other supported distributions include the PVF, compound Poisson, inverse Gaussian, positive stable. 
 Univariate and multivariate data with left truncation are supported, including recurrent events data in Andersen-Gill formulation.
 
