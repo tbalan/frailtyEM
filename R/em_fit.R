@@ -26,7 +26,7 @@ em_fit <- function(logfrailtypar, dist, pvfm,
   }
 
   # if the logfrailtypar is large (i.e. frailty variance 0) then just return the Cox likelihood
-  if(logfrailtypar > inner_control$lower_tol) {
+  if(logfrailtypar > log(inner_control$upper_tol)) {
     #message("Frailty parameter very large, frailty variance close to 0")
     loglik <- mcox$loglik[length(mcox$loglik)]
 

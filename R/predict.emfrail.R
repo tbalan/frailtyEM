@@ -109,6 +109,18 @@ predict.emfrail <- function(object,
                             ...) {
 
 
+  if(!is.null(quantity))
+    if(any(!(quantity %in% c("cumhaz", "survival"))))
+      stop("quantity misspecified")
+
+  if(!is.null(type))
+    if(any(!(type %in% c("conditional", "marginal"))))
+      stop("type misspecified")
+
+  if(!is.null(conf_int))
+    if(any(!(conf_int %in% c("regular", "adjusted"))))
+      stop("conf_int misspecified")
+
   if(is.null(newdata) & is.null(lp)) stop("lp or newdata must be specified")
 
   if(!is.null(lp) & !is.null(newdata)) stop("specify either lp or newdata")

@@ -450,6 +450,7 @@ emfrail <- function(formula,
 
   ca_test <- NULL
 
+  browser()
   if(isTRUE(control$ca_test)) ca_test <- ca_test_fit(mcox, X, atrisk, exp_g_x, cumhaz)
   if(isTRUE(control$only_ca_test)) return(ca_test)
 
@@ -498,7 +499,7 @@ emfrail <- function(formula,
       control$lik_ci_intervals$interval <- control$lik_ci_intervals$interval_stable
     }
 
-  lower_llik <- em_fit(control$lik_ci_intervals$interval[1],
+  lower_llik <- em_fit(log(control$lik_ci_intervals$interval[1]),
                        dist = distribution$dist,
                        pvfm = distribution$pvfm,
                        Y = Y, Xmat = X, atrisk = atrisk, basehaz_line = basehaz_line,
@@ -507,7 +508,7 @@ emfrail <- function(formula,
                        Cvec_lt = Cvec_lt, se = FALSE,
                        inner_control = control$inner_control)
 
-  upper_llik <- em_fit(control$lik_ci_intervals$interval[2],
+  upper_llik <- em_fit(log(control$lik_ci_intervals$interval[2]),
          dist = distribution$dist,
          pvfm = distribution$pvfm,
          Y = Y, Xmat = X, atrisk = atrisk, basehaz_line = basehaz_line,
@@ -517,11 +518,12 @@ emfrail <- function(formula,
          inner_control = control$inner_control)
 
   if(lower_llik - outer_m$minimum < 1.92) {
-    theta_low <- control$lik_ci_intervals$interval[1]
-    warning("tolerance limit reached; should maybe take a lower value for control$lik_ci_intervals[1]")
+    log_theta_low <- log(control$lik_ci_intervals$interval[1])
+    warning("Likelihood-based confidence interval lower limit reached, probably 0;
+You can try a lower value for control$lik_ci_intervals[1].")
   } else
-  theta_low <- uniroot(function(x, ...) outer_m$minimum - em_fit(x, ...) + 1.92,
-                       interval = c(control$lik_ci_intervals$interval[1], outer_m$estimate),
+  log_theta_low <- uniroot(function(x, ...) outer_m$minimum - em_fit(x, ...) + 1.92,
+                       interval = c(log(control$lik_ci_intervals$interval[1]), outer_m$estimate),
                        f.lower = outer_m$minimum - lower_llik + 1.92, f.upper = 1.92,
                        tol = .Machine$double.eps^0.1,
                        dist = distribution$dist,
@@ -535,9 +537,9 @@ emfrail <- function(formula,
 
 
   # this says that if I can't get a significant difference on the right side, then it's infinity
-  if(upper_llik  - outer_m$minimum < 1.92) theta_high <- Inf else
-    theta_high <- uniroot(function(x, ...) outer_m$minimum - em_fit(x, ...) + 1.92,
-                          interval = c(outer_m$estimate, control$lik_ci_intervals$interval[2]),
+  if(upper_llik  - outer_m$minimum < 1.92) log_theta_high <- Inf else
+    log_theta_high <- uniroot(function(x, ...) outer_m$minimum - em_fit(x, ...) + 1.92,
+                          interval = c(outer_m$estimate, log(control$lik_ci_intervals$interval[2])),
                           f.lower = 1.92, f.upper = outer_m$minimum - upper_llik + 1.92,
                           extendInt = c("downX"),
                           dist = distribution$dist,
@@ -667,7 +669,7 @@ emfrail <- function(formula,
                var_adj = vcov_adj,
                logtheta = outer_m$estimate,
                var_logtheta = 1/outer_m$hessian,
-               ci_logtheta = c(theta_low, theta_high),
+               ci_logtheta = c(log_theta_low, log_theta_high),
                frail = frail,
                residuals = list(group = inner_m$Cvec,
                                 individual = inner_m$cumhaz_line * inner_m$fitted),

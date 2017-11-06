@@ -101,9 +101,13 @@ summary.emfrail <- function(object,
 
   # theta
   theta <- exp(object$logtheta)
-  se_theta <- msm::deltamethod(~exp(x1),
-                                mean = object$logtheta,
-                                cov = object$var_logtheta)
+  if(object$var_logtheta < 0) {
+    se_theta <- NA
+  } else {
+    se_theta <- msm::deltamethod(~exp(x1),
+                                 mean = object$logtheta,
+                                 cov = object$var_logtheta)
+  }
 
 
 
@@ -135,9 +139,11 @@ summary.emfrail <- function(object,
 
   if(est_dist$dist != "stable") {
     fr_var <- 1/theta
-    se_fr_var <- msm::deltamethod(~1/exp(x1),
-                                  mean = object$logtheta,
-                                  cov = object$var_logtheta)
+    if(object$var_logtheta < 0)
+      se_fr_var <- NA else
+        se_fr_var <- msm::deltamethod(~1/exp(x1),
+                                      mean = object$logtheta,
+                                      cov = object$var_logtheta)
     ci_frvar_low <- 1/ci_theta_high
     ci_frvar_high <- 1/ci_theta_low
   }
@@ -297,9 +303,10 @@ summary.emfrail <- function(object,
     if(est_dist$pvfm < 0) {
       pvfm <- est_dist$pvfm
 
-      tau_pvf <- list(tau = (1 + pvfm) - 2 * (pvfm + 1) * theta +
+
+      tau_pvf <- list(tau = suppressWarnings((1 + pvfm) - 2 * (pvfm + 1) * theta +
         4 * (pvfm + 1)^2 * theta^2 / (- pvfm) * exp(2 * (pvfm + 1) * theta / (- pvfm)) *
-        expint::expint_En(2 * (pvfm + 1) * theta / (-pvfm), order = 1 / (- pvfm) - 1),
+        expint::expint_En(2 * (pvfm + 1) * theta / (-pvfm), order = 1 / (- pvfm) - 1)),
 
          # se_tau = with(object$outer_m,
          #               msm::deltamethod(~ (1 + pvfm) - 2 * (pvfm + 1) * exp(x1) +
@@ -319,6 +326,9 @@ summary.emfrail <- function(object,
           expint::expint_En(2 * (pvfm + 1) * ci_theta_low / (-pvfm), order = 1 / (- pvfm) - 1)
 
       )
+
+      # this may happen in the limiting case of theta very large (i.e. no dependence)
+      if(is.nan(tau_pvf$tau)) tau_pvf$tau <- 0
 
 
       kappa_pvf <- list(kappa = 4 * exp(

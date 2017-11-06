@@ -30,13 +30,13 @@ for the first row of \code{newdata} is calculated.}
 between the first two values of \code{lp} is calculated. For \code{type == "pred"} the prediction
 for the first value of \code{lp} is calculated.}
 
-\item{quantity}{For \code{type == "pred"} the predicted quantity; see \code{quantity} in \code{\link{predict.emfrail}}}
+\item{quantity}{One of \code{c("cumhaz", "survival")} for \code{type == "pred"}; see \code{quantity} in \code{\link{predict.emfrail}}}
 
-\item{type_pred}{For \code{type == "pred"} the type of predicted quantity; see \code{type} in \code{\link{predict.emfrail}}}
+\item{type_pred}{One of \code{c("conditional", "marginal")} for \code{type == "pred"}; see \code{type} in \code{\link{predict.emfrail}}}
 
-\item{conf_int}{For \code{type == "pred"} the type of confidence intervals; see \code{conf_int} in \code{\link{predict.emfrail}}}
+\item{conf_int}{One of \code{c("regular", "adjusted")} for \code{type == "pred"}; see \code{conf_int} in \code{\link{predict.emfrail}}}
 
-\item{individual}{For \code{type == "pred"} for drawing a curve when the rows of \code{newdata} refer to the same individual; see
+\item{individual}{Logical, for \code{type == "pred"} to be used for drawing a curve when the rows of \code{newdata} refer to the same individual; see
 \code{individual} in \code{\link{predict.emfrail}}}
 }
 \value{

@@ -1,3 +1,9 @@
+### frailtyEM 0.7.10
+
+- fixed some warnings that were actually expected behaviour
+- some improvements in the limiting case where there is no frailty
+- more consistent notation and less vague passing of limits for the confidence intervals (now it's clear whether it's log scale or not)
+
 # frailtyEM 0.7.9
 
 As compared to the previous CRAN release, 0.7.2:
