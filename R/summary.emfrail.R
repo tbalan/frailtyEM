@@ -86,7 +86,9 @@ summary.emfrail <- function(object,
                             print_opts = list(coef = TRUE,
                                               dist = TRUE,
                                               fit = TRUE,
-                                              frailty = TRUE),
+                                              frailty = TRUE,
+                                              adj_se = TRUE,
+                                              verbose_frailty = TRUE),
                             ...) {
 
   # Calculate the following: estimated distribution of the frailty at time 0
@@ -388,7 +390,14 @@ summary.emfrail <- function(object,
       "se(coef)" = sqrt(diag(object$var)[seq_along(object$coef)]),
       "adjusted se" = sqrt(diag(object$var_adj)[seq_along(object$coef)] ))
 
-    coefmat$z <- coefmat$coef / coefmat$`se(coef)`
+    if(all(is.na(object$var_adj))) {
+      coefmat$`adjusted se` <- NULL
+      coefmat$z <- coefmat$coef / coefmat$`se(coef)`} else
+        coefmat$z <- coefmat$coef / coefmat$`adjusted se`
+
+
+
+
     coefmat$p <-  1 - pchisq(coefmat$z^2, df = 1)
 
     coefmat <- do.call(cbind, coefmat)
@@ -416,6 +425,7 @@ summary.emfrail <- function(object,
        coefmat = coefmat,
        frail = z
        )
+
 
   #attr(ret, "class") <- "emfrail_summary"
   attr(ret, "print_opts") <-  print_opts

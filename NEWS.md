@@ -1,3 +1,6 @@
+### frailtyEM 0.7.12
+- improved print method for the summary object with some options to make things shorter
+
 ### frailtyEM 0.7.11
 - improved behaviour when frailty variance is actually 0
 

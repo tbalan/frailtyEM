@@ -1,9 +1,6 @@
 #' @export
 #' @keywords internal
-print.emfrail_summary <- function(x, print_opts = list(coef = TRUE,
-                                                       dist = TRUE,
-                                                       fit = TRUE,
-                                                       frailty = TRUE),
+print.emfrail_summary <- function(x,
                                   ...) {
 
   # cat("Summary of emfrail fit\n")
@@ -11,14 +8,15 @@ print.emfrail_summary <- function(x, print_opts = list(coef = TRUE,
   dput(attr(x, "call"))
   cat("\n")
 
-  if(isTRUE(attr(x, "print_opts")$coef)) {
+  browser()
+  if(!identical(attr(x, "print_opts")$coef, FALSE)) {
     if(!is.null(x$coefmat)) {
       cat("Regression coefficients:\n")
       printCoefmat(x$coefmat, ...)
     }
   }
 
-  if(isTRUE(attr(x, "print_opts")$dist)) {
+  if(!identical(attr(x, "print_opts")$dist, FALSE)) {
     cat("Estimated distribution:", x$est_dist$dist, "/ left truncation:", x$est_dist$left_truncation,"\n")
     if(x$est_dist$dist == "pvf") {
       cat("PVF m =", x$est_dist$pvfm," ")
@@ -29,7 +27,7 @@ print.emfrail_summary <- function(x, print_opts = list(coef = TRUE,
   }
 
 
-  if(isTRUE(attr(x, "print_opts")$fit)) {
+  if(!identical(attr(x, "print_opts")$fit, FALSE)) {
     cat("Fit summary:\n")
     if(!is.null(x$ca_test))
       cat("Commenges-Andersen test for heterogeneity: p-val ", format(x$ca_test[3], digits = 3), "\n")
@@ -42,7 +40,8 @@ print.emfrail_summary <- function(x, print_opts = list(coef = TRUE,
   }
 
 
-  if(isTRUE(attr(x, "print_opts")$frailty)) {
+  if(!identical(attr(x, "print_opts")$frailty, FALSE)) {
+
     cat("Frailty summary:\n")
     cat("theta = ",
         round(x$theta[1], digits = 3),
@@ -67,6 +66,8 @@ print.emfrail_summary <- function(x, print_opts = list(coef = TRUE,
           round(x$fr_var[4], digits = 3),
           "]\n", sep = "")
 
+
+    if(!identical(attr(x, "print_opts")$verbose_frailty)) {
     # gamma-specific
     if(!is.null(x$gamma_pars))
       with(x$gamma_pars, {
@@ -256,7 +257,8 @@ print.emfrail_summary <- function(x, print_opts = list(coef = TRUE,
     if(isTRUE(x$lik_ci)) cat("Confidence intervals based on the likelihood function") else
       cat("Confidence intervals based on the delta method")
 
-    cat("\n")
+    cat("\n")}
+
   }
 
 
