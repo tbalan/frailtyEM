@@ -450,7 +450,6 @@ emfrail <- function(formula,
 
   ca_test <- NULL
 
-  browser()
   if(isTRUE(control$ca_test)) ca_test <- ca_test_fit(mcox, X, atrisk, exp_g_x, cumhaz)
   if(isTRUE(control$only_ca_test)) return(ca_test)
 
@@ -488,6 +487,11 @@ emfrail <- function(formula,
                       Cvec_lt = Cvec_lt, se = FALSE,
                       inner_control = control$inner_control), control$nlm_control))
 
+
+  # the hessian can't be negative but this might happen in the case that the estimate is on the
+  # border
+
+  if(outer_m$hessian < 0) hessian <- NA else hessian <- outer_m$hessian
 
   # likelihood-based confidence intervals
   theta_low <- theta_high <- NULL
@@ -588,9 +592,9 @@ You can try a lower value for control$lik_ci_intervals[1].")
     # absolute value should be redundant. but sometimes the "hessian" might be 0.
     # in that case it might appear negative; this happened only on Linux...
     # h <- as.numeric(sqrt(abs(1/(attr(outer_m, "details")[[3]])))/2)
-    h<- as.numeric(sqrt(abs(1/outer_m$hessian))/2)
-    lfp_minus <- max(outer_m$estimate - h , outer_m$estimate - 5)
-    lfp_plus <- min(outer_m$estimate + h , outer_m$estimate + 5)
+    h<- as.numeric(sqrt(abs(1/hessian))/2)
+    lfp_minus <- max(outer_m$estimate - h , outer_m$estimate - 5, na.rm = TRUE)
+    lfp_plus <- min(outer_m$estimate + h , outer_m$estimate + 5, na.rm = TRUE)
 
 
     final_fit_minus <- em_fit(logfrailtypar = lfp_minus,
@@ -668,7 +672,7 @@ You can try a lower value for control$lik_ci_intervals[1].")
                var = inner_m$Vcov,
                var_adj = vcov_adj,
                logtheta = outer_m$estimate,
-               var_logtheta = 1/outer_m$hessian,
+               var_logtheta = 1/hessian,
                ci_logtheta = c(log_theta_low, log_theta_high),
                frail = frail,
                residuals = list(group = inner_m$Cvec,

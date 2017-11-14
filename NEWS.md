@@ -1,10 +1,13 @@
+### frailtyEM 0.7.11
+- improved behaviour when frailty variance is actually 0
+
 ### frailtyEM 0.7.10
 
 - fixed some warnings that were actually expected behaviour
 - some improvements in the limiting case where there is no frailty
 - more consistent notation and less vague passing of limits for the confidence intervals (now it's clear whether it's log scale or not)
 
-# frailtyEM 0.7.9
+# frailtyEM 0.7.9 (CRAN release)
 
 As compared to the previous CRAN release, 0.7.2:
 - fixed a bug where the estimation would go wrong when the data set was not ordered according to the cluster

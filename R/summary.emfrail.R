@@ -101,7 +101,7 @@ summary.emfrail <- function(object,
 
   # theta
   theta <- exp(object$logtheta)
-  if(object$var_logtheta < 0) {
+  if(is.na(object$var_logtheta)) {
     se_theta <- NA
   } else {
     se_theta <- msm::deltamethod(~exp(x1),
@@ -139,7 +139,7 @@ summary.emfrail <- function(object,
 
   if(est_dist$dist != "stable") {
     fr_var <- 1/theta
-    if(object$var_logtheta < 0)
+    if(is.na(object$var_logtheta))
       se_fr_var <- NA else
         se_fr_var <- msm::deltamethod(~1/exp(x1),
                                       mean = object$logtheta,
@@ -379,6 +379,7 @@ summary.emfrail <- function(object,
     z$lower_q <- as.numeric(gamma_pars$lower_q)
     z$upper_q <- as.numeric(gamma_pars$upper_q)
   }
+
 
   if(length(object$coef) > 0) {
     coefmat <- list(
