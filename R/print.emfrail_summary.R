@@ -8,7 +8,6 @@ print.emfrail_summary <- function(x,
   dput(attr(x, "call"))
   cat("\n")
 
-  browser()
   if(!identical(attr(x, "print_opts")$coef, FALSE)) {
     if(!is.null(x$coefmat)) {
       cat("Regression coefficients:\n")
@@ -67,7 +66,7 @@ print.emfrail_summary <- function(x,
           "]\n", sep = "")
 
 
-    if(!identical(attr(x, "print_opts")$verbose_frailty)) {
+    if(!identical(attr(x, "print_opts")$verbose_frailty, FALSE)) {
     # gamma-specific
     if(!is.null(x$gamma_pars))
       with(x$gamma_pars, {
