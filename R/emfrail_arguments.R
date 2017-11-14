@@ -73,7 +73,7 @@ emfrail_control <- function(opt_fit = TRUE,
       stop("interval must be of length 2")
     if(lik_ci_intervals$interval[1] < exp(-7) | lik_ci_intervals$interval[2] > exp(20))
       warning("extreme values for interval, there might be some numerical trouble")
-    if(lik_ci_intervals$interval[2] != inner_control$upper_tol)
+    # if(lik_ci_intervals$interval[2] != inner_control$upper_tol)
      # message("it is good practice right hand side of the interval should be equal to upper_tol")
   }
 

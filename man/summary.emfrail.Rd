@@ -5,7 +5,8 @@
 \title{Summary for \code{emfrail} objects}
 \usage{
 \method{summary}{emfrail}(object, lik_ci = TRUE, print_opts = list(coef =
-  TRUE, dist = TRUE, fit = TRUE, frailty = TRUE), ...)
+  TRUE, dist = TRUE, fit = TRUE, frailty = TRUE, adj_se = TRUE, verbose_frailty
+  = TRUE), ...)
 }
 \arguments{
 \item{object}{An object of class \code{emfrail}}
