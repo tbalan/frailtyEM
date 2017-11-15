@@ -553,7 +553,8 @@ You can try a lower value for control$lik_ci_intervals[1].")
                           Cvec = Cvec, lt = distribution$left_truncation,
                           Cvec_lt = Cvec_lt, se  = FALSE,
                           inner_control = control$inner_control)$root
-  }
+  } else
+    log_theta_low <- log_theta_high <- NA
 
 
 

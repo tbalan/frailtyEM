@@ -117,9 +117,9 @@ predict.emfrail <- function(object,
     if(any(!(type %in% c("conditional", "marginal"))))
       stop("type misspecified")
 
-  if(!is.null(conf_int))
-    if(any(!(conf_int %in% c("regular", "adjusted"))))
-      stop("conf_int misspecified")
+  # if(!is.null(conf_int))
+  #   if(any(!(conf_int %in% c("regular", "adjusted"))))
+  #     warning("conf_int misspecified")
 
   if(is.null(newdata) & is.null(lp)) stop("lp or newdata must be specified")
 
@@ -242,6 +242,8 @@ predict.emfrail <- function(object,
       x
     })
   }
+
+
 
 
   est_dist <- object$distribution

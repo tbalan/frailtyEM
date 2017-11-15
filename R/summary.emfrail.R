@@ -112,15 +112,13 @@ summary.emfrail <- function(object,
   }
 
 
-
-
   if(!isTRUE(lik_ci) | !isTRUE(object$control$lik_ci)) {
     # CI symmetric on log(theta) scale,
     ci_theta_low <- exp(object$logtheta - 1.96 * sqrt(object$var_logtheta))
     ci_theta_high <-  exp(object$logtheta + 1.96 * sqrt(object$var_logtheta))
 
     # if theta was at the edge, then CI should show this....
-    if(theta > object$control$inner_control$lower_tol - 0.1) {
+    if(theta > object$control$inner_control$upper_tol - 0.1) {
       ci_theta_low <- theta
       ci_theta_high <- Inf
     }

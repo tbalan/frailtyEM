@@ -1,3 +1,6 @@
+### frailtyEM 0.7.13
+- fixed some inconsistencies in summary and predict methods, when ceratin options are passed (such as no standard errors, for example)
+
 ### frailtyEM 0.7.12
 - improved print method for the summary object with some options to make things shorter
 
