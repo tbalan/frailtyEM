@@ -24,6 +24,7 @@
 
 ca_test <- function(object, id = NULL) {
 
+
   # Check input
   if(!inherits(object, "coxph"))
     warning("input should be a coxph object")
@@ -33,7 +34,7 @@ ca_test <- function(object, id = NULL) {
     if(is.null(id)) stop("could not find cluster; please specify in the Cox model or id")
   if(!is.null(id) & length(grep("cluster", names(object$model)))!=0)
     warning("cluster specified in both arguments, ignoring id")
-  if(is.null(object$x))
+  if(!any(names(object) == "x"))
     stop("object should be created with x=TRUE")
 
 
@@ -135,7 +136,7 @@ ca_test <- function(object, id = NULL) {
   }
 
 
-  order_id <- split(findInterval(id, unique(id)), Y$strata)
+  order_id <- split(match(id, unique(id)), Y$strata)
   # order_id (strata)(alllines_within_strata)
 
 

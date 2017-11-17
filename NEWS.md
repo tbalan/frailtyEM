@@ -1,3 +1,6 @@
+### frailtyEM 0.7.14
+- fixed a bug in `ca_test` that was not reading correctly the input because of the partial matching of arguments in R
+
 ### frailtyEM 0.7.13
 - fixed some inconsistencies in summary and predict methods, when ceratin options are passed (such as no standard errors, for example)
 
