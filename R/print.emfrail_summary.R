@@ -1,6 +1,9 @@
 #' @export
 #' @keywords internal
 print.emfrail_summary <- function(x,
+                                  digits = max(getOption('digits')-3, 3),
+                                  signif.stars =
+                                    getOption("show.signif.stars"),
                                   ...) {
 
   # cat("Summary of emfrail fit\n")
@@ -11,7 +14,9 @@ print.emfrail_summary <- function(x,
   if(!identical(attr(x, "print_opts")$coef, FALSE)) {
     if(!is.null(x$coefmat)) {
       cat("Regression coefficients:\n")
-      printCoefmat(x$coefmat, ...)
+      printCoefmat(x$coefmat,
+                   digits = digits,
+                   signif.stars = signif.stars, ...)
     }
   }
 
@@ -25,15 +30,17 @@ print.emfrail_summary <- function(x,
     cat("\n")
   }
 
-
   if(!identical(attr(x, "print_opts")$fit, FALSE)) {
     cat("Fit summary:\n")
     if(!is.null(x$ca_test))
       cat("Commenges-Andersen test for heterogeneity: p-val ", format(x$ca_test[3], digits = 3), "\n")
-    cat("(marginal) no-frailty Log-likelihood:", round(x$loglik[1], digits = 3), "\n")
-    cat("(marginal) Log-likelihood:", round(x$loglik[2], digits = 3), "\n")
-    cat("LRT: 1/2 * pchisq(", format(x$loglik[3], digits = 3),"), p-val ",
-        format(x$loglik[4], digits = 3), "\n", sep = "")
+    cat("no-frailty Log-likelihood:", round(x$loglik[1], digits = 3), "\n")
+    cat("Log-likelihood:", round(x$loglik[2], digits = 3), "\n")
+    if(x$loglik[4] < 0.5)
+      cat("LRT: 1/2 * pchisq(", format(x$loglik[3], digits = 3),"), p-val ",
+        format(x$loglik[4], digits = 3), "\n", sep = "") else
+          cat("LRT: 1/2 * pchisq(", format(x$loglik[3], digits = 3),"), p-val>",
+              format(x$loglik[4], digits = 3), "\n", sep = "")
 
     cat("\n")
   }

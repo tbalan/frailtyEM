@@ -13,7 +13,7 @@
 
 \item{lik_ci}{Logical. Should the confidence intervals for the frailty parameter be calculated based on the likelihood? If not, they are calculated with the delta method.}
 
-\item{print_opts}{A list with argumnets that are passed as attributes to the return object; these are used to determine what is printed when the object is accessed.}
+\item{print_opts}{A list with options for printing the summary object. These include \code{coef}, \code{dist}, \code{fit}, \code{frailty}, \code{adj_se}, \code{verbose_frailty}.}
 
 \item{...}{Ignored}
 }
@@ -43,6 +43,7 @@ If the model contains covariates, the field \code{coefmat} contains the correspo
 data("bladder")
 mod_gamma <- emfrail(Surv(start, stop, status) ~ treatment + cluster(id), bladder1)
 summary(mod_gamma)
+summary(mod_gamma, print_opts = list(frailty_verbose = FALSE))
 
 # plot the Empirical Bayes estimates of the frailty
 # easy way:

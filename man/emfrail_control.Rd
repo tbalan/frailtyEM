@@ -5,11 +5,10 @@
 \title{Control parameters for emfrail}
 \usage{
 emfrail_control(opt_fit = TRUE, se = TRUE, se_adj = TRUE,
-  ca_test = TRUE, only_ca_test = FALSE, lik_ci = TRUE,
-  lik_ci_intervals = list(interval = exp(c(-3, 20)), interval_stable =
-  exp(c(0, 20))), nlm_control = list(stepmax = 1), inner_control = list(eps
-  = 1e-04, maxit = Inf, fast_fit = TRUE, verbose = FALSE, upper_tol = exp(20),
-  lik_tol = 1))
+  ca_test = TRUE, lik_ci = TRUE, lik_interval = exp(c(-3, 20)),
+  lik_interval_stable = exp(c(0, 20)), nlm_control = list(stepmax = 1),
+  inner_control = list(eps = 1e-04, maxit = Inf, fast_fit = TRUE, verbose =
+  FALSE, upper_tol = exp(10), lik_tol = 1))
 }
 \arguments{
 \item{opt_fit}{Logical. Whether the outer optimization should be carried out.
@@ -21,13 +20,11 @@ If \code{FALSE}, then the frailty parameter is treated as fixed and the \code{em
 
 \item{ca_test}{Logical. Should the Commenges-Andersen test be calculated?}
 
-\item{only_ca_test}{Logical. Should ONLY the Commenges-Andersen test be calculated?}
-
 \item{lik_ci}{Logical. Should likelihood-based confidence interval be calculated for the frailty parameter?}
 
-\item{lik_ci_intervals}{This list should contain two length 2 vectors \code{interval} and \code{interval_stable} that are used in calculating likelihood-based
-confidence intervals. These are the edges, on the scale of \eqn{\theta}, of the parameter space where to look for the
-ends of these confidence intervals.}
+\item{lik_interval}{The edges, on the scale of \eqn{\theta}, of the parameter space in which to search for likelihood-based confidence interval}
+
+\item{lik_interval_stable}{(for dist = "stable") The edges, on the scale of \eqn{\theta}, of the parameter space in which to search for likelihood-based confidence interval}
 
 \item{nlm_control}{A list of named arguments to be sent to \code{nlm} for the outer optimization.}
 

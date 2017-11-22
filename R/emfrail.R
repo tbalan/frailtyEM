@@ -451,8 +451,6 @@ emfrail <- function(formula,
   ca_test <- NULL
 
   if(isTRUE(control$ca_test)) ca_test <- ca_test_fit(mcox, X, atrisk, exp_g_x, cumhaz)
-  if(isTRUE(control$only_ca_test)) return(ca_test)
-
 
   if(isTRUE(distribution$left_truncation)) {
     #indx2 <- findInterval(Y[,1], time, left.open = TRUE)
@@ -478,6 +476,7 @@ emfrail <- function(formula,
   }
 
 
+  browser()
   outer_m <- do.call(nlm, args = c(list(f = em_fit,
                       p = log(distribution$theta), hessian = TRUE,
                       dist = distribution$dist, pvfm = distribution$pvfm,
@@ -500,10 +499,10 @@ emfrail <- function(formula,
     # With the stable distribution, a problem pops up for small values, i.e. very large association (tau large)
     # So there I use another interval for this
     if(distribution$dist == "stable") {
-      control$lik_ci_intervals$interval <- control$lik_ci_intervals$interval_stable
+      control$lik_interval <- control$lik_interval_stable
     }
 
-  lower_llik <- em_fit(log(control$lik_ci_intervals$interval[1]),
+  lower_llik <- em_fit(log(control$lik_interval[1]),
                        dist = distribution$dist,
                        pvfm = distribution$pvfm,
                        Y = Y, Xmat = X, atrisk = atrisk, basehaz_line = basehaz_line,
@@ -512,7 +511,7 @@ emfrail <- function(formula,
                        Cvec_lt = Cvec_lt, se = FALSE,
                        inner_control = control$inner_control)
 
-  upper_llik <- em_fit(log(control$lik_ci_intervals$interval[2]),
+  upper_llik <- em_fit(log(control$lik_interval[2]),
          dist = distribution$dist,
          pvfm = distribution$pvfm,
          Y = Y, Xmat = X, atrisk = atrisk, basehaz_line = basehaz_line,
@@ -522,12 +521,12 @@ emfrail <- function(formula,
          inner_control = control$inner_control)
 
   if(lower_llik - outer_m$minimum < 1.92) {
-    log_theta_low <- log(control$lik_ci_intervals$interval[1])
+    log_theta_low <- log(control$lik_interval[1])
     warning("Likelihood-based confidence interval lower limit reached, probably 0;
-You can try a lower value for control$lik_ci_intervals[1].")
+You can try a lower value for control$lik_interval[1].")
   } else
   log_theta_low <- uniroot(function(x, ...) outer_m$minimum - em_fit(x, ...) + 1.92,
-                       interval = c(log(control$lik_ci_intervals$interval[1]), outer_m$estimate),
+                       interval = c(log(control$lik_interval[1]), outer_m$estimate),
                        f.lower = outer_m$minimum - lower_llik + 1.92, f.upper = 1.92,
                        tol = .Machine$double.eps^0.1,
                        dist = distribution$dist,
@@ -543,7 +542,7 @@ You can try a lower value for control$lik_ci_intervals[1].")
   # this says that if I can't get a significant difference on the right side, then it's infinity
   if(upper_llik  - outer_m$minimum < 1.92) log_theta_high <- Inf else
     log_theta_high <- uniroot(function(x, ...) outer_m$minimum - em_fit(x, ...) + 1.92,
-                          interval = c(outer_m$estimate, log(control$lik_ci_intervals$interval[2])),
+                          interval = c(outer_m$estimate, log(control$lik_interval[2])),
                           f.lower = 1.92, f.upper = outer_m$minimum - upper_llik + 1.92,
                           extendInt = c("downX"),
                           dist = distribution$dist,
@@ -681,15 +680,15 @@ You can try a lower value for control$lik_ci_intervals[1].")
                tev = inner_m$tev,
                nevents_id = inner_m$nev_id,
                loglik = c(mcox$loglik[length(mcox$loglik)], -outer_m$minimum),
-               ca_test = ca_test, #
-               cens_test = cens_test, #
+               ca_test = ca_test,
+               cens_test = cens_test,
                formula = formula,
                distribution = distribution,
                control = control,
-               nobs = nrow(mf), #
-               fitted = as.numeric(inner_m$fitted), #
-               mf = model_frame, #
-               mm = X) #
+               nobs = nrow(mf),
+               fitted = as.numeric(inner_m$fitted),
+               mf = model_frame,
+               mm = X)
 
   # these are things that make the predict work and other methods
   terms_2 <- delete.response(attr(mf, "terms"))

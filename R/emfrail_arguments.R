@@ -5,11 +5,9 @@
 #' @param se Logical. Whether to calculate the variance / covariance matrix.
 #' @param se_adj Logical. Whether to calculate the adjusted variance / covariance matrix (needs \code{se == TRUE})
 #' @param ca_test Logical. Should the Commenges-Andersen test be calculated?
-#' @param only_ca_test Logical. Should ONLY the Commenges-Andersen test be calculated?
 #' @param lik_ci Logical. Should likelihood-based confidence interval be calculated for the frailty parameter?
-#' @param lik_ci_intervals This list should contain two length 2 vectors \code{interval} and \code{interval_stable} that are used in calculating likelihood-based
-#' confidence intervals. These are the edges, on the scale of \eqn{\theta}, of the parameter space where to look for the
-#' ends of these confidence intervals.
+#' @param lik_interval The edges, on the scale of \eqn{\theta}, of the parameter space in which to search for likelihood-based confidence interval
+#' @param lik_interval_stable (for dist = "stable") The edges, on the scale of \eqn{\theta}, of the parameter space in which to search for likelihood-based confidence interval
 #' @param nlm_control A list of named arguments to be sent to \code{nlm} for the outer optimization.
 #' @param inner_control A list of parameters for the inner optimization. See details.
 #'
@@ -47,32 +45,26 @@ emfrail_control <- function(opt_fit = TRUE,
                             se = TRUE,
                             se_adj = TRUE,
                             ca_test = TRUE,
-                            only_ca_test = FALSE,
                             lik_ci = TRUE,
-                            lik_ci_intervals = list(interval = exp(c(-3, 20)),
-                                                    interval_stable = exp(c(0, 20))),
+                            lik_interval = exp(c(-3, 20)),
+                            lik_interval_stable = exp(c(0, 20)),
                             nlm_control = list(stepmax = 1),
                             inner_control = list(eps = 0.0001,
                                                  maxit = Inf,
                                                  fast_fit = TRUE,
                                                  verbose = FALSE,
-                                                 upper_tol = exp(20),
+                                                 upper_tol = exp(10),
                                                  lik_tol = 1)
 ) {
   # calculate SE as well
 
   # Here some checks
 
-  if(isTRUE(only_ca_test) & !isTRUE(ca_test))
-    stop("control: if only_ca_test is TRUE then ca_test must be TRUE as well")
-
   if(isTRUE(lik_ci)) {
-    if(is.null(lik_ci_intervals))
-      stop("opt_control must be a list which contains a named element interval")
-    if(length(lik_ci_intervals$interval) != 2)
-      stop("interval must be of length 2")
-    if(lik_ci_intervals$interval[1] < exp(-7) | lik_ci_intervals$interval[2] > exp(20))
-      warning("extreme values for interval, there might be some numerical trouble")
+    if(length(lik_interval) != 2 | length(lik_interval_stable) != 2)
+      stop("lik_interval must be of length 2")
+    if(lik_interval[1] < exp(-7) | lik_interval[2] > exp(20))
+      warning("extreme values for lik_interval, there might be some numerical trouble")
     # if(lik_ci_intervals$interval[2] != inner_control$upper_tol)
      # message("it is good practice right hand side of the interval should be equal to upper_tol")
   }
@@ -98,9 +90,9 @@ emfrail_control <- function(opt_fit = TRUE,
               se = se,
               se_adj = se_adj,
               ca_test = ca_test,
-              only_ca_test = only_ca_test,
               lik_ci = lik_ci,
-              lik_ci_intervals = lik_ci_intervals,
+              lik_interval = lik_interval,
+              lik_interval_stable = lik_interval_stable,
               nlm_control = nlm_control,
               inner_control = inner_control)
   attr(res, "class") <- c("emfrail_control")
