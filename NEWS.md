@@ -1,3 +1,7 @@
+### frailtyEM 0.7.15
+- simplified a bit the `emfrail_control()` function
+- documented options in `summary()` that control what is printed (if you want the output of a package to fit on one slide, for example)
+
 ### frailtyEM 0.7.14
 - fixed a bug in `ca_test` that was not reading correctly the input because of the partial matching of arguments in R
 
