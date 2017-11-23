@@ -476,7 +476,6 @@ emfrail <- function(formula,
   }
 
 
-  browser()
   outer_m <- do.call(nlm, args = c(list(f = em_fit,
                       p = log(distribution$theta), hessian = TRUE,
                       dist = distribution$dist, pvfm = distribution$pvfm,
