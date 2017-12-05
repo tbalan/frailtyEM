@@ -477,7 +477,7 @@ emfrail <- function(formula,
            inner_control = control$inner_control))
   }
 
-  browser()
+  # browser()
 
   outer_m <- do.call(nlm, args = c(list(f = em_fit,
                       p = log(distribution$theta), hessian = TRUE,
