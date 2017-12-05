@@ -42,7 +42,7 @@ em_fit <- function(logfrailtypar, dist, pvfm,
   loglik_old = -Inf
   ncycles <- 0
 
-
+# browser()
 
   convergence <- FALSE
   while(!isTRUE(convergence)) {
@@ -326,7 +326,10 @@ em_fit <- function(logfrailtypar, dist, pvfm,
 
   } else Imat <- I_hh
 
-  Vcov = try(solve(Imat), silent = TRUE)
+
+
+  Vcov = try(chol2inv(chol(Imat)), silent = TRUE)
+
 
   if(!isTRUE(return_loglik)) {
     res = list(loglik = loglik,

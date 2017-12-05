@@ -1,3 +1,6 @@
+### frailtyEM 0.7.16
+- using the cholesky decomposition instead of `solve`, seems that this is way better for symmetric matrices
+
 ### frailtyEM 0.7.15
 - simplified a bit the `emfrail_control()` function
 - documented options in `summary()` that control what is printed (if you want the output of a package to fit on one slide, for example)

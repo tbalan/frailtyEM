@@ -435,6 +435,8 @@ emfrail <- function(formula,
 
   nrisk <- nrisk - c(esum, 0,0)[indx]
 
+  if(newrisk == 0) warning("Hazard ratio very extreme; please check (and/or rescale) your data")
+
   haz <- nevent/nrisk * newrisk
 
 
@@ -475,6 +477,7 @@ emfrail <- function(formula,
            inner_control = control$inner_control))
   }
 
+  browser()
 
   outer_m <- do.call(nlm, args = c(list(f = em_fit,
                       p = log(distribution$theta), hessian = TRUE,
