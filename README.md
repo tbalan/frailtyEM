@@ -5,8 +5,7 @@
 
 [![CRAN\_Downloads\_Badge](https://cranlogs.r-pkg.org/badges/frailtyEM)](http://cran.rstudio.com/web/packages/frailtyEM/index.html)
 
-[![Build
-Status](https://travis-ci.org/tbalan/frailtyEM.svg?branch=master)](https://travis-ci.org/tbalan/frailtyEM)
+[![BuildStatus](https://travis-ci.org/tbalan/frailtyEM.svg?branch=master)](https://travis-ci.org/tbalan/frailtyEM)
 
 This is an R package for fitting semiparametric shared frailty models
 with the EM algorithm. You can check the “issues” section to see about

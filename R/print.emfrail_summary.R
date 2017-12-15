@@ -49,19 +49,9 @@ print.emfrail_summary <- function(x,
   if(!identical(attr(x, "print_opts")$frailty, FALSE)) {
 
     cat("Frailty summary:\n")
-    cat("theta = ",
-        round(x$theta[1], digits = 3),
-        " (",
-        round(x$theta[2], digits = 2),
-        ") / 95% CI: [",
-        round(x$theta[3], digits = 3),
-        ", ",
-        round(x$theta[4], digits = 3),
-        "]\n", sep = "")
-
     # gamma and pvf have this
     if(!is.null(x$fr_var))
-      cat("variance = ",
+      cat("frailty variance = ",
           round(x$fr_var[1], digits = 3),
           # " (",
           # round(x$fr_var[2], digits = 2),
@@ -71,7 +61,6 @@ print.emfrail_summary <- function(x,
           ", ",
           round(x$fr_var[4], digits = 3),
           "]\n", sep = "")
-
 
     if(!identical(attr(x, "print_opts")$verbose_frailty, FALSE)) {
     # gamma-specific
@@ -248,6 +237,17 @@ print.emfrail_summary <- function(x,
       }
 
       )
+
+
+      cat("theta = ",
+          round(x$theta[1], digits = 3),
+          " (",
+          round(x$theta[2], digits = 2),
+          ") / 95% CI: [",
+          round(x$theta[3], digits = 3),
+          ", ",
+          round(x$theta[4], digits = 3),
+          "]\n", sep = "")
 
     if(!is.null(x$cens_test)) {
       cat("\n")
