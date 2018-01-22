@@ -16,6 +16,7 @@ autoplot <- autoplot
 #' @param lp A numeric vector of values of the linear predictor, each corresponding to a case. For \code{type == "hr"} the hazard ratio
 #' between the first two values of \code{lp} is calculated. For \code{type == "pred"} the prediction
 #' for the first value of \code{lp} is calculated.
+#' @param strata
 #' @param quantity One of \code{c("cumhaz", "survival")} for \code{type == "pred"}; see \code{quantity} in \code{\link{predict.emfrail}}
 #' @param type_pred One of \code{c("conditional", "marginal")} for \code{type == "pred"}; see \code{type} in \code{\link{predict.emfrail}}
 #' @param conf_int One of \code{c("regular", "adjusted")} for \code{type == "pred"}; see \code{conf_int} in \code{\link{predict.emfrail}}
@@ -115,6 +116,7 @@ autoplot.emfrail <- function(object,
     p <- predict.emfrail(object,
                          lp = lp,
                          newdata = newdata,
+                         strata = strata,
                          quantity = "cumhaz",
                          conf_int = NULL)
 

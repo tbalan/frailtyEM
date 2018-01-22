@@ -1,7 +1,7 @@
 em_fit <- function(logfrailtypar, dist, pvfm,
                    Y, Xmat, # id,  # this is some data stuff
                    atrisk, # a list with stuff that won't change in the EM
-                   basehaz_line,  # need for log-likelihood
+                   basehaz_line ,  # need for log-likelihood
                    mcox = list(),
                    Cvec, lt = FALSE, Cvec_lt, # we need to start somewhere with the Cvec (E step comes first)
                    inner_control, se,
@@ -42,79 +42,153 @@ em_fit <- function(logfrailtypar, dist, pvfm,
   loglik_old = -Inf
   ncycles <- 0
 
-# browser()
-
   convergence <- FALSE
+
   while(!isTRUE(convergence)) {
 
+
     if(isTRUE(inner_control$fast_fit)) {
-      e_step_val <- fast_Estep(Cvec, Cvec_lt, atrisk$nev_id, alpha = pars$alpha, bbeta = pars$bbeta, pvfm = pvfm, dist = pars$dist)
+      e_step_val <- fast_Estep(Cvec,
+                               Cvec_lt,
+                               atrisk$nev_id,
+                               alpha = pars$alpha,
+                               bbeta = pars$bbeta,
+                               pvfm = pvfm,
+                               dist = pars$dist)
     } else {
-      e_step_val <- Estep(Cvec, Cvec_lt, atrisk$nev_id, alpha = pars$alpha, bbeta = pars$bbeta, pvfm = pvfm, dist = pars$dist)
+      e_step_val <- Estep(Cvec,
+                          Cvec_lt,
+                          atrisk$nev_id,
+                          alpha = pars$alpha,
+                          bbeta = pars$bbeta,
+                          pvfm = pvfm,
+                          dist = pars$dist)
     }
 
      logz <- log((e_step_val[,1] / e_step_val[,2])[atrisk$order_id])
 
+    #  points(log(e_step_val[,1] / e_step_val[,2]), col = 57)
      # the last part of this is so that the log-lik is comparable with that from coxph
-    loglik <- sum((log(basehaz_line) + g_x)[Y[,3] == 1]) + sum(e_step_val[,3]) +
-      sum(Y[,3]) - sum((atrisk$nevent * log(atrisk$nevent))[atrisk$nevent > 0])
+
+    # browser()
+    loglik <-
+      sum(mapply(function(bhz, death) sum(log(bhz[death])),
+                 basehaz_line ,
+                 atrisk$death)) +
+      sum(g_x[Y[,3] == 1]) +
+      sum(e_step_val[,3]) +
+      sum(Y[,3]) -
+      sum((do.call(c, atrisk$nevent) * log(do.call(c, atrisk$nevent)))[do.call(c, atrisk$nevent) > 0])
 
     # if this happens, then something is going very wrong
     if(loglik < loglik_old - inner_control$lik_tol)
       warning(paste0("likelihood decrease of ", loglik - loglik_old ))
 
-    if((loglik - loglik_old) < inner_control$eps) break
+    if(abs(loglik - loglik_old) < inner_control$eps) break
 
     loglik_old <- loglik
 
-    # print(paste0("loglik is ", loglik, " coef are ", paste0(mcox$coefficients, collapse = " ")))
+    #print(paste0("loglik is ", loglik, " coef are ", paste0(mcox$coefficients, collapse = " ")))
 
-    mcox <- survival::agreg.fit(x = Xmat, y = Y, strata = NULL, offset = logz, init = NULL,
+    print(paste("loglik =", loglik))
+    # browser()
+    mcox <- survival::agreg.fit(x = Xmat, y = Y, strata = atrisk$strats, offset = logz, init = NULL,
                                 control = survival::coxph.control(), weights = NULL,
                                 method = "breslow", rownames = NULL)
 
+    ncycles <- ncycles + 1
+
+    # if(ncycles == 1) {
+    #   varm <- mcox$var
+    #   beta_tras <- mcox$coefficients
+    # } else {
+    #     varm <- (varm  * (ncycles - 1) + mcox$var )/ ncycles
+    #     beta_tras <- c(beta_tras, mcox$coefficients)
+    # }
     # NOTE: this is what linear.predictors actually is:
     # exp(mcox$coefficients * (Xmat - mean(Xmat)) + logz)
 
-
-    if(length(Xmat)==0) {
+    if(length(Xmat) == 0) {
       lp <- mcox$linear.predictors
       g_x <- t(matrix(rep(0, length(mcox$linear.predictors)), nrow = 1))
     } else {
-      lp <- mcox$linear.predictors + as.numeric(t(mcox$coefficients) %*% mcox$means)
+      # x2 <- matrix(rep(0, ncol(X)), nrow = 1, dimnames = list(123, dimnames(X)[[2]]))
+      # x2 <- scale(x2, center = mcox$means, scale = FALSE)
+      # newrisk <- exp(c(x2 %*% mcox$coefficients) + 0)
+      # exp_g_x <- exp(mcox$coefficients %*% t(X))
+      # g <- mcox$coefficients
       g_x <- t(mcox$coefficients %*% t(Xmat))
+      lp <- mcox$linear.predictors + as.numeric(t(mcox$coefficients) %*% mcox$means)
+
     }
 
     explp <- exp(lp)
 
     # Calculation of the baseline hazard - inspired from what survfit() does
 
-    nrisk <- rev(cumsum(rev(rowsum(explp, Y[, ncol(Y) - 1]))))
-    esum <- rev(cumsum(rev(rowsum(explp, Y[, 1]))))
+
+    nrisk  <- mapply(FUN = function(explp, y) rev(cumsum(rev(rowsum(explp, y[[1]][,2])))),
+                        split(explp, atrisk$strats),
+                        split(as.data.frame(Y), atrisk$strats),
+                        SIMPLIFY = FALSE)
+
+    esum  <-  mapply(FUN = function(explp, y) rev(cumsum(rev(rowsum(explp, y[[1]][,1])))),
+                        split(explp, atrisk$strats),
+                        split(as.data.frame(Y), atrisk$strats),
+                        SIMPLIFY = FALSE)
 
 
-    nrisk <- nrisk - c(esum, 0,0)[atrisk$indx]
-    haz <- atrisk$nevent/nrisk
-    cumhaz <- cumsum(haz)
+    nrisk_b  <- mapply(FUN = function(nrisk, esum, indx)  nrisk - c(esum, 0,0)[indx],
+                        nrisk ,
+                        esum ,
+                        atrisk$indx,
+                        SIMPLIFY = FALSE)
 
-    basehaz_line <- haz[atrisk$time_to_stop]
+    haz  <- mapply(FUN = function(nevent, nrisk) nevent/nrisk, # * newrisk,
+                      atrisk$nevent,
+                      nrisk_b ,
+                      SIMPLIFY = FALSE)
 
-    # cumulative hazard for [0, tstop]
-    cumhaz_0_line <- cumhaz[atrisk$time_to_stop]
-    # cumulative hazard for [0, tstart]
-    cumhaz_tstart <- c(0, cumhaz)[atrisk$indx2 + 1]
+    basehaz_line  <- mapply(FUN = function(haz, time_to_stop) haz[time_to_stop],
+                               haz ,
+                               atrisk$time_to_stop,
+                               SIMPLIFY = FALSE)
 
-    cumhaz_line <- (cumhaz_0_line - cumhaz_tstart)
+    cumhaz  <- lapply(haz , cumsum)
 
-    if(isTRUE(lt)) {
-      Cvec_lt <- rowsum(x = cumhaz_tstart * exp(g_x), atrisk$order_id , reorder = FALSE)
-    } else {
-      Cvec_lt <- 0 * Cvec
-    }
+    cumhaz_0_line  <- mapply(FUN = function(cumhaz, time_to_stop) cumhaz[time_to_stop],
+                                cumhaz ,
+                                atrisk$time_to_stop,
+                                SIMPLIFY = FALSE)
 
+    cumhaz_tstart  <- mapply(FUN = function(cumhaz, indx2) c(0, cumhaz)[indx2 + 1],
+                                cumhaz ,
+                                atrisk$indx2,
+                                SIMPLIFY = FALSE)
+
+    cumhaz_line  <- mapply(FUN = function(cumhaz_0_line, cumhaz_tstart, explp)
+      (cumhaz_0_line - cumhaz_tstart),
+      cumhaz_0_line ,
+      cumhaz_tstart ,
+      split(explp, atrisk$strats),
+      SIMPLIFY = FALSE)
+
+    # This must be fixed
+    # if(isTRUE(lt)) {
+    #   Cvec_lt <- rowsum(x = cumhaz_tstart * exp(g_x), atrisk$order_id , reorder = FALSE)
+    # } else {
+    #   Cvec_lt <- 0 * Cvec
+    # }
+
+
+    cumhaz_line <- do.call(c, cumhaz_line)[order(atrisk$positions_strata)]
+
+   #  atrisk$positions_strata
+    # browser()
     Cvec <- rowsum(cumhaz_line * exp(g_x), atrisk$order_id, reorder = FALSE)
 
-    ncycles <- ncycles + 1
+    # atrisk$nevent
+
 
     if(ncycles > inner_control$maxit) {
       warning(paste("did not converge in ", inner_control$maxit," iterations." ))
@@ -129,21 +203,32 @@ em_fit <- function(logfrailtypar, dist, pvfm,
 
 
   # From this point on, the standard errors & return object
+  # browser()
 
-  tev <- atrisk$time[haz > 0]
-  haz_tev = haz[haz > 0]
+
+  # atrisk
+  time_str <- lapply(split(Y[,2], atrisk$strats), function(x) sort(unique(x)))
+
+  # time_str <- split(Y[,3])
+  tev_str <- mapply(function(tim, hz) tim[hz>0],
+                    time_str,
+                    atrisk$nevent,
+                    SIMPLIFY = FALSE)
+
+  # atrisk$time[haz > 0]
+  haz_tev = lapply(haz, function(x) x[x>0])
+
+
+
 
 
   if(!isTRUE(se)) {
-    if(length(Xmat) == 0) {
-      Vcov <- matrix(NA, length(tev), length(tev))
-    } else {
-      Vcov <- matrix(NA, ncol(Xmat) + length(tev), ncol(Xmat) + length(tev))
-    }
+      Vcov <- mcox$var
+
 
 
     res = list(loglik = loglik,
-               tev = tev,
+               tev = tev_str,
                haz = haz_tev,
                nev_id = atrisk$nev_id,
                Cvec = Cvec,
@@ -158,12 +243,16 @@ em_fit <- function(logfrailtypar, dist, pvfm,
   # Standard error calculation
 
 
-  nev_tp <- atrisk$nevent[atrisk$nevent!=0]
+
+
+  nev_tp_str <- lapply(atrisk$nevent, function(x) x[x!=0])
+  # atrisk$nevent[atrisk$nevent!=0]
 
   z_elp = exp(lp)
   elp = exp(lp)  / exp(logz)
 
   # Building E[d2l/dx^2 | Z]
+
 
   if(length(Xmat)>0) {
     x <- lapply(apply(Xmat, 1, list), function(x) x[[1]])
@@ -175,27 +264,50 @@ em_fit <- function(logfrailtypar, dist, pvfm,
     xx_z_elp_H0 <- Map(function(a,b, c) a * b * c, xx, z_elp, cumhaz_line)
     m_d2l_dgdg <- Reduce("+", xx_z_elp_H0)
 
-    m_d2l_dhdg <-
-      do.call(rbind,
-              lapply(lapply(
-               lapply(tev, function(tk) which(Y[,1] < tk & tk <= Y[,2])),
-               function(x) x_z_elp[x]),
-             function(...) Reduce("+", ...))
-      )
 
-    # m_d2l_dhdg_old <- tev %>%
-    #   lapply(function(tk) which(Y[,1] < tk & tk <= Y[,2])) %>%
-    #   lapply(function(x) x_z_elp[x]) %>%
-    #   lapply(function(...) Reduce("+", ...)) %>% # instead of sum because this could be a matrix
-    #   do.call(rbind, .)
-    #
-    # all.equal(m_d2l_dhdg, m_d2l_dhdg_old)
+
+    # which lines contain each event time within each strata
+    p1 <- mapply(function(tev, tstart, tstop) lapply(tev, function(tk) which(tstart < tk & tk <= tstop)),
+           tev_str,
+           split(Y[,1], atrisk$strats),
+           split(Y[,2], atrisk$strats),
+           SIMPLIFY = FALSE
+    )
+
+    # lapply(function(x) lapply(x, function(...) Reduce("+", ...),
+
+    m_d2l_dhdg <- do.call(rbind, lapply(
+      mapply(function(xzelp, p1) lapply(p1, function(x) xzelp[x]),
+                             split(x_z_elp, atrisk$strats),
+                             p1,
+                             SIMPLIFY = FALSE
+    ),
+    function(x) do.call(rbind, lapply(x, function(...) Reduce("+", ...)))))
+
+
+
+
+
+    # m_d2l_dhdg <-
+    #   do.call(rbind,
+    #           lapply(
+    #             lapply(
+    #               lapply(tev,
+    #                      function(tk) which(Y[,1] < tk & tk <= Y[,2])
+    #                      ),
+    #            function(x) x_z_elp[x]),
+    #          function(...) Reduce("+", ...))
+    #   )
+
+
   } else {
     m_d2l_dgdg <- NULL
     m_d2l_dhdg <- NULL
   }
 
-  m_d2l_dhdh <- diag(nev_tp/haz_tev^2)
+
+
+  m_d2l_dhdh <- diag(do.call(c, nev_tp_str) / do.call(c,haz_tev)^2)
 
   # Imat <- matrix(0, ncol(Xmat) + length(tev), ncol(Xmat) + length(tev))
   #
@@ -211,15 +323,17 @@ em_fit <- function(logfrailtypar, dist, pvfm,
   # Building E[dl/dx (dl/dx)' | Z]
 
   if(isTRUE(inner_control$fast_fit)) {
-      estep_again <- fast_Estep(Cvec,
-                                Cvec_lt,
-                                atrisk$nev_id,
-                                alpha = pars$alpha,
-                                bbeta = pars$bbeta,
-                                pvfm = pvfm,
-                                dist = pars$dist)
-      z <- estep_again[,1] / estep_again[,2]
-      zz <- estep_again[,4]
+      # estep_again <- fast_Estep(Cvec,
+      #                           Cvec_lt,
+      #                           atrisk$nev_id,
+      #                           alpha = pars$alpha,
+      #                           bbeta = pars$bbeta,
+      #                           pvfm = pvfm,
+      #                           dist = pars$dist)
+
+
+      z <- e_step_val[,1] / e_step_val[,2]
+      zz <- e_step_val[,4]
     } else {
       estep_plusone <- Estep(Cvec,
                              Cvec_lt,
@@ -241,53 +355,82 @@ em_fit <- function(logfrailtypar, dist, pvfm,
 
 
 
-  dl1_dh <- nev_tp / haz_tev
+  dl1_dh <- do.call(c, nev_tp_str) / do.call(c, haz_tev)
 
-  tl_ord <- findInterval(Y[,1], tev)
-  tr_ord <- findInterval(Y[,2], tev, left.open = FALSE, rightmost.closed = FALSE)
+  tl_ord <- mapply(function(tstart, tev) findInterval(tstart, tev) ,
+                   split(Y[,1], atrisk$strats),
+                   tev_str,
+                   SIMPLIFY = FALSE)
 
-  dl2_dh <- try(inf_mat_match(
+  tr_ord <- mapply(function(tstop, tev) findInterval(tstop, tev, left.open = FALSE, rightmost.closed = FALSE) ,
+                   split(Y[,2], atrisk$strats),
+                   tev_str,
+                   SIMPLIFY = FALSE)
+
+  # dl2_dh <- try(inf_mat_match(
+  #   tl_ord,
+  #   tr_ord,
+  #   z_elp,
+  #   length(tev)
+  # ))
+
+  dl2_dh <- mapply(function(a,b,c,d)
+    inf_mat_match(a,b,c,d),
     tl_ord,
     tr_ord,
-    z_elp,
-    length(tev)
-  ))
+    split(z_elp, atrisk$strats),
+    lapply(tev_str, length),
+    SIMPLIFY = FALSE
+    )
+
 
   # this is a list of data frames - for each individual - in each one a vector of length tev
   # each thing is the sum of elp at risk at that tev from each cluster
-  elp_to_tev <-  lapply(
-    split.data.frame(data.frame(elp,
-                                y1 = findInterval(Y[,1], tev),
-                                y2 = findInterval(Y[,2], tev, left.open = FALSE, rightmost.closed = FALSE)),
-                     atrisk$order_id),
-    function(dat) inf_mat_match(dat$y1, dat$y2, dat$elp, length(tev))
-  )
 
+
+  # mapply(
+  #   function(x, tev) lapply(x, function(dat) inf_mat_match(dat$y1, dat$y2, dat$elp, length(tev))),
+  #
+    elp_to_tev <- mapply(
+      function(elp, y1, y2, ord_id, tev)
+      lapply(split.data.frame(data.frame(elp, y1 = y1, y2 = y2),
+                         ord_id),
+             function(dat) inf_mat_match(dat$y1, dat$y2, dat$elp, length(tev))),
+      split(elp, atrisk$strats),
+      tl_ord,
+      tr_ord,
+      split(atrisk$order_id, atrisk$strats),
+      tev_str,
+      SIMPLIFY = FALSE
+    )
 
   if(length(Xmat) > 0) {
 
-
+    # ok:
     tmp1 <- rowsum(do.call(rbind, x_elp_H0), atrisk$order_id, reorder = FALSE) * sqrt(zz - z^2)
     cor_dg <- Reduce("+",lapply(split(tmp1, 1:nrow(tmp1)), function(x) x %*% t(x)))
 
     # I_gg_loss <- cor_dg
 
-    cor_dg_dh <- t(Reduce("+",
-           Map(function(a,b) a %*% t(b),
-        elp_to_tev,
-        split(
-          tmp1 *  sqrt(zz - z^2),
-          1:nrow(tmp1))
-        )
-        )
+    zz_z2_str <- lapply(split(atrisk$order_id, atrisk$strats), function(x) (zz - z^2)[x])
+
+    # same as tmp 1 but now on strata and no sqrt in zz_z2
+    tmp2 <- mapply(function(xelph0, ordid, zz_z2) rowsum(do.call(rbind, xelph0) * zz_z2, ordid, reorder = FALSE),
+           split(x_elp_H0, atrisk$strats),
+           split(atrisk$order_id, atrisk$strats),
+           zz_z2_str,
+           SIMPLIFY = FALSE
     )
 
-    # cor_dg_dh <- elp_to_tev %>%
-    #   Map(function(a, b) a %*% t(b),
-    #          tapply(x_elp_H0, atrisk$order_id,
-    #                 function(...) Reduce("+", ...))  ,.) %>%
-    #   mapply(function(a,b) a * b, ., zz - z^2, SIMPLIFY = FALSE) %>%
-    #   Reduce("+",.)
+    cor_dg_dh <- t(do.call(rbind,
+            mapply(function(elptev,tm2) Reduce("+",
+                                       Map(function(a,b) a %*% t(b) ,
+                                    elptev, tm2)),
+           elp_to_tev,
+           lapply(tmp2, function(x) split(x, 1:nrow(x))),
+           SIMPLIFY = FALSE
+           )
+    ))
 
     I_gh_loss <-  cor_dg_dh
 
@@ -296,18 +439,20 @@ em_fit <- function(logfrailtypar, dist, pvfm,
     cor_dg <- NULL
   }
 
+zz_z2_clus <- lapply(
+  lapply(split(atrisk$order_id, atrisk$strats), unique), function(x) sqrt(zz - z^2)[x])
 
-  a <- Map(function(a,b) a * b,
-      elp_to_tev,
-      sqrt(zz - z^2))
+
+elptev_zzz2 <- mapply(function(elptev, zzz2) Map(function(a,b) a * b, elptev, zzz2),
+       elp_to_tev, zz_z2_clus, SIMPLIFY = FALSE)
+
+
+cor_dh <- bdiag(lapply(elptev_zzz2, function(a) {
   m <- matrix(0, length(a[[1]]),  length(a[[1]]))
   m[upper.tri(m, diag = TRUE)] <- sumxxt(a, length(a[[1]]))
-  cor_dh <- m + t(m) - diag(diag(m))
+  m + t(m) - diag(diag(m))
+}))
 
-  # cor_dh <- elp_to_tev %>%  # these are the c_ik without the z.
-  #   lapply(function(x) x %*% t(x)) %>%
-  #   mapply(function(a,b) a * b, ., zz - z^2, SIMPLIFY = FALSE) %>%
-  #   Reduce("+",.)
 
   I_hh <- m_d2l_dhdh - cor_dh
 
@@ -315,11 +460,12 @@ em_fit <- function(logfrailtypar, dist, pvfm,
     I_gg <- m_d2l_dgdg - cor_dg
     I_hg <- m_d2l_dhdg - t(cor_dg_dh)
 
+    tev <- do.call(c, tev_str)
     Imat <- matrix(0, ncol(Xmat) + length(tev), ncol(Xmat) + length(tev))
 
     Imat[1:length(mcox$coefficients), 1:length(mcox$coefficients)] <- I_gg
 
-    Imat[(length(mcox$coefficients)+1):nrow(Imat), (length(mcox$coefficients)+1):nrow(Imat)] <- I_hh
+    Imat[(length(mcox$coefficients)+1):nrow(Imat), (length(mcox$coefficients)+1):nrow(Imat)] <- as.matrix(I_hh)
 
     Imat[1:length(mcox$coefficients), (length(mcox$coefficients)+1):nrow(Imat) ] <- t(I_hg)
     Imat[(length(mcox$coefficients)+1):nrow(Imat), 1:length(mcox$coefficients) ] <- I_hg
@@ -327,13 +473,12 @@ em_fit <- function(logfrailtypar, dist, pvfm,
   } else Imat <- I_hh
 
 
-
   Vcov = try(chol2inv(chol(Imat)), silent = TRUE)
 
 
   if(!isTRUE(return_loglik)) {
     res = list(loglik = loglik,
-               tev = tev,
+               tev = tev_str,
                haz = haz_tev,
                nev_id = atrisk$nev_id,
                Cvec = Cvec,

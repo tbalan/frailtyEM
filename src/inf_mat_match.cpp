@@ -3,7 +3,7 @@ using namespace Rcpp;
 
 /* this function takes a left position, right position, and elp, meant to be applied for each cluster
  * it returns a vector which, for all unique time points, contains the sum of elp gathered from the cluster.
- * i.e. say we have (0, 3) and (2,3) from 5 event time points (up to 4)
+ * i.e. say we have (0, 3) and (2,3), two individuals at risk for a total of 5 events (positions 0 to 4).
  * Then this will give a vector with
  * position 0 elp1
  * position 1 elp1

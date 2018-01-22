@@ -11,6 +11,7 @@
 #' @param lp A numeric vector of values of the linear predictor, each corresponding to a case. For \code{type == "hr"} the hazard ratio
 #' between the first two values of \code{lp} is calculated. For \code{type == "pred"} the prediction
 #' for the first value of \code{lp} is calculated.
+#' @param strata asd
 #' @param quantity For \code{type == "pred"} the predicted quantity; see \code{quantity} in \code{\link{predict.emfrail}}
 #' @param type_pred For \code{type == "pred"} the type of predicted quantity; see \code{type} in \code{\link{predict.emfrail}}
 #' @param conf_int For \code{type == "pred"} the type of confidence intervals; see \code{conf_int} in \code{\link{predict.emfrail}}
@@ -50,6 +51,7 @@
 #'
 #' plot(mod_rec, type = "pred", quantity = "survival", newdata = newdata2, individual = TRUE)
 plot.emfrail <- function(x, type = c("hist", "hr", "pred"), newdata = NULL, lp = NULL,
+                         strata = NULL,
                          quantity = "cumhaz",
                          type_pred = c("conditional", "marginal"),
                          conf_int = "adjusted",
@@ -82,6 +84,7 @@ plot.emfrail <- function(x, type = c("hist", "hr", "pred"), newdata = NULL, lp =
     p <- predict.emfrail(x,
                          lp = lp,
                          newdata = newdata,
+                         strata = strata,
                          quantity = "cumhaz",
                          conf_int = NULL)
 
