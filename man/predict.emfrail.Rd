@@ -5,8 +5,9 @@
 \title{Predicted hazard and survival curves from an \code{emfrail} object}
 \usage{
 \method{predict}{emfrail}(object, newdata = NULL, lp = NULL,
-  quantity = c("cumhaz", "survival"), type = c("conditional", "marginal"),
-  conf_int = c("regular", "adjusted"), individual = FALSE, ...)
+  strata = NULL, quantity = c("cumhaz", "survival"),
+  type = c("conditional", "marginal"), conf_int = c("regular", "adjusted"),
+  individual = FALSE, ...)
 }
 \arguments{
 \item{object}{An \code{emfrail} fit object}

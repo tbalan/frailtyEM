@@ -5,8 +5,9 @@
 \title{Plots for emfrail objects}
 \usage{
 \method{plot}{emfrail}(x, type = c("hist", "hr", "pred"), newdata = NULL,
-  lp = NULL, quantity = "cumhaz", type_pred = c("conditional",
-  "marginal"), conf_int = "adjusted", individual = FALSE, ...)
+  lp = NULL, strata = NULL, quantity = "cumhaz",
+  type_pred = c("conditional", "marginal"), conf_int = "adjusted",
+  individual = FALSE, ...)
 }
 \arguments{
 \item{x}{\code{emfrail} object, typically result of \code{emfrail()}}
@@ -22,6 +23,8 @@ for the first row of \code{newdata} is calculated.}
 \item{lp}{A numeric vector of values of the linear predictor, each corresponding to a case. For \code{type == "hr"} the hazard ratio
 between the first two values of \code{lp} is calculated. For \code{type == "pred"} the prediction
 for the first value of \code{lp} is calculated.}
+
+\item{strata}{asd}
 
 \item{quantity}{For \code{type == "pred"} the predicted quantity; see \code{quantity} in \code{\link{predict.emfrail}}}
 

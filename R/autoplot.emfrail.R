@@ -16,7 +16,7 @@ autoplot <- autoplot
 #' @param lp A numeric vector of values of the linear predictor, each corresponding to a case. For \code{type == "hr"} the hazard ratio
 #' between the first two values of \code{lp} is calculated. For \code{type == "pred"} the prediction
 #' for the first value of \code{lp} is calculated.
-#' @param strata
+#' @param strata The name of the strata (if applicable) for which the prediction should be made.
 #' @param quantity One of \code{c("cumhaz", "survival")} for \code{type == "pred"}; see \code{quantity} in \code{\link{predict.emfrail}}
 #' @param type_pred One of \code{c("conditional", "marginal")} for \code{type == "pred"}; see \code{type} in \code{\link{predict.emfrail}}
 #' @param conf_int One of \code{c("regular", "adjusted")} for \code{type == "pred"}; see \code{conf_int} in \code{\link{predict.emfrail}}
@@ -70,6 +70,7 @@ autoplot <- autoplot
 autoplot.emfrail <- function(object,
                              type = c("hist", "hr", "pred", "frail"),
                              newdata = NULL, lp = NULL,
+                             strata = NULL,
                              quantity = "cumhaz",
                              type_pred = c("conditional", "marginal"),
                              conf_int = "adjusted",
@@ -110,7 +111,6 @@ autoplot.emfrail <- function(object,
           if(nrow(newdata) > 2) warning("just the first 2 newdata rows are used for type = hr")
           if(isTRUE(all.equal(newdata[1,], newdata[2,]))) stop("the rows of newdata must be different")
         }
-
 
 
     p <- predict.emfrail(object,

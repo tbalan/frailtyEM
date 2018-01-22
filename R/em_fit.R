@@ -31,6 +31,7 @@ em_fit <- function(logfrailtypar, dist, pvfm,
     #message("Frailty parameter very large, frailty variance close to 0")
     loglik <- mcox$loglik[length(mcox$loglik)]
 
+
     if(isTRUE(return_loglik)) {
       if(isTRUE(inner_control$verbose)) print(paste("loglik = ",loglik))
       return(-loglik)
@@ -67,10 +68,6 @@ em_fit <- function(logfrailtypar, dist, pvfm,
 
      logz <- log((e_step_val[,1] / e_step_val[,2])[atrisk$order_id])
 
-    #  points(log(e_step_val[,1] / e_step_val[,2]), col = 57)
-     # the last part of this is so that the log-lik is comparable with that from coxph
-
-    # browser()
     loglik <-
       sum(mapply(function(bhz, death) sum(log(bhz[death])),
                  basehaz_line ,
@@ -89,9 +86,8 @@ em_fit <- function(logfrailtypar, dist, pvfm,
     loglik_old <- loglik
 
     #print(paste0("loglik is ", loglik, " coef are ", paste0(mcox$coefficients, collapse = " ")))
+    # print(paste("loglik =", loglik))
 
-    print(paste("loglik =", loglik))
-    # browser()
     mcox <- survival::agreg.fit(x = Xmat, y = Y, strata = atrisk$strats, offset = logz, init = NULL,
                                 control = survival::coxph.control(), weights = NULL,
                                 method = "breslow", rownames = NULL)
@@ -125,8 +121,6 @@ em_fit <- function(logfrailtypar, dist, pvfm,
     explp <- exp(lp)
 
     # Calculation of the baseline hazard - inspired from what survfit() does
-
-
     nrisk  <- mapply(FUN = function(explp, y) rev(cumsum(rev(rowsum(explp, y[[1]][,2])))),
                         split(explp, atrisk$strats),
                         split(as.data.frame(Y), atrisk$strats),
@@ -136,7 +130,6 @@ em_fit <- function(logfrailtypar, dist, pvfm,
                         split(explp, atrisk$strats),
                         split(as.data.frame(Y), atrisk$strats),
                         SIMPLIFY = FALSE)
-
 
     nrisk_b  <- mapply(FUN = function(nrisk, esum, indx)  nrisk - c(esum, 0,0)[indx],
                         nrisk ,
@@ -203,8 +196,6 @@ em_fit <- function(logfrailtypar, dist, pvfm,
 
 
   # From this point on, the standard errors & return object
-  # browser()
-
 
   # atrisk
   time_str <- lapply(split(Y[,2], atrisk$strats), function(x) sort(unique(x)))
@@ -309,29 +300,10 @@ em_fit <- function(logfrailtypar, dist, pvfm,
 
   m_d2l_dhdh <- diag(do.call(c, nev_tp_str) / do.call(c,haz_tev)^2)
 
-  # Imat <- matrix(0, ncol(Xmat) + length(tev), ncol(Xmat) + length(tev))
-  #
-  # if(!is.null(mcox$coefficients)) {
-  #   Imat[1:length(mcox$coefficients), 1:length(mcox$coefficients)] <- m_d2l_dgdg
-  #   Imat[1:length(mcox$coefficients), (length(mcox$coefficients)+1):nrow(Imat) ] <- t(m_d2l_dhdg)
-  #   Imat[(length(mcox$coefficients)+1):nrow(Imat), 1:length(mcox$coefficients) ] <- m_d2l_dhdg
-  # }
-  #
-  #
-  # Imat[(length(mcox$coefficients)+1):nrow(Imat), (length(mcox$coefficients)+1):nrow(Imat)] <- m_d2l_dhdh
 
   # Building E[dl/dx (dl/dx)' | Z]
 
   if(isTRUE(inner_control$fast_fit)) {
-      # estep_again <- fast_Estep(Cvec,
-      #                           Cvec_lt,
-      #                           atrisk$nev_id,
-      #                           alpha = pars$alpha,
-      #                           bbeta = pars$bbeta,
-      #                           pvfm = pvfm,
-      #                           dist = pars$dist)
-
-
       z <- e_step_val[,1] / e_step_val[,2]
       zz <- e_step_val[,4]
     } else {

@@ -11,7 +11,7 @@
 #' @param lp A numeric vector of values of the linear predictor, each corresponding to a case. For \code{type == "hr"} the hazard ratio
 #' between the first two values of \code{lp} is calculated. For \code{type == "pred"} the prediction
 #' for the first value of \code{lp} is calculated.
-#' @param strata asd
+#' @param strata The name of the strata (if applicable) for which the prediction should be made.
 #' @param quantity For \code{type == "pred"} the predicted quantity; see \code{quantity} in \code{\link{predict.emfrail}}
 #' @param type_pred For \code{type == "pred"} the type of predicted quantity; see \code{type} in \code{\link{predict.emfrail}}
 #' @param conf_int For \code{type == "pred"} the type of confidence intervals; see \code{conf_int} in \code{\link{predict.emfrail}}

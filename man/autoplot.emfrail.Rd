@@ -8,7 +8,7 @@
 autoplot(object, ...)
 
 \method{autoplot}{emfrail}(object, type = c("hist", "hr", "pred", "frail"),
-  newdata = NULL, lp = NULL, quantity = "cumhaz",
+  newdata = NULL, lp = NULL, strata = NULL, quantity = "cumhaz",
   type_pred = c("conditional", "marginal"), conf_int = "adjusted",
   individual = FALSE, ...)
 }

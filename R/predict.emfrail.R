@@ -4,6 +4,7 @@
 #' @param object An \code{emfrail} fit object
 #' @param newdata A data frame with the same variable names as those that appear in the \code{emfrail} formula, used to calculate the \code{lp} (optional).
 #' @param lp A vector of linear predictor values at which to calculate the curves. Default is 0 (baseline).
+#' @param strata The name of the strata (if applicable) for which the prediction should be made.
 #' @param quantity Can be \code{"cumhaz"} and/or \code{"survival"}. The quantity to be calculated for the values of \code{lp}.
 #' @param type Can be \code{"conditional"} and/or \code{"marginal"}. The type of the quantity to be calculated.
 #' @param conf_int Can be \code{"regular"} and/or \code{"adjusted"}. The type of confidence interval to be calculated.
