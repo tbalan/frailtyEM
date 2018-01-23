@@ -22,20 +22,6 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// inf_mat_match
-NumericVector inf_mat_match(NumericVector left, NumericVector right, NumericVector elp, int maxlength);
-RcppExport SEXP _frailtyEM_inf_mat_match(SEXP leftSEXP, SEXP rightSEXP, SEXP elpSEXP, SEXP maxlengthSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< NumericVector >::type left(leftSEXP);
-    Rcpp::traits::input_parameter< NumericVector >::type right(rightSEXP);
-    Rcpp::traits::input_parameter< NumericVector >::type elp(elpSEXP);
-    Rcpp::traits::input_parameter< int >::type maxlength(maxlengthSEXP);
-    rcpp_result_gen = Rcpp::wrap(inf_mat_match(left, right, elp, maxlength));
-    return rcpp_result_gen;
-END_RCPP
-}
 // sumxxt
 NumericVector sumxxt(List x, int L);
 RcppExport SEXP _frailtyEM_sumxxt(SEXP xSEXP, SEXP LSEXP) {
@@ -48,11 +34,25 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// cumsum_elp
+NumericVector cumsum_elp(NumericVector left, NumericVector right, NumericVector elp, int maxlength);
+RcppExport SEXP _frailtyEM_cumsum_elp(SEXP leftSEXP, SEXP rightSEXP, SEXP elpSEXP, SEXP maxlengthSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericVector >::type left(leftSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type right(rightSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type elp(elpSEXP);
+    Rcpp::traits::input_parameter< int >::type maxlength(maxlengthSEXP);
+    rcpp_result_gen = Rcpp::wrap(cumsum_elp(left, right, elp, maxlength));
+    return rcpp_result_gen;
+END_RCPP
+}
 
 static const R_CallMethodDef CallEntries[] = {
     {"_frailtyEM_Estep", (DL_FUNC) &_frailtyEM_Estep, 7},
-    {"_frailtyEM_inf_mat_match", (DL_FUNC) &_frailtyEM_inf_mat_match, 4},
     {"_frailtyEM_sumxxt", (DL_FUNC) &_frailtyEM_sumxxt, 2},
+    {"_frailtyEM_cumsum_elp", (DL_FUNC) &_frailtyEM_cumsum_elp, 4},
     {NULL, NULL, 0}
 };
 

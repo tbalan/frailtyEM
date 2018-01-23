@@ -24,7 +24,7 @@ for the first row of \code{newdata} is calculated.}
 between the first two values of \code{lp} is calculated. For \code{type == "pred"} the prediction
 for the first value of \code{lp} is calculated.}
 
-\item{strata}{asd}
+\item{strata}{The name of the strata (if applicable) for which the prediction should be made.}
 
 \item{quantity}{For \code{type == "pred"} the predicted quantity; see \code{quantity} in \code{\link{predict.emfrail}}}
 

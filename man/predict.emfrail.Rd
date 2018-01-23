@@ -16,6 +16,8 @@
 
 \item{lp}{A vector of linear predictor values at which to calculate the curves. Default is 0 (baseline).}
 
+\item{strata}{The name of the strata (if applicable) for which the prediction should be made.}
+
 \item{quantity}{Can be \code{"cumhaz"} and/or \code{"survival"}. The quantity to be calculated for the values of \code{lp}.}
 
 \item{type}{Can be \code{"conditional"} and/or \code{"marginal"}. The type of the quantity to be calculated.}

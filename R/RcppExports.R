@@ -22,11 +22,11 @@ Estep <- function(c, c_lt, delta, alpha, bbeta, pvfm, dist) {
     .Call(`_frailtyEM_Estep`, c, c_lt, delta, alpha, bbeta, pvfm, dist)
 }
 
-inf_mat_match <- function(left, right, elp, maxlength) {
-    .Call(`_frailtyEM_inf_mat_match`, left, right, elp, maxlength)
-}
-
 sumxxt <- function(x, L) {
     .Call(`_frailtyEM_sumxxt`, x, L)
+}
+
+cumsum_elp <- function(left, right, elp, maxlength) {
+    .Call(`_frailtyEM_cumsum_elp`, left, right, elp, maxlength)
 }
 

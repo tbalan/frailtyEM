@@ -121,14 +121,14 @@ em_fit <- function(logfrailtypar, dist, pvfm,
     explp <- exp(lp)
 
     # Calculation of the baseline hazard - inspired from what survfit() does
-    nrisk  <- mapply(FUN = function(explp, y) rev(cumsum(rev(rowsum(explp, y[[1]][,2])))),
+    nrisk  <- mapply(FUN = function(explp, y) rev(cumsum(rev(rowsum(explp, y[,2])))),
                         split(explp, atrisk$strats),
-                        split(as.data.frame(Y), atrisk$strats),
+                        split.data.frame(Y, atrisk$strats),
                         SIMPLIFY = FALSE)
 
-    esum  <-  mapply(FUN = function(explp, y) rev(cumsum(rev(rowsum(explp, y[[1]][,1])))),
+    esum  <-  mapply(FUN = function(explp, y) rev(cumsum(rev(rowsum(explp, y[,1])))),
                         split(explp, atrisk$strats),
-                        split(as.data.frame(Y), atrisk$strats),
+                        split.data.frame(Y, atrisk$strats),
                         SIMPLIFY = FALSE)
 
     nrisk_b  <- mapply(FUN = function(nrisk, esum, indx)  nrisk - c(esum, 0,0)[indx],
@@ -166,18 +166,16 @@ em_fit <- function(logfrailtypar, dist, pvfm,
       split(explp, atrisk$strats),
       SIMPLIFY = FALSE)
 
-    # This must be fixed
-    # if(isTRUE(lt)) {
-    #   Cvec_lt <- rowsum(x = cumhaz_tstart * exp(g_x), atrisk$order_id , reorder = FALSE)
-    # } else {
-    #   Cvec_lt <- 0 * Cvec
-    # }
+    if(isTRUE(lt)) {
+      Cvec_lt <- rowsum(x = cumhaz_tstart * exp(g_x), atrisk$order_id , reorder = FALSE)
+    } else {
+      Cvec_lt <- 0 * Cvec
+    }
 
 
     cumhaz_line <- do.call(c, cumhaz_line)[order(atrisk$positions_strata)]
 
-   #  atrisk$positions_strata
-    # browser()
+
     Cvec <- rowsum(cumhaz_line * exp(g_x), atrisk$order_id, reorder = FALSE)
 
     # atrisk$nevent
@@ -347,7 +345,7 @@ em_fit <- function(logfrailtypar, dist, pvfm,
   # ))
 
   dl2_dh <- mapply(function(a,b,c,d)
-    inf_mat_match(a,b,c,d),
+    cumsum_elp(a,b,c,d),
     tl_ord,
     tr_ord,
     split(z_elp, atrisk$strats),
@@ -367,7 +365,7 @@ em_fit <- function(logfrailtypar, dist, pvfm,
       function(elp, y1, y2, ord_id, tev)
       lapply(split.data.frame(data.frame(elp, y1 = y1, y2 = y2),
                          ord_id),
-             function(dat) inf_mat_match(dat$y1, dat$y2, dat$elp, length(tev))),
+             function(dat) cumsum_elp(dat$y1, dat$y2, dat$elp, length(tev))),
       split(elp, atrisk$strats),
       tl_ord,
       tr_ord,

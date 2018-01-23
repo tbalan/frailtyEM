@@ -30,6 +30,8 @@ for the first row of \code{newdata} is calculated.}
 between the first two values of \code{lp} is calculated. For \code{type == "pred"} the prediction
 for the first value of \code{lp} is calculated.}
 
+\item{strata}{The name of the strata (if applicable) for which the prediction should be made.}
+
 \item{quantity}{One of \code{c("cumhaz", "survival")} for \code{type == "pred"}; see \code{quantity} in \code{\link{predict.emfrail}}}
 
 \item{type_pred}{One of \code{c("conditional", "marginal")} for \code{type == "pred"}; see \code{type} in \code{\link{predict.emfrail}}}

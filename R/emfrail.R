@@ -372,6 +372,7 @@ emfrail <- function(formula,
     Y <- Surv(rep(0, nrow(Y)), Y[,1], Y[,2])
   }
 
+
   # get the model matrix
   X1 <- model.matrix(formula, data)
   # this is necessary because when factors have more levels, pos_cluster doesn't correspond any more
@@ -384,7 +385,7 @@ emfrail <- function(formula,
 
   # some stuff for creating the C vector, is used all along.
   # mcox also works with empty matrices, but also with NULL as x.
-  # browser()
+
   mcox <- survival::agreg.fit(x = X, y = Y, strata = strats, offset = NULL, init = NULL,
                               control = survival::coxph.control(),
                               weights = NULL, method = "breslow", rownames = NULL)
@@ -421,15 +422,14 @@ emfrail <- function(formula,
   # indx groups which esum is right after each nrisk;
   # the difference between the two is the sum of elp really at risk at that time point.
 
-
-  nrisk <- mapply(FUN = function(explp, y) rev(cumsum(rev(rowsum(explp, y[[1]][,2])))),
+  nrisk <- mapply(FUN = function(explp, y) rev(cumsum(rev(rowsum(explp, y[,2])))),
                   split(explp, strats),
-                  split(as.data.frame(Y), strats),
+                  split.data.frame(Y, strats),
                   SIMPLIFY = FALSE)
 
-  esum <-  mapply(FUN = function(explp, y) rev(cumsum(rev(rowsum(explp, y[[1]][,1])))),
+  esum <-  mapply(FUN = function(explp, y) rev(cumsum(rev(rowsum(explp, y[,1])))),
                       split(explp, strats),
-                      split(as.data.frame(Y), strats),
+                      split.data.frame(Y, strats),
                       SIMPLIFY = FALSE)
 
   # nrisk <- rev(cumsum(rev(rowsum(explp, Y[, ncol(Y) - 1]))))
@@ -440,14 +440,14 @@ emfrail <- function(formula,
   # death <- (Y[, ncol(Y)] == 1)
 
   death <- lapply(
-    X = split(as.data.frame(Y), strats),
-    FUN = function(y) (y[[1]][,3] == 1)
+    X = split.data.frame(Y, strats),
+    FUN = function(y) (y[,3] == 1)
   )
 
   nevent <- mapply(
     FUN = function(y, d)
-      as.vector(rowsum(1 * d, y[[1]][, 2])),
-    split(as.data.frame(Y), strats),
+      as.vector(rowsum(1 * d, y[, 2])),
+    split.data.frame(Y, strats),
     death,
     SIMPLIFY = FALSE
   )
@@ -455,8 +455,8 @@ emfrail <- function(formula,
   # nevent <- as.vector(rowsum(1 * death, Y[, ncol(Y) - 1])) # per time point
 
   time_str <- lapply(
-    X = split(as.data.frame(Y), strats),
-    FUN = function(y) sort(unique(y[[1]][,2]))
+    X = split.data.frame(Y, strats),
+    FUN = function(y) sort(unique(y[,2]))
   )
 
   delta <- min(diff(sort(unique(Y[,2]))))/2
@@ -465,8 +465,8 @@ emfrail <- function(formula,
 
   # this gives the next entry time for each unique tstop (not only event)
   etime <- lapply(
-    X = split(as.data.frame(Y), strats),
-    FUN = function(y) c(0, sort(unique(y[[1]][,1])),  max(y[[1]][, 1]) + delta)
+    X = split.data.frame(Y, strats),
+    FUN = function(y) c(0, sort(unique(y[,1])),  max(y[, 1]) + delta)
   )
 
   indx <-
@@ -485,16 +485,16 @@ emfrail <- function(formula,
   # indx2 <- findInterval(Y[,1], time, left.open = FALSE, rightmost.closed = TRUE)
 
   indx2 <-
-    mapply(FUN = function(y, time) findInterval(y[[1]][,1], time),
-           split(as.data.frame(Y), strats),
+    mapply(FUN = function(y, time) findInterval(y[,1], time),
+           split.data.frame(Y, strats),
            time_str,
            SIMPLIFY = FALSE
     )
   # indx2 <- findInterval(Y[,1], time)
 
   time_to_stop <-
-    mapply(FUN = function(y, time) match(y[[1]][,2], time),
-           split(as.data.frame(Y), strats),
+    mapply(FUN = function(y, time) match(y[,2], time),
+           split.data.frame(Y, strats),
            time_str,
            SIMPLIFY = FALSE
     )
@@ -547,13 +547,6 @@ emfrail <- function(formula,
     cumhaz_tstart,
     split(explp, strats),
     SIMPLIFY = FALSE)
-
-  # haz <- nevent/nrisk * newrisk
-  # basehaz_line <- haz[atrisk$time_to_stop]
-  # cumhaz <- cumsum(haz)
-  # cumhaz_0_line <- cumhaz[atrisk$time_to_stop]
-  # cumhaz_tstart <- c(0, cumhaz)[atrisk$indx2 + 1]
-  # cumhaz_line <- (cumhaz_0_line - cumhaz_tstart)  * explp / newrisk
 
   cumhaz_line <- do.call(c, cumhaz_line)[order(positions_strata)]
 
