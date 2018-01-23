@@ -125,11 +125,14 @@ predict.emfrail <- function(object,
 
   if(is.null(newdata) & is.null(lp)) stop("lp or newdata must be specified")
 
-  if(length(object$hazard) > 1) {
-    if(is.null(strata)) stop("strata must be specified")
-    if(!(strata %in% names(object$hazard)))
-      stop(paste0("strata must be one of: {", paste0(names(object$hazard), collapse = ", "), "}"))
-    if(length(strata) > 1) stop("predict() only available for one strata")
+
+
+  if(is.list(object$hazard))
+    if(length(object$hazard) > 1) {
+      if(is.null(strata)) stop("strata must be specified")
+      if(!(strata %in% names(object$hazard)))
+        stop(paste0("strata must be one of: {", paste0(names(object$hazard), collapse = ", "), "}"))
+      if(length(strata) > 1) stop("predict() only available for one strata")
   }
 
 
@@ -185,8 +188,8 @@ predict.emfrail <- function(object,
     tev <- object$tev[[strata]]
     hazard <- object$hazard[[strata]]
   } else {
-    tev <- object$tev[[1]]
-    hazard <- object$hazard[[1]]
+    tev <- object$tev
+    hazard <- object$hazard
   }
 
 

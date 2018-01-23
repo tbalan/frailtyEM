@@ -360,7 +360,7 @@ emfrail <- function(formula,
     label_strats <- levels(mf[[pos_strata]])
   } else {
     # else, everyone is in the same strata
-    strats <- rep(1, nrow(mf))
+    strats <- NULL
     label_strats <- "1"
   }
 
@@ -373,9 +373,8 @@ emfrail <- function(formula,
   }
 
 
-  # get the model matrix
   X1 <- model.matrix(formula, data)
-  # this is necessary because when factors have more levels, pos_cluster doesn't correspond any more
+
   pos_cluster_X1 <- grep("cluster", colnames(X1))
   pos_terminal_X1 <- grep("terminal", colnames(X1))
   pos_strata_X1 <- grep("strata", colnames(X1))
@@ -383,13 +382,12 @@ emfrail <- function(formula,
   X <- X1[,-c(1, pos_cluster_X1, pos_terminal_X1, pos_strata_X1), drop=FALSE]
   # note: X has no attributes, in coxph it does.
 
-  # some stuff for creating the C vector, is used all along.
   # mcox also works with empty matrices, but also with NULL as x.
 
   mcox <- survival::agreg.fit(x = X, y = Y, strata = strats, offset = NULL, init = NULL,
                               control = survival::coxph.control(),
                               weights = NULL, method = "breslow", rownames = NULL)
-# order(strat, -Y[,2])
+  # order(strat, -Y[,2])
   # the "baseline" case // this will stay constant
 
   if(length(X) == 0) {
@@ -417,138 +415,151 @@ emfrail <- function(formula,
   nev_id <- as.numeric(rowsum(Y[,3], order_id, reorder = FALSE)) # nevent per cluster
   names(nev_id) <- unique(id)
 
-  # Idea: nrisk has the sum of elp who leave later at every tstop
+  # nrisk has the sum with every tstop and the sum of elp at risk at that tstop
   # esum has the sum of elp who enter at every tstart
   # indx groups which esum is right after each nrisk;
   # the difference between the two is the sum of elp really at risk at that time point.
 
-  nrisk <- mapply(FUN = function(explp, y) rev(cumsum(rev(rowsum(explp, y[,2])))),
-                  split(explp, strats),
-                  split.data.frame(Y, strats),
-                  SIMPLIFY = FALSE)
-
-  esum <-  mapply(FUN = function(explp, y) rev(cumsum(rev(rowsum(explp, y[,1])))),
-                      split(explp, strats),
-                      split.data.frame(Y, strats),
-                      SIMPLIFY = FALSE)
-
-  # nrisk <- rev(cumsum(rev(rowsum(explp, Y[, ncol(Y) - 1]))))
-  # esum <- rev(cumsum(rev(rowsum(explp, Y[, 1]))))
-
-  # the stuff that won't change
-
-  # death <- (Y[, ncol(Y)] == 1)
-
-  death <- lapply(
-    X = split.data.frame(Y, strats),
-    FUN = function(y) (y[,3] == 1)
-  )
-
-  nevent <- mapply(
-    FUN = function(y, d)
-      as.vector(rowsum(1 * d, y[, 2])),
-    split.data.frame(Y, strats),
-    death,
-    SIMPLIFY = FALSE
-  )
-
-  # nevent <- as.vector(rowsum(1 * death, Y[, ncol(Y) - 1])) # per time point
-
-  time_str <- lapply(
-    X = split.data.frame(Y, strats),
-    FUN = function(y) sort(unique(y[,2]))
-  )
-
-  delta <- min(diff(sort(unique(Y[,2]))))/2
-
-  time <- sort(unique(Y[,2])) # unique tstops
-
-  # this gives the next entry time for each unique tstop (not only event)
-  etime <- lapply(
-    X = split.data.frame(Y, strats),
-    FUN = function(y) c(0, sort(unique(y[,1])),  max(y[, 1]) + delta)
-  )
-
-  indx <-
-    mapply(FUN = function(time, etime) findInterval(time, etime, left.open = TRUE),
-           time_str,
-           etime,
-           SIMPLIFY = FALSE
-)
-
-  # findInterval(time, etime, left.open = TRUE) # left.open  = TRUE is very important
-
-  # etime <- c(0, sort(unique(Y[, 1])),  max(Y[, 1]) + min(diff(time)))
-  # indx <- findInterval(time, etime, left.open = TRUE) # left.open  = TRUE is very important
-
-  # this gives for every tstart (line variable), after which event time did it come
-  # indx2 <- findInterval(Y[,1], time, left.open = FALSE, rightmost.closed = TRUE)
-
-  indx2 <-
-    mapply(FUN = function(y, time) findInterval(y[,1], time),
-           split.data.frame(Y, strats),
-           time_str,
-           SIMPLIFY = FALSE
-    )
-  # indx2 <- findInterval(Y[,1], time)
-
-  time_to_stop <-
-    mapply(FUN = function(y, time) match(y[,2], time),
-           split.data.frame(Y, strats),
-           time_str,
-           SIMPLIFY = FALSE
-    )
-
-  # time_to_stop <- match(Y[,2], time)
-
-  positions_strata <- do.call(c,split(1:nrow(Y), strats))
-
-  atrisk <- list(death = death, nevent = nevent, nev_id = nev_id,
-                 order_id = order_id, time = time, indx = indx, indx2 = indx2,
-                 time_to_stop = time_to_stop,
-                 positions_strata = positions_strata,
-                 strats = strats)
-
-  # nrisk_str - c(esum_str,0,0)
-
-  nrisk <- mapply(FUN = function(nrisk, esum, indx)  nrisk - c(esum, 0,0)[indx],
-                      nrisk,
-                      esum,
-                      indx,
-                      SIMPLIFY = FALSE)
-  # nrisk <- nrisk - c(esum, 0,0)[indx]
-
-  if(newrisk == 0) warning("Hazard ratio very extreme; please check (and/or rescale) your data")
-
-  haz <- mapply(FUN = function(nevent, nrisk) nevent/nrisk * newrisk,
-                    nevent,
-                    nrisk,
+  if(!is.null(strats)) {
+    nrisk <- mapply(FUN = function(explp, y) rev(cumsum(rev(rowsum(explp, y[,2])))),
+                    split(explp, strats),
+                    split.data.frame(Y, strats),
                     SIMPLIFY = FALSE)
 
-  basehaz_line <- mapply(FUN = function(haz, time_to_stop) haz[time_to_stop],
-                             haz,
-                             time_to_stop,
-                             SIMPLIFY = FALSE)
+    esum <-  mapply(FUN = function(explp, y) rev(cumsum(rev(rowsum(explp, y[,1])))),
+                    split(explp, strats),
+                    split.data.frame(Y, strats),
+                    SIMPLIFY = FALSE)
 
-  cumhaz <- lapply(haz, cumsum)
+    death <- lapply(
+      X = split.data.frame(Y, strats),
+      FUN = function(y) (y[,3] == 1)
+    )
 
-  cumhaz_0_line <- mapply(FUN = function(cumhaz, time_to_stop) cumhaz[time_to_stop],
-                          cumhaz,
-                          time_to_stop,
-                          SIMPLIFY = FALSE)
+    nevent <- mapply(
+      FUN = function(y, d)
+        as.vector(rowsum(1 * d, y[, 2])),
+      split.data.frame(Y, strats),
+      death,
+      SIMPLIFY = FALSE
+    )
 
-  cumhaz_tstart <- mapply(FUN = function(cumhaz, indx2) c(0, cumhaz)[indx2 + 1],
-                              cumhaz,
-                              indx2,
-                              SIMPLIFY = FALSE)
-  cumhaz_line <- mapply(FUN = function(cumhaz_0_line, cumhaz_tstart, explp)
-    (cumhaz_0_line - cumhaz_tstart) * explp / newrisk,
-    cumhaz_0_line,
-    cumhaz_tstart,
-    split(explp, strats),
-    SIMPLIFY = FALSE)
+    time_str <- lapply(
+      X = split.data.frame(Y, strats),
+      FUN = function(y) sort(unique(y[,2]))
+    )
 
-  cumhaz_line <- do.call(c, cumhaz_line)[order(positions_strata)]
+    delta <- min(diff(sort(unique(Y[,2]))))/2
+
+    time <- sort(unique(Y[,2])) # unique tstops
+
+    etime <- lapply(
+      X = split.data.frame(Y, strats),
+      FUN = function(y) c(0, sort(unique(y[,1])),  max(y[, 1]) + delta)
+    )
+
+    indx <-
+      mapply(FUN = function(time, etime) findInterval(time, etime, left.open = TRUE),
+             time_str,
+             etime,
+             SIMPLIFY = FALSE
+      )
+
+    indx2 <-
+      mapply(FUN = function(y, time) findInterval(y[,1], time),
+             split.data.frame(Y, strats),
+             time_str,
+             SIMPLIFY = FALSE
+      )
+
+    time_to_stop <-
+      mapply(FUN = function(y, time) match(y[,2], time),
+             split.data.frame(Y, strats),
+             time_str,
+             SIMPLIFY = FALSE
+      )
+
+    positions_strata <- do.call(c,split(1:nrow(Y), strats))
+
+    atrisk <- list(death = death, nevent = nevent, nev_id = nev_id,
+                   order_id = order_id, time = time, indx = indx, indx2 = indx2,
+                   time_to_stop = time_to_stop,
+                   positions_strata = positions_strata,
+                   strats = strats)
+
+    nrisk <- mapply(FUN = function(nrisk, esum, indx)  nrisk - c(esum, 0,0)[indx],
+                    nrisk,
+                    esum,
+                    indx,
+                    SIMPLIFY = FALSE)
+
+    if(newrisk == 0) warning("Hazard ratio very extreme; please check (and/or rescale) your data")
+
+    haz <- mapply(FUN = function(nevent, nrisk) nevent/nrisk * newrisk,
+                  nevent,
+                  nrisk,
+                  SIMPLIFY = FALSE)
+
+    basehaz_line <- mapply(FUN = function(haz, time_to_stop) haz[time_to_stop],
+                           haz,
+                           time_to_stop,
+                           SIMPLIFY = FALSE)
+
+    cumhaz <- lapply(haz, cumsum)
+
+    cumhaz_0_line <- mapply(FUN = function(cumhaz, time_to_stop) cumhaz[time_to_stop],
+                            cumhaz,
+                            time_to_stop,
+                            SIMPLIFY = FALSE)
+
+    cumhaz_tstart <- mapply(FUN = function(cumhaz, indx2) c(0, cumhaz)[indx2 + 1],
+                            cumhaz,
+                            indx2,
+                            SIMPLIFY = FALSE)
+
+    cumhaz_line <- mapply(FUN = function(cumhaz_0_line, cumhaz_tstart, explp)
+      (cumhaz_0_line - cumhaz_tstart) * explp / newrisk,
+      cumhaz_0_line,
+      cumhaz_tstart,
+      split(explp, strats),
+      SIMPLIFY = FALSE)
+
+    cumhaz_line <- do.call(c, cumhaz_line)[order(positions_strata)]
+
+
+  } else {
+    nrisk <- rev(cumsum(rev(rowsum(explp, Y[, ncol(Y) - 1]))))
+    esum <- rev(cumsum(rev(rowsum(explp, Y[, 1]))))
+
+    death <- (Y[, ncol(Y)] == 1)
+    nevent <- as.vector(rowsum(1 * death, Y[, ncol(Y) - 1])) # per time point
+
+    time <- sort(unique(Y[,2])) # unique tstops
+
+    etime <- c(0, sort(unique(Y[, 1])),  max(Y[, 1]) + min(diff(time))/2)
+    indx <- findInterval(time, etime, left.open = TRUE) # left.open  = TRUE is very important
+
+    # this gives for every tstart (line variable), after which event time did it come
+    indx2 <- findInterval(Y[,1], time)
+
+    time_to_stop <- match(Y[,2], time)
+
+    atrisk <- list(death = death, nevent = nevent, nev_id = nev_id,
+                   order_id = order_id, time = time, indx = indx, indx2 = indx2,
+                   time_to_stop = time_to_stop,
+                   strats = NULL)
+    nrisk <- nrisk - c(esum, 0,0)[indx]
+
+    if(newrisk == 0) warning("Hazard ratio very extreme; please check (and/or rescale) your data")
+
+    haz <- nevent/nrisk * newrisk
+    basehaz_line <- haz[atrisk$time_to_stop]
+    cumhaz <- cumsum(haz)
+
+    cumhaz_0_line <- cumhaz[atrisk$time_to_stop]
+    cumhaz_tstart <- c(0, cumhaz)[atrisk$indx2 + 1]
+    cumhaz_line <- (cumhaz[atrisk$time_to_stop] - c(0, cumhaz)[atrisk$indx2 + 1]) * explp / newrisk
+  }
 
 
   Cvec <- rowsum(cumhaz_line, order_id, reorder = FALSE)
@@ -556,19 +567,21 @@ emfrail <- function(formula,
   ca_test <- NULL
 
   # ca_test_fit does not know strata ?!?
-  # if(isTRUE(control$ca_test)) ca_test <- ca_test_fit(mcox, X, atrisk, exp_g_x, cumhaz)
+  if(isTRUE(control$ca_test)) {
+
+    if(!is.null(strats)) ca_test <- NULL else
+      ca_test <- ca_test_fit(mcox, X, atrisk, exp_g_x, cumhaz)
+
+  }
+
 
   if(isTRUE(distribution$left_truncation)) {
 
-    #indx2 <- findInterval(Y[,1], time, left.open = TRUE)
-
-    cumhaz_tstop <- cumsum(haz)
-    cumhaz_tstart <- c(0, cumhaz_tstop)[indx2 + 1]
+    if(!is.null(strats))
+      cumhaz_tstart <- do.call(c, cumhaz_tstart)[order(atrisk$positions_strata)]
 
     Cvec_lt <- rowsum(cumhaz_tstart, atrisk$order_id, reorder = FALSE)
-    # Cvec_lt <- tapply(X = cumhaz_tstart,
-    #                   INDEX = id,
-    #                   FUN = sum)
+
   } else Cvec_lt <- 0 * Cvec
 
   # a fit just for the log-likelihood;
@@ -734,8 +747,13 @@ You can try a lower value for control$lik_interval[1].")
 
     # se_logtheta^2 / (2 * (final_fit$loglik -final_fit_plus$loglik ))
 
-    deta_dtheta <- (c(final_fit_plus$coef, do.call(c, final_fit_plus$haz)) -
-                      c(final_fit_minus$coef, do.call(c, final_fit_minus$haz))) / (2*h)
+    if(!is.null(atrisk$strats))
+      deta_dtheta <- (c(final_fit_plus$coef, do.call(c, final_fit_plus$haz)) -
+                      c(final_fit_minus$coef, do.call(c, final_fit_minus$haz))) / (2*h) else
+                        deta_dtheta <- (c(final_fit_plus$coef, final_fit_plus$haz) -
+                                          c(final_fit_minus$coef, final_fit_minus$haz)) / (2*h)
+
+
 
     #adj_se <- sqrt(diag(deta_dtheta %*% (1/(attr(opt_object, "details")[[3]])) %*% t(deta_dtheta)))
 
@@ -778,14 +796,20 @@ You can try a lower value for control$lik_interval[1].")
     model_frame <- mf
   if(!isTRUE(model.matrix)) X <- NULL
 
+
   frail <- inner_m$frail
   names(frail) <- unique(id)
 
   haz <- inner_m$haz
-  names(haz) <- label_strats
-
   tev <- inner_m$tev
-  names(tev) <- label_strats
+
+  if(!is.null(atrisk$strats)) {
+
+    names(haz) <- label_strats
+    names(tev) <- label_strats
+
+  }
+
 
 
   res <- list(coefficients = inner_m$coef, #
