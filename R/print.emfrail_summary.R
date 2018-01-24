@@ -1,4 +1,5 @@
 #' @export
+#' @method print emfrail_summary
 #' @keywords internal
 print.emfrail_summary <- function(x,
                                   digits = max(getOption('digits')-3, 3),

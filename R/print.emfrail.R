@@ -1,4 +1,5 @@
 #' @export
+#' @method print emfrail
 #' @keywords internal
 print.emfrail <- function(x, ...) {
 

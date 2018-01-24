@@ -2,18 +2,18 @@
 % Please edit documentation in R/emfrail.R
 \name{emfrail}
 \alias{emfrail}
-\title{Fitting shared frailty models with the EM algorithm}
+\title{Fitting semi-parametric shared frailty models with the EM algorithm}
 \usage{
 emfrail(formula, data, distribution = emfrail_dist(),
   control = emfrail_control(), model = FALSE, model.matrix = FALSE, ...)
 }
 \arguments{
 \item{formula}{A formula that contains on the left hand side an object of the type \code{Surv}
-and on the right hand side a \code{+cluster(id)} statement. Optionally, also a \code{+terminal()} statement
-may be added, and then a score test for association between the event process and the result in the specified
-column is performed. See details.}
+and on the right hand side a \code{+cluster(id)} statement. Two special statments may also be used:
+\code{+strata()} for specifying a grouping column that will represent different strata and
+\code{+terminal()}}
 
-\item{data}{A data frame in which the formula argument can be evaluated}
+\item{data}{A \code{data.frame} in which the formula argument can be evaluated}
 
 \item{distribution}{An object as created by \code{\link{emfrail_dist}}}
 
@@ -55,86 +55,69 @@ if the \code{+terminal()} statement is specified and the frailty distribution is
 \item{mm}{The \code{model.matrix}, if \code{model.matrix = TRUE}}
 }
 \description{
-Fitting shared frailty models with the EM algorithm
+Fitting semi-parametric shared frailty models with the EM algorithm
 }
 \details{
 The \code{emfrail} function fits shared frailty models for processes which have intensity
 \deqn{\lambda(t) = z \lambda_0(t) \exp(\beta' \mathbf{x})}
-with a non-parametric (Breslow) baseline intensity \eqn{\lambda_0(t)}.
-The distribution of \eqn{z} is usually described by one parameter \eqn{\theta}.
-The family of supported distributions can be one of gamma, positive stable or PVF (power-variance-family).
-For details, see the vignette and \code{\link{emfrail_dist}} .
+with a non-parametric (Breslow) baseline intensity \eqn{\lambda_0(t)}. The outcome
+(left hand side of the \code{formula}) must be a \code{Surv} object.
 
-The algorithm is described in detail in the vignette. The short version is as follows:
-The objective is to maximize a marginal likelihood with respect to 3 sets of parameters, \eqn{\theta > 0}
-(the parameter of the frailty distribution), \eqn{\beta} (a vector of regression coefficients) and \eqn{\lambda_0}
-(a vector of "jumps" of the cumulative hazards at each event time point).
-The essence of the algorithm relies on the observation that, if \eqn{\theta} would be fixed, then the maximization
-with respect to \eqn{\beta, \theta} can be done with an EM algorithm. This procedure has been described, for the
-gamma frailty, in Nielsen (1992).
-The "inner" problem is, for a fixed of \eqn{\theta}, to calculate
-\deqn{\widehat{L}(\theta) = \mathrm{max}_{\beta, \lambda_0} L(\beta, \lambda_0 | \theta).}
-which is done via an EM algorithm. The "outer" problem is to calculate
-\deqn{\widehat{L} = \mathrm{max}_{\theta} \widehat{L}(\theta).}
+If the object is \code{Surv(tstop, status)} then the usual failure time data is represented.
+Gap-times between recurrent events are represented in the same way.
+If the left hand side of the formula is created as \code{Surv(tstart, tstop, status)}, this may represent a number of things:
+(a) recurrent events episodes in calendar time where a recurrent event episode starts at \code{tstart} and ends at \code{tstop}
+(b) failure time data with time-dependent covariates where \code{tstop} is the time of a change in covariates or censoring
+(\code{status = 0}) or an event time (\code{status = 1}) or (c) clustered failure time with left truncation, where
+\code{tstart} is the individual's left truncation time. Unlike regular Cox models, a major distinction is that in case (c) the
+distribution of the frailty must be considered conditional on survival up to the left truncation time.
 
-The "inner" problem is solved relying on \code{agreg.fit} from the \code{survival} package in the M step
-and with an E step which is done in \code{R} when there are closed form solutions and in \code{C++} when the
-solutions are calculated with a recursive algorithm. The information matrix (given fixed \eqn{\theta}) is calculated using Louis' formula.
-The "outer" problem is solved relying on the maximizers in the \code{nlm} function, which also provides an estimate
-of the Hessian matrix. The remaining elements of the information matrix are approximated numerically.
+The \code{+cluster()} statement specified the column that determines the grouping (the observations that share the same frailty).
+The \code{+strata()} statement specifies a column that determines different strata, for which different baseline hazards are calculated.
+The \code{+terminal} specifies a column that contains an indicator for dependent censoring, and then performs a score test
 
-Several options are available to the user. In the \code{distribution} argument, the frailty distribution and the
-starting value for \eqn{\theta} can be specified, as well as whether the data consists of left truncated
-survival times or not (the default). In the \code{control} argument, several parameters control the maximization.
-The convergence criterion for the EM can be specified (or a maximum number of iterations). The "outer" procedure can be
-avoided altogether and then \code{emfrail} calculates only \eqn{\widehat{L}(\theta)} at the given starting value.
+The \code{distribution} argument must be generated by a call to \code{\link{emfrail_dist}}. This determines the
+frailty distribution, which may be one of gamma, positive stable or PVF (power-variance-function), and the starting
+value for the maximum likelihood estimation. The PVF family
+also includes a tuning parameter that differentiates between inverse Gaussian and compound Poisson distributions.
 
-The Commenges-Andersen test is a score test for heterogeneity which test the null hypothesis that all
-frailties are equal to 1. This only uses the information from the initial proportional hazards model
-without frailty.
-
-The score test for dependent censoring test is detailed in Balan et al (2016). If significant, it may indicate
-that dependent censoring is present. A common scenario is when recurrent events are stopped by a terminal event.
+The \code{control} argument must be generated by a call to \code{\link{emfrail_control}}. Several parameters
+may be adjusted that control the precision of the convergenge criteria or supress the calculation of different
+quantities.
 }
 \note{
-Some possible problems may appear when the maximum likelihood estimate lies on the border of the parameter space.
-Usually, this will happen when the "outer" parameter MLE is infinity (i.e. variance 0 in case of gamma and PVF).
-For small enough values of \eqn{1/\theta} the log-likelihood
-of the Cox model is returned to avoid such problems. This option can be tweaked in \code{emfrail_control()}.
+Several options in the \code{control} arguemnt shorten the running time for \code{emfrail} significantly.
+These are disabling the adjustemnt of the standard errors (\code{se_adj = FALSE}), disabling the likelihood-based confidence intervals (\code{lik_ci = FALSE}) or
+disabling the score test for heterogeneity (\code{ca_test = FALSE}).
+
+The algorithm is detailed in the package vignette. For the gamma frailty,
+the results should be identical with those from \code{coxph} with \code{ties = "breslow"}.
 }
 \examples{
-dat <- survival::rats
 
+m_gamma <- emfrail(formula = Surv(time, status) ~  rx + sex + cluster(litter),
+                   data =  rats)
 
-m1 <- emfrail(formula = Surv(time, status) ~  rx + sex + cluster(litter),
-data =  dat)
-m1
-summary(m1)
-\dontrun{
-# for the Inverse Gaussian distribution
-m2 <- emfrail(formula = Surv(time, status) ~  rx + sex + cluster(litter),
-             data =  dat,
-             distribution = emfrail_dist(dist = "pvf"))
-m2
+# Inverse Gaussian distribution
+m_ig <- emfrail(formula = Surv(time, status) ~  rx + sex + cluster(litter),
+                data =  rats,
+                distribution = emfrail_dist(dist = "pvf"))
 
 # for the PVF distribution with m = 0.75
-m3 <- emfrail(formula = Surv(time, status) ~  rx + sex + cluster(litter),
-              data =  dat,
-              distribution = emfrail_dist(dist = "pvf", pvfm = 0.75))
-m3
+m_pvf <- emfrail(formula = Surv(time, status) ~  rx + sex + cluster(litter),
+                 data =  rats,
+                 distribution = emfrail_dist(dist = "pvf", pvfm = 0.75))
 
 # for the positive stable distribution
-m4 <- emfrail(formula = Surv(time, status) ~  rx + sex + cluster(litter),
-              data =  dat,
-              distribution = emfrail_dist(dist = "stable"))
-m4
-}
-# Compare marginal log-likelihoods
+m_ps <- emfrail(formula = Surv(time, status) ~  rx + sex + cluster(litter),
+                data =  rats,
+                distribution = emfrail_dist(dist = "stable"))
 \dontrun{
-models <- list(m1, m2, m3, m4)
+# Compare marginal log-likelihoods
+models <- list(m_gamma, m_ig, m_pvf, m_ps)
 
-logliks <- lapply(models,
-                  function(x) -x$outer_m$value)
+models
+logliks <- lapply(models, logLik)
 
 names(logliks) <- lapply(models,
                          function(x) with(x$distribution,
@@ -145,152 +128,79 @@ names(logliks) <- lapply(models,
 
 logliks
 }
+
+# Stratified analysis
+\dontrun{
+  m_strat <- emfrail(formula = Surv(time, status) ~  rx + strata(sex) + cluster(litter),
+                     data =  rats)
+}
+
+
 # Draw the profile log-likelihood
 \dontrun{
-fr_var <- seq(from = 0.01, to = 1.4, length.out = 20)
+  fr_var <- seq(from = 0.01, to = 1.4, length.out = 20)
 
-# For gamma the variance is 1/theta (see parametrizations)
-pll_gamma <- emfrail_pll(formula = Surv(time, status) ~  rx + sex + cluster(litter),
-                         data =  dat,
-                         values = 1/fr_var )
- plot(fr_var, pll_gamma,
-     type = "l",
-     xlab = "Frailty variance",
-     ylab = "Profile log-likelihood")
+  # For gamma the variance is 1/theta (see parametrizations)
+  pll_gamma <- emfrail_pll(formula = Surv(time, status) ~  rx + sex + cluster(litter),
+                           data =  rats,
+                           values = 1/fr_var )
+  plot(fr_var, pll_gamma,
+       type = "l",
+       xlab = "Frailty variance",
+       ylab = "Profile log-likelihood")
+
+
+  # Recurrent events
+  mod_rec <- emfrail(Surv(start, stop, status) ~ treatment + cluster(id), bladder1)
+  # The warnings appear from the Surv object, they also appear in coxph.
+
+  plot(mod_rec, type = "hist")
 }
-\dontrun{
-# The same can be done with coxph, where variance is refered to as "theta"
-pll_cph <- sapply(fr_var, function(fr)
-  coxph(data =  dat, formula = Surv(time, status) ~ rx + sex + frailty(litter, theta = fr),
-        method = "breslow")$history[[1]][[3]])
-
-# Same for inverse gaussian
-pll_if <- emfrail_pll(data =  dat,
-                      formula = Surv(time, status) ~  rx + sex + cluster(litter),
-                      distribution = emfrail_dist(dist = "pvf"),
-                      .values = 1/fr_var )
-
-# Same for pvf with a psoitive pvfm parameter
-pll_pvf <- emfrail_pll(data =  dat,
-                       formula = Surv(time, status) ~  rx + sex + cluster(litter),
-                       distribution = emfrail_dist(dist = "pvf", pvfm = 1.5),
-                       .values = 1/fr_var )
-
-miny <- min(c(pll_gamma, pll_cph, pll_if, pll_pvf))
-maxy <- max(c(pll_gamma, pll_cph, pll_if, pll_pvf))
-
-plot(fr_var, pll_gamma,
-     type = "l",
-     xlab = "Frailty variance",
-     ylab = "Profile log-likelihood",
-     ylim = c(miny, maxy))
-points(fr_var, pll_cph, col = 2)
-lines(fr_var, pll_if, col = 3)
-lines(fr_var, pll_pvf, col = 4)
-
-legend(legend = c("gamma (emfrail)", "gamma (coxph)", "inverse gaussian", "pvf, m=1.5"),
-       col = 1:4,
-       lty = 1,
-       x = 0,
-       y = (maxy + miny)/2)
-}
-# Recurrent events
-mod_rec <- emfrail(Surv(start, stop, status) ~ treatment + cluster(id), bladder1)
-# The warnings appear from the Surv object, they also appear in coxph.
-
-summary(mod_rec)
-
-# Create a histogram of the estimated frailties
-
-plot(mod_rec, type = "hist")
-
-# or, with ggplot:
-\dontrun{
-library(ggplot2)
-sum_mod_rec <- summary(mod_rec)
-
-ggplot(sum_mod_rec$frail, aes(x = z)) +
-  geom_histogram() +
-  ggtitle("Estimated frailties")
-
-# Plot the frailty estimates with quantiles of the estimated distribution
-ggplot(sum_mod_rec$frail, aes(x = id, y = z)) +
-  geom_point() +
-  ggtitle("Estimated frailties") +
-  geom_errorbar(aes(ymin = lower_q, ymax = upper_q))
-
-# We can do the same plot but with the ordered frailties:
-ord <- order(sum_mod_rec$frail$z)
-# we need new x coordinates for that:
-ordering <- 1:length(ord)
-
-ggplot(sum_mod_rec$frail[ord,], aes(x = ordering, y = z)) +
-  geom_point() +
-  ggtitle("Estimated frailties") +
-  geom_errorbar(aes(ymin = lower_q, ymax = upper_q))
-
-# How do we know which id is which one now?
-# We can make an interactive plot with ggplotly
-# To add text to elements we add id in aes()
-
-library(plotly)
-ggplotly(
-  ggplot(sum_mod_rec$frail[ord,], aes(x = ordering, y = z)) +
-    geom_point(aes(id = id)) +
-    ggtitle("Estimated frailties") +
-    geom_errorbar(aes(ymin = lower_q, ymax = upper_q, id = id))
-)
-}
-
-# Plot marginal and conditional curves
-# For recurrent events, the survival is not very meaningful
-
-plot(mod_rec, type = "pred", lp = 0, quantity = "cumhaz")
-#The strong frailty "drags down" the intensity
-
-
 
 # Left truncation
-
-# N.B. This code takes a longer time to run
-
 \dontrun{
-# We simulate some data with truncation times
-set.seed(1)
-x <- sample(c(0,1), 5 * 300, TRUE)
-u <- rep(rgamma(300,1,1), each = 5)
-stime <- rexp(5*300, rate = u * exp(0.5 * x))
-status <- ifelse(stime > 5, 0, 1)
-stime[status] <- 5
+  # We simulate some data with truncation times
+  set.seed(2018)
+  nclus <- 300
+  nind <- 5
+  x <- sample(c(0,1), nind * nclus, TRUE)
+  u <- rep(rgamma(nclus,1,1), each = 3)
 
-ltime <- runif(5 * 300, min = 0, max = 2)
-d <- data.frame(id = rep(1:300, each = 5),
-                x = x,
-                stime = stime,
-                u = u,
-                ltime = ltime,
-                status = 1)
-d_left <- d[d$stime > d$ltime,]
+  stime <- rexp(nind * nclus, rate = u * exp(0.5 * x))
 
-# The worst thing that can be done is to
-# Ignore the left truncation:
-mod_1 <- emfrail(Surv(stime, status)~ x + cluster(id), d_left)
+  status <- ifelse(stime > 5, 0, 1)
+  stime[status == 0] <- 5
 
-# The so-and-so thing is to consider the delayed entry time,
-# But do not "update" the frailty distribution accordingly
-mod_2 <- emfrail(Surv(ltime, stime, status)~ x + cluster(id), d_left)
+  # truncate uniform between 0 and 2
+  ltime <- runif(nind * nclus, min = 0, max = 2)
 
-# This is identical with
-mod_cox <- coxph(Surv(ltime, stime, status)~ x + frailty(id), data = d_left)
+  d <- data.frame(id = rep(1:nclus, each = nind),
+                  x = x,
+                  stime = stime,
+                  u = u,
+                  ltime = ltime,
+                  status = status)
+  d_left <- d[d$stime > d$ltime,]
+
+  mod <- emfrail(Surv(stime, status)~ x + cluster(id), d)
+  # This model ignores the left truncation, 0.378 frailty variance:
+  mod_1 <- emfrail(Surv(stime, status)~ x + cluster(id), d_left)
+
+  # This model takes left truncation into account,
+ # but it considers the distribution of the frailty unconditional on the truncation
+ mod_2 <- emfrail(Surv(ltime, stime, status)~ x + cluster(id), d_left)
+
+  # This is identical with:
+  mod_cox <- coxph(Surv(ltime, stime, status)~ x + frailty(id), data = d_left)
 
 
-# The correct thing is to update the frailty.
-mod_3 <- emfrail(Surv(ltime, stime, status)~ x + cluster(id), d_left,
-                 distribution = emfrail_dist(left_truncation = TRUE))
+  # The correct thing is to consider the distribution of the frailty given the truncation
+  mod_3 <- emfrail(Surv(ltime, stime, status)~ x + cluster(id), d_left,
+                   distribution = emfrail_dist(left_truncation = TRUE))
 
-summary(mod_1)
-summary(mod_2)
-summary(mod_3)
+  summary(mod_1)
+  summary(mod_2)
+  summary(mod_3)
 }
 }
 \seealso{

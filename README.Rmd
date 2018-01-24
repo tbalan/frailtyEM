@@ -16,7 +16,7 @@ knitr::opts_chunk$set(
 
 [![CRAN_Status_Badge](https://www.r-pkg.org/badges/version/frailtyEM)](https://cran.r-project.org/package=frailtyEM)
 
-[![CRAN_Downloads_Badge](https://cranlogs.r-pkg.org/badges/frailtyEM)](http://cran.rstudio.com/web/packages/frailtyEM/index.html)
+[![CRAN_Downloads_Badge](https://cranlogs.r-pkg.org/badges/frailtyEM)](https://CRAN.R-project.org/package=frailtyEM)
 
 [![Build Status](https://travis-ci.org/tbalan/frailtyEM.svg?branch=master)](https://travis-ci.org/tbalan/frailtyEM)
 

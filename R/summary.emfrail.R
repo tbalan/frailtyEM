@@ -25,6 +25,7 @@
 #' If the model contains covariates, the field \code{coefmat} contains the corresponding details.
 #'
 #' @export
+#' @method summary emfrail
 #'
 #' @seealso \code{\link{predict.emfrail}, \link{plot.emfrail}}
 #'
