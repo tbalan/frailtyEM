@@ -769,7 +769,7 @@ You can try a lower value for control$lik_interval[1].")
   if(length(pos_terminal_X1) > 0 & distribution$dist == "gamma") {
     Y[,3] <- X1[,pos_terminal_X1]
 
-    Mres <- survival::agreg.fit(x = X, y = Y, strata = NULL, offset = NULL, init = NULL,
+    Mres <- survival::agreg.fit(x = X, y = Y, strata = atrisk$strats, offset = NULL, init = NULL,
                         control = survival::coxph.control(),
                         weights = NULL, method = "breslow", rownames = NULL)$residuals
     Mres_id <- rowsum(Mres, atrisk$order_id, reorder = FALSE)

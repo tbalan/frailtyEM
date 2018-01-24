@@ -327,15 +327,16 @@ em_fit <- function(logfrailtypar, dist, pvfm,
                              bbeta = pars$bbeta,
                              pvfm = pvfm,
                              dist = pars$dist)
-      estep_again <- Estep(Cvec,
-                           Cvec_lt,
-                           atrisk$nev_id,
-                           alpha = pars$alpha,
-                           bbeta = pars$bbeta,
-                           pvfm = pvfm,
-                           dist = pars$dist)
-      zz <- estep_plusone[,1] /estep_again[,2]
-      z <- estep_again[,1] / estep_again[,2]
+
+      # estep_again <- Estep(Cvec,
+      #                      Cvec_lt,
+      #                      atrisk$nev_id,
+      #                      alpha = pars$alpha,
+      #                      bbeta = pars$bbeta,
+      #                      pvfm = pvfm,
+      #                      dist = pars$dist)
+      zz <- estep_plusone[,1] /e_step_val[,2]
+      z <- e_step_val[,1] / e_step_val[,2]
     }
 
 
