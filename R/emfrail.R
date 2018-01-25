@@ -329,32 +329,51 @@ emfrail <- function(formula,
   # the difference between the two is the sum of elp really at risk at that time point.
 
   if(!is.null(strats)) {
-    nrisk <- mapply(FUN = function(explp, y) rev(cumsum(rev(rowsum(explp, y[,2])))),
-                    split(explp, strats),
-                    split.data.frame(Y, strats),
+
+    explp_str <- split(explp, strats)
+    tstop_str <- split(Y[,2], strats)
+    tstart_str <- split(Y[,1], strats)
+
+    ord_tstop_str <- lapply(tstop_str, function(x) match(x, sort(unique(x))))
+    ord_tstart_str <- lapply(tstart_str, function(x) match(x, sort(unique(x))))
+
+    nrisk <- mapply(FUN = function(explp, y) rowsum_vec(explp, y, max(y)),
+                                       explp_str,
+                                       ord_tstop_str,
+                                       SIMPLIFY = FALSE)
+
+    # nrisk <- mapply(FUN = function(explp, y) rev(cumsum(rev(rowsum(explp, y[,2])))),
+    #                 split(explp, strats),
+    #                 split.data.frame(Y, strats),
+    #                 SIMPLIFY = FALSE)
+
+
+    esum <- mapply(FUN = function(explp, y) rowsum_vec(explp, y, max(y)),
+                    explp_str,
+                    ord_tstart_str,
                     SIMPLIFY = FALSE)
 
-    esum <-  mapply(FUN = function(explp, y) rev(cumsum(rev(rowsum(explp, y[,1])))),
-                    split(explp, strats),
-                    split.data.frame(Y, strats),
-                    SIMPLIFY = FALSE)
+    # esum <-  mapply(FUN = function(explp, y) rev(cumsum(rev(rowsum(explp, y[,1])))),
+    #                 split(explp, strats),
+    #                 split.data.frame(Y, strats),
+    #                 SIMPLIFY = FALSE)
 
     death <- lapply(
-      X = split.data.frame(Y, strats),
-      FUN = function(y) (y[,3] == 1)
+      X = split.default(Y[,3], strats),
+      FUN = function(y) (y == 1)
     )
 
     nevent <- mapply(
       FUN = function(y, d)
-        as.vector(rowsum(1 * d, y[, 2])),
-      split.data.frame(Y, strats),
+        as.vector(rowsum(1 * d, y)),
+      tstop_str,
       death,
       SIMPLIFY = FALSE
     )
 
     time_str <- lapply(
-      X = split.data.frame(Y, strats),
-      FUN = function(y) sort(unique(y[,2]))
+      X = tstop_str,
+      FUN = function(y) sort(unique(y))
     )
 
     delta <- min(diff(sort(unique(Y[,2]))))/2
@@ -362,8 +381,8 @@ emfrail <- function(formula,
     time <- sort(unique(Y[,2])) # unique tstops
 
     etime <- lapply(
-      X = split.data.frame(Y, strats),
-      FUN = function(y) c(0, sort(unique(y[,1])),  max(y[, 1]) + delta)
+      X = tstart_str,
+      FUN = function(y) c(0, sort(unique(y)),  max(y) + delta)
     )
 
     indx <-
@@ -374,15 +393,15 @@ emfrail <- function(formula,
       )
 
     indx2 <-
-      mapply(FUN = function(y, time) findInterval(y[,1], time),
-             split.data.frame(Y, strats),
+      mapply(FUN = function(y, time) findInterval(y, time),
+             tstart_str,
              time_str,
              SIMPLIFY = FALSE
       )
 
     time_to_stop <-
-      mapply(FUN = function(y, time) match(y[,2], time),
-             split.data.frame(Y, strats),
+      mapply(FUN = function(y, time) match(y, time),
+             tstop_str,
              time_str,
              SIMPLIFY = FALSE
       )
@@ -392,6 +411,8 @@ emfrail <- function(formula,
     atrisk <- list(death = death, nevent = nevent, nev_id = nev_id,
                    order_id = order_id, time = time, indx = indx, indx2 = indx2,
                    time_to_stop = time_to_stop,
+                   ord_tstart_str = ord_tstart_str,
+                   ord_tstop_str = ord_tstop_str,
                    positions_strata = positions_strata,
                    strats = strats)
 
@@ -436,10 +457,16 @@ emfrail <- function(formula,
 
 
   } else {
-    nrisk <- rev(cumsum(rev(rowsum(explp, Y[, ncol(Y) - 1]))))
-    esum <- rev(cumsum(rev(rowsum(explp, Y[, 1]))))
+    ord_tstop <- match(Y[,2], sort(unique(Y[,2])))
+    ord_tstart <- match(Y[,1], sort(unique(Y[,1])))
 
-    death <- (Y[, ncol(Y)] == 1)
+    nrisk <- rowsum_vec(explp, ord_tstop, max(ord_tstop))
+    # nrisk <- rev(cumsum(rev(rowsum(explp, Y[, ncol(Y) - 1]))))
+    esum <- rowsum_vec(explp, ord_tstart, max(ord_tstart))
+    # esum <- rev(cumsum(rev(rowsum(explp, Y[, 1]))))
+
+    death <- (Y[, 3] == 1)
+
     nevent <- as.vector(rowsum(1 * death, Y[, ncol(Y) - 1])) # per time point
 
     time <- sort(unique(Y[,2])) # unique tstops
@@ -453,8 +480,10 @@ emfrail <- function(formula,
     time_to_stop <- match(Y[,2], time)
 
     atrisk <- list(death = death, nevent = nevent, nev_id = nev_id,
-                   order_id = order_id, time = time, indx = indx, indx2 = indx2,
+                   order_id = order_id,
+                   time = time, indx = indx, indx2 = indx2,
                    time_to_stop = time_to_stop,
+                   ord_tstart = ord_tstart, ord_tstop = ord_tstop,
                    strats = NULL)
     nrisk <- nrisk - c(esum, 0,0)[indx]
 

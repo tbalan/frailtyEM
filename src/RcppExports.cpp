@@ -48,11 +48,25 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// rowsum_vec
+NumericVector rowsum_vec(NumericVector x, NumericVector pos, int lgth);
+RcppExport SEXP _frailtyEM_rowsum_vec(SEXP xSEXP, SEXP posSEXP, SEXP lgthSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericVector >::type x(xSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type pos(posSEXP);
+    Rcpp::traits::input_parameter< int >::type lgth(lgthSEXP);
+    rcpp_result_gen = Rcpp::wrap(rowsum_vec(x, pos, lgth));
+    return rcpp_result_gen;
+END_RCPP
+}
 
 static const R_CallMethodDef CallEntries[] = {
     {"_frailtyEM_Estep", (DL_FUNC) &_frailtyEM_Estep, 7},
     {"_frailtyEM_sumxxt", (DL_FUNC) &_frailtyEM_sumxxt, 2},
     {"_frailtyEM_cumsum_elp", (DL_FUNC) &_frailtyEM_cumsum_elp, 4},
+    {"_frailtyEM_rowsum_vec", (DL_FUNC) &_frailtyEM_rowsum_vec, 3},
     {NULL, NULL, 0}
 };
 

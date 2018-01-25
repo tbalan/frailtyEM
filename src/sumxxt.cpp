@@ -99,3 +99,60 @@ NumericVector cumsum_elp(NumericVector left, NumericVector right, NumericVector 
 
 
 */
+
+
+// [[Rcpp::export]]
+NumericVector rowsum_vec(NumericVector x, NumericVector pos, int lgth) {
+
+  NumericVector res(lgth);
+
+  for(int i = 0; i < x.size(); i++) {
+    res[pos[i] - 1] += x[i];
+  }
+  for(int i = res.size() - 1; i!=0; i--) {
+    res[i - 1] += res[i];
+  }
+
+  return(res);
+}
+
+
+/*** R
+# take it from the cgd
+# data(cgd)
+#
+#   ord1 <- match(cgd$tstop, sort(unique(cgd$tstop)))
+#   library(microbenchmark)
+#
+#   all.equal(
+#     with(cgd, rowsum_vec(elp, ord1, max(ord1))),
+#     with(cgd, rev(cumsum(rev(rowsum(elp, tstop)))))
+#   )
+#
+#   microbenchmark(
+#     with(cgd, rowsum_vec(elp, ord1, max(ord1))),
+#     with(cgd, rev(cumsum(rev(rowsum(elp, tstop)))))
+#   )
+#
+# #with the rats
+# # take it from the cgd
+#   data(rats)
+#   head(rats)
+#   rats$elp <- rnorm(nrow(rats))
+#   ord1 <- match(rats$time, sort(unique(rats$time)))
+#   library(microbenchmark)
+#
+#   all.equal(
+#     with(rats, rowsum_vec(elp, ord1, max(ord1))),
+#     with(rats, rev(cumsum(rev(rowsum(elp, time)))))
+#   )
+#
+#   microbenchmark(
+#     with(rats, rowsum_vec(elp, ord1, max(ord1))),
+#     with(rats, rev(cumsum(rev(rowsum(elp, time)))))
+#   )
+
+# 10x reduction in running time
+
+  */
+

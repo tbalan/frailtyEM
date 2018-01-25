@@ -30,3 +30,7 @@ cumsum_elp <- function(left, right, elp, maxlength) {
     .Call(`_frailtyEM_cumsum_elp`, left, right, elp, maxlength)
 }
 
+rowsum_vec <- function(x, pos, lgth) {
+    .Call(`_frailtyEM_rowsum_vec`, x, pos, lgth)
+}
+

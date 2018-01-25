@@ -113,15 +113,27 @@ em_fit <- function(logfrailtypar, dist, pvfm,
 
 
     if(!is.null(atrisk$strats)) {
-      nrisk  <- mapply(FUN = function(explp, y) rev(cumsum(rev(rowsum(explp, y[,2])))),
-                       split(explp, atrisk$strats),
-                       split.data.frame(Y, atrisk$strats),
-                       SIMPLIFY = FALSE)
+      explp_str <- split(explp, atrisk$strats)
 
-      esum  <-  mapply(FUN = function(explp, y) rev(cumsum(rev(rowsum(explp, y[,1])))),
-                       split(explp, atrisk$strats),
-                       split.data.frame(Y, atrisk$strats),
-                       SIMPLIFY = FALSE)
+      nrisk <- mapply(FUN = function(explp, y) rowsum_vec(explp, y, max(y)),
+                      explp_str,
+                      atrisk$ord_tstop_str,
+                      SIMPLIFY = FALSE)
+
+      # nrisk  <- mapply(FUN = function(explp, y) rev(cumsum(rev(rowsum(explp, y[,2])))),
+      #                  split(explp, atrisk$strats),
+      #                  split.data.frame(Y, atrisk$strats),
+      #                  SIMPLIFY = FALSE)
+
+      esum <- mapply(FUN = function(explp, y) rowsum_vec(explp, y, max(y)),
+                     explp_str,
+                     atrisk$ord_tstart_str,
+                     SIMPLIFY = FALSE)
+
+      # esum  <-  mapply(FUN = function(explp, y) rev(cumsum(rev(rowsum(explp, y[,1])))),
+      #                  split(explp, atrisk$strats),
+      #                  split.data.frame(Y, atrisk$strats),
+      #                  SIMPLIFY = FALSE)
 
       nrisk_b  <- mapply(FUN = function(nrisk, esum, indx)  nrisk - c(esum, 0,0)[indx],
                          nrisk ,
@@ -162,8 +174,11 @@ em_fit <- function(logfrailtypar, dist, pvfm,
 
     } else {
 
-      nrisk <- rev(cumsum(rev(rowsum(explp, Y[, ncol(Y) - 1]))))
-      esum <- rev(cumsum(rev(rowsum(explp, Y[, 1]))))
+
+      nrisk <- rowsum_vec(explp, atrisk$ord_tstop, max(atrisk$ord_tstop))
+      esum <- rowsum_vec(explp, atrisk$ord_tstart, max(atrisk$ord_tstart))
+      # nrisk <- rev(cumsum(rev(rowsum(explp, Y[, ncol(Y) - 1]))))
+      # esum <- rev(cumsum(rev(rowsum(explp, Y[, 1]))))
       nrisk <- nrisk - c(esum, 0,0)[atrisk$indx]
 
       haz <- atrisk$nevent/nrisk
