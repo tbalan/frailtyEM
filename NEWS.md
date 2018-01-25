@@ -1,8 +1,10 @@
-# frailtyEM 0.8.0
-Major update. Now stratified models are supported! Several improvements in the documentation and in the performance section. 
+# frailtyEM 0.8.1
+Major update. Now stratified models are supported! 
+Several improvements in the documentation and in the performance section. 
 
 Smaller fixes, as compared to the previoius CRAN release:
 
+- removed `rev(cumsum(rev(rowsum)))` statement and replaced with an Rcpp function `rowsum_vec`
 - using the cholesky decomposition instead of `solve`, seems that this is way better for symmetric matrices (0.7.16)
 - simplified a bit the `emfrail_control()` function (0.7.15)
 - documented options in `summary()` that control what is printed (if you want the output of a package to fit on one slide, for example) (0.7.15)
