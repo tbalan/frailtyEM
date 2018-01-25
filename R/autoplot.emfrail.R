@@ -37,7 +37,7 @@ autoplot <- autoplot
 #' @seealso \code{\link{predict.emfrail}}, \code{\link{summary.emfrail}}, \code{\link{plot.emfrail}}.
 #'
 #' @examples
-#' mod_rec <- emfrail(Surv(start, stop, status) ~ treatment + number + cluster(id), bladder1)
+#' mod_rec <- emfrail(Surv(start, stop, status) ~ treatment + number + cluster(id), bladder1, control = emfrail_control(ca_test = FALSE, lik_ci = FALSE))
 #'
 #' # Histogram of the estimated frailties
 #' autoplot(mod_rec, type = "hist")

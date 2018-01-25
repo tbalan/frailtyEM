@@ -54,7 +54,7 @@ practical purpose this will not make a difference (you can safely ignore the war
 easier to create an interactive plot out of the resulting object.
 }
 \examples{
-mod_rec <- emfrail(Surv(start, stop, status) ~ treatment + number + cluster(id), bladder1)
+mod_rec <- emfrail(Surv(start, stop, status) ~ treatment + number + cluster(id), bladder1, control = emfrail_control(ca_test = FALSE, lik_ci = FALSE))
 
 # Histogram of the estimated frailties
 autoplot(mod_rec, type = "hist")

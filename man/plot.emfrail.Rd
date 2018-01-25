@@ -44,7 +44,7 @@ Nothing
 Plots for emfrail objects
 }
 \examples{
-mod_rec <- emfrail(Surv(start, stop, status) ~ treatment + number + cluster(id), bladder1)
+mod_rec <- emfrail(Surv(start, stop, status) ~ treatment + number + cluster(id), bladder1, control = emfrail_control(ca_test = FALSE, lik_ci = FALSE))
 
 # Histogram of the estimated frailties
 plot(mod_rec, type = "hist")
