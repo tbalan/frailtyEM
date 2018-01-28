@@ -8,8 +8,10 @@
 #' @param lik_ci Logical. Should likelihood-based confidence interval be calculated for the frailty parameter?
 #' @param lik_interval The edges, on the scale of \eqn{\theta}, of the parameter space in which to search for likelihood-based confidence interval
 #' @param lik_interval_stable (for dist = "stable") The edges, on the scale of \eqn{\theta}, of the parameter space in which to search for likelihood-based confidence interval
+#' @param zph Logical. Should the \code{cox.zph} test be performed at the maximum likelihood estimate?
+#' @param zph_transform One of \code{"km", "rank", "identity"} or a function of one argument to be pased on to \code{cox.zph}.
 #' @param nlm_control A list of named arguments to be sent to \code{nlm} for the outer optimization.
-#' @param inner_control A list of parameters for the inner optimization. See details.
+#' @param em_control A list of parameters for the inner optimization. See details.
 #'
 #' @return An object of the type \code{emfrail_control}.
 #' @export
@@ -17,7 +19,7 @@
 #' @details
 #' The \code{nlm_control} argument should not overalp with \code{hessian}, \code{f} or \code{p}.
 #'
-#' The \code{inner_control} argument should be a list with the following items:
+#' The \code{em_control} argument should be a list with the following items:
 #' \itemize{
 #' \item{\code{eps}}{ A criterion for convergence of the EM algorithm (difference between two consecutive values of the log-likelihood)}
 #' \item{\code{maxit}}{ The maximum number of iterations between the E step and the M step}
@@ -38,7 +40,7 @@
 #' @seealso \code{\link{emfrail}}, \code{\link{emfrail_dist}}, \code{\link{emfrail_pll}}
 #' @examples
 #' emfrail_control()
-#' emfrail_control(inner_control = list(eps = 1e-7))
+#' emfrail_control(em_control = list(eps = 1e-7))
 #'
 
 emfrail_control <- function(opt_fit = TRUE,
@@ -49,12 +51,14 @@ emfrail_control <- function(opt_fit = TRUE,
                             lik_interval = exp(c(-3, 20)),
                             lik_interval_stable = exp(c(0, 20)),
                             nlm_control = list(stepmax = 1),
-                            inner_control = list(eps = 0.0001,
-                                                 maxit = Inf,
-                                                 fast_fit = TRUE,
-                                                 verbose = FALSE,
-                                                 upper_tol = exp(10),
-                                                 lik_tol = 1)
+                            zph = FALSE,
+                            zph_transform = "km",
+                            em_control = list(eps = 0.0001,
+                                              maxit = Inf,
+                                              fast_fit = TRUE,
+                                              verbose = FALSE,
+                                              upper_tol = exp(10),
+                                              lik_tol = 1)
 ) {
   # calculate SE as well
 
@@ -65,7 +69,7 @@ emfrail_control <- function(opt_fit = TRUE,
       stop("lik_interval must be of length 2")
     if(lik_interval[1] < exp(-7) | lik_interval[2] > exp(20))
       warning("extreme values for lik_interval, there might be some numerical trouble")
-    # if(lik_ci_intervals$interval[2] != inner_control$upper_tol)
+    # if(lik_ci_intervals$interval[2] != em_control$upper_tol)
      # message("it is good practice right hand side of the interval should be equal to upper_tol")
   }
 
@@ -84,7 +88,7 @@ emfrail_control <- function(opt_fit = TRUE,
          lik_tol = lik_tol)
   }
 
-  inner_control <- do.call(inner_c, inner_control)
+  em_control <- do.call(inner_c, em_control)
 
   res <- list(opt_fit = opt_fit,
               se = se,
@@ -93,8 +97,10 @@ emfrail_control <- function(opt_fit = TRUE,
               lik_ci = lik_ci,
               lik_interval = lik_interval,
               lik_interval_stable = lik_interval_stable,
+              zph = zph,
+              zph_transform = zph_transform,
               nlm_control = nlm_control,
-              inner_control = inner_control)
+              em_control = em_control)
   attr(res, "class") <- c("emfrail_control")
   res
 }

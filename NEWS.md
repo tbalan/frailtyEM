@@ -1,3 +1,6 @@
+# frailtyEM 0.8.2
+- Added the `zph` option in `emfrail_control()` so that the result of the `cox.zph` for the frailty model is also returned
+
 # frailtyEM 0.8.1
 Major update. Now stratified models are supported! 
 Several improvements in the documentation and in the performance section. 

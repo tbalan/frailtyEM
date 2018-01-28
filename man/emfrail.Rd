@@ -48,9 +48,9 @@ and the maximized log-likelihood}
 \item{ca_test}{The results of the Commenges-Andersen test for heterogeneity}
 \item{cens_test}{The results of the test for dependence between a recurrent event and a terminal event,
 if the \code{+terminal()} statement is specified and the frailty distribution is gamma}
-\item{formula}{The original formula argument}
-\item{distribution}{The original distribution argument}
-\item{control}{The original control argument}
+\item{zph}{The result of \code{cox.zph} called on a model with the estimated log-frailties as offset}
+\item{formula, distribution, control}{The original arguments}
+\item{nobs, fitted}{Number of observations and fitted values (i.e. \eqn{z \exp(\beta^T x)})}
 \item{mf}{The \code{model.frame}, if \code{model = TRUE}}
 \item{mm}{The \code{model.matrix}, if \code{model.matrix = TRUE}}
 }
@@ -135,6 +135,14 @@ logliks
                      data =  rats)
 }
 
+
+# Test for conditional proportional hazards (log-frailty as offset)
+\dontrun{
+m_gamma <- emfrail(formula = Surv(time, status) ~  rx + sex + cluster(litter),
+  data =  rats, control = emfrail_control(zph = TRUE))
+par(mfrow = c(1,2))
+plot(m_gamma$zph)
+}
 
 # Draw the profile log-likelihood
 \dontrun{

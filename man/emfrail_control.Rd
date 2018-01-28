@@ -7,8 +7,8 @@
 emfrail_control(opt_fit = TRUE, se = TRUE, se_adj = TRUE,
   ca_test = TRUE, lik_ci = TRUE, lik_interval = exp(c(-3, 20)),
   lik_interval_stable = exp(c(0, 20)), nlm_control = list(stepmax = 1),
-  inner_control = list(eps = 1e-04, maxit = Inf, fast_fit = TRUE, verbose =
-  FALSE, upper_tol = exp(10), lik_tol = 1))
+  zph = FALSE, zph_transform = "km", em_control = list(eps = 1e-04, maxit
+  = Inf, fast_fit = TRUE, verbose = FALSE, upper_tol = exp(10), lik_tol = 1))
 }
 \arguments{
 \item{opt_fit}{Logical. Whether the outer optimization should be carried out.
@@ -28,7 +28,11 @@ If \code{FALSE}, then the frailty parameter is treated as fixed and the \code{em
 
 \item{nlm_control}{A list of named arguments to be sent to \code{nlm} for the outer optimization.}
 
-\item{inner_control}{A list of parameters for the inner optimization. See details.}
+\item{zph}{Logical. Should the \code{cox.zph} test be performed at the maximum likelihood estimate?}
+
+\item{zph_transform}{One of \code{"km", "rank", "identity"} or a function of one argument to be pased on to \code{cox.zph}.}
+
+\item{em_control}{A list of parameters for the inner optimization. See details.}
 }
 \value{
 An object of the type \code{emfrail_control}.
@@ -39,7 +43,7 @@ Control parameters for emfrail
 \details{
 The \code{nlm_control} argument should not overalp with \code{hessian}, \code{f} or \code{p}.
 
-The \code{inner_control} argument should be a list with the following items:
+The \code{em_control} argument should be a list with the following items:
 \itemize{
 \item{\code{eps}}{ A criterion for convergence of the EM algorithm (difference between two consecutive values of the log-likelihood)}
 \item{\code{maxit}}{ The maximum number of iterations between the E step and the M step}
@@ -59,7 +63,7 @@ The starting value of the outer optimization may be set in the \code{distributio
 }
 \examples{
 emfrail_control()
-emfrail_control(inner_control = list(eps = 1e-7))
+emfrail_control(em_control = list(eps = 1e-7))
 
 }
 \seealso{

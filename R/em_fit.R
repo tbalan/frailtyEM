@@ -4,13 +4,13 @@ em_fit <- function(logfrailtypar, dist, pvfm,
                    basehaz_line ,  # need for log-likelihood
                    mcox = list(),
                    Cvec, lt = FALSE, Cvec_lt, # we need to start somewhere with the Cvec (E step comes first)
-                   inner_control, se,
+                   em_control, se,
                    return_loglik = TRUE
 ) {
 
 
   pars <- dist_to_pars(dist, logfrailtypar, pvfm)
-  if (isTRUE(inner_control$verbose)) {
+  if (isTRUE(em_control$verbose)) {
     print(paste0(#"dist=", pars$dist,
       "logfrailtypar= ", logfrailtypar,
       " / alpha=", pars$alpha,
@@ -26,14 +26,14 @@ em_fit <- function(logfrailtypar, dist, pvfm,
   }
 
   # if the logfrailtypar is large (i.e. frailty variance 0) then just return the Cox likelihood
-  if(logfrailtypar > log(inner_control$upper_tol)) {
+  if(logfrailtypar > log(em_control$upper_tol)) {
 
     #message("Frailty parameter very large, frailty variance close to 0")
     loglik <- mcox$loglik[length(mcox$loglik)]
 
 
     if(isTRUE(return_loglik)) {
-      if(isTRUE(inner_control$verbose)) print(paste("loglik = ",loglik))
+      if(isTRUE(em_control$verbose)) print(paste("loglik = ",loglik))
       return(-loglik)
     }
 
@@ -48,7 +48,7 @@ em_fit <- function(logfrailtypar, dist, pvfm,
   while(!isTRUE(convergence)) {
 
 
-    if(isTRUE(inner_control$fast_fit)) {
+    if(isTRUE(em_control$fast_fit)) {
       e_step_val <- fast_Estep(Cvec,
                                Cvec_lt,
                                atrisk$nev_id,
@@ -84,10 +84,10 @@ em_fit <- function(logfrailtypar, dist, pvfm,
 
 
     # if this happens, then something is going very wrong
-    if(loglik < loglik_old - inner_control$lik_tol)
+    if(loglik < loglik_old - em_control$lik_tol)
       warning(paste0("likelihood decrease of ", loglik - loglik_old ))
 
-    if(abs(loglik - loglik_old) < inner_control$eps) break
+    if(abs(loglik - loglik_old) < em_control$eps) break
 
     loglik_old <- loglik
 
@@ -209,14 +209,15 @@ em_fit <- function(logfrailtypar, dist, pvfm,
     Cvec <- rowsum(cumhaz_line * exp(g_x), atrisk$order_id, reorder = FALSE)
 
 
-    if(ncycles > inner_control$maxit) {
-      warning(paste("did not converge in ", inner_control$maxit," iterations." ))
+    if(ncycles > em_control$maxit) {
+      warning(paste("did not converge in ", em_control$maxit," iterations." ))
       break
     }
   }
 
+
   if(isTRUE(return_loglik)) {
-    if(isTRUE(inner_control$verbose)) print(paste("loglik = ",loglik))
+    if(isTRUE(em_control$verbose)) print(paste("loglik = ",loglik))
     return(-loglik)
   }
 
@@ -331,7 +332,7 @@ em_fit <- function(logfrailtypar, dist, pvfm,
 
   # Building E[dl/dx (dl/dx)' | Z]
 
-  if(isTRUE(inner_control$fast_fit)) {
+  if(isTRUE(em_control$fast_fit)) {
       z <- e_step_val[,1] / e_step_val[,2]
       zz <- e_step_val[,4]
     } else {
@@ -533,6 +534,7 @@ em_fit <- function(logfrailtypar, dist, pvfm,
                coef = mcox$coefficients,
                Vcov = Vcov,
                fitted = g_x + logz,
+               logz = logz,
                cumhaz_line = cumhaz_line)
 
     res

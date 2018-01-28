@@ -1,6 +1,6 @@
 #' Fitting semi-parametric shared frailty models with the EM algorithm
 #'
-#' @importFrom survival Surv
+#' @importFrom survival Surv coxph cox.zph
 #' @importFrom stats approx coef model.frame model.matrix pchisq printCoefmat nlm uniroot cor
 #' @importFrom magrittr "%>%"
 #' @importFrom Rcpp evalCpp
@@ -70,9 +70,9 @@
 #' \item{ca_test}{The results of the Commenges-Andersen test for heterogeneity}
 #' \item{cens_test}{The results of the test for dependence between a recurrent event and a terminal event,
 #' if the \code{+terminal()} statement is specified and the frailty distribution is gamma}
-#' \item{formula}{The original formula argument}
-#' \item{distribution}{The original distribution argument}
-#' \item{control}{The original control argument}
+#' \item{zph}{The result of \code{cox.zph} called on a model with the estimated log-frailties as offset}
+#' \item{formula, distribution, control}{The original arguments}
+#' \item{nobs, fitted}{Number of observations and fitted values (i.e. \eqn{z \exp(\beta^T x)})}
 #' \item{mf}{The \code{model.frame}, if \code{model = TRUE}}
 #' \item{mm}{The \code{model.matrix}, if \code{model.matrix = TRUE}}
 #'
@@ -133,6 +133,14 @@
 #'                      data =  rats)
 #' }
 #'
+#'
+#' # Test for conditional proportional hazards (log-frailty as offset)
+#' \dontrun{
+#' m_gamma <- emfrail(formula = Surv(time, status) ~  rx + sex + cluster(litter),
+#'   data =  rats, control = emfrail_control(zph = TRUE))
+#' par(mfrow = c(1,2))
+#' plot(m_gamma$zph)
+#' }
 #'
 #' # Draw the profile log-likelihood
 #' \dontrun{
@@ -228,15 +236,15 @@ emfrail <- function(formula,
   if(!inherits(control, "emfrail_control"))
     stop("control argument misspecified; see ?emfrail_control()")
 
-  if(isTRUE(control$inner_control$fast_fit)) {
+  if(isTRUE(control$em_control$fast_fit)) {
     if(!(distribution$dist %in% c("gamma", "pvf"))) {
       #message("fast_fit option only available for gamma and pvf with m=-1/2 distributions")
-      control$inner_control$fast_fit <- FALSE
+      control$em_control$fast_fit <- FALSE
     }
 
     # version 0.5.6, the IG fast fit gets super sensitive at small frailty variance...
     if(distribution$dist == "pvf")
-      control$inner_control$fast_fit <- FALSE
+      control$em_control$fast_fit <- FALSE
 
   }
 
@@ -531,7 +539,7 @@ emfrail <- function(formula,
            mcox = list(coefficients = g, loglik = mcox$loglik),  # a "fake" cox model
            Cvec = Cvec, lt = distribution$left_truncation,
            Cvec_lt = Cvec_lt, se = FALSE,
-           inner_control = control$inner_control)
+           em_control = control$em_control)
       )
   }
 
@@ -547,14 +555,13 @@ emfrail <- function(formula,
                       Cvec = Cvec,
                       lt = distribution$left_truncation,
                       Cvec_lt = Cvec_lt, se = FALSE,
-                      inner_control = control$inner_control), control$nlm_control))
+                      em_control = control$em_control), control$nlm_control))
 
 
   # the hessian can't be negative but this might happen in the case that the estimate is on the
   # border
 
   if(outer_m$hessian < 0) hessian <- NA else hessian <- outer_m$hessian
-
 
   # likelihood-based confidence intervals
   theta_low <- theta_high <- NULL
@@ -575,7 +582,7 @@ emfrail <- function(formula,
                        mcox = list(coefficients = g, loglik = mcox$loglik),  # a "fake" cox model
                        Cvec = Cvec, lt = distribution$left_truncation,
                        Cvec_lt = Cvec_lt, se = FALSE,
-                       inner_control = control$inner_control), silent = TRUE)
+                       em_control = control$em_control), silent = TRUE)
   if(class(lower_llik) == "try-error") {
     warning("likelihood-based CI could not be calcuated; disable or change lik_interval[1] in emfrail_control")
     lower_llik <- NA
@@ -590,7 +597,7 @@ emfrail <- function(formula,
          mcox = list(coefficients = g, loglik = mcox$loglik),  # a "fake" cox model
          Cvec = Cvec, lt = distribution$left_truncation,
          Cvec_lt = Cvec_lt, se = FALSE,
-         inner_control = control$inner_control), silent = TRUE)
+         em_control = control$em_control), silent = TRUE)
 
   if(class(upper_llik) == "try-error") {
     warning("likelihood-based CI could not be calcuated; disable or lik_interval[2] in emfrail_control")
@@ -616,7 +623,7 @@ You can try a lower value for control$lik_interval[1].")
                        mcox = list(coefficients = g, loglik = mcox$loglik),  # a "fake" cox model
                        Cvec = Cvec, lt = distribution$left_truncation,
                        Cvec_lt = Cvec_lt, se = FALSE,
-                       inner_control = control$inner_control,
+                       em_control = control$em_control,
                        maxiter = 100)$root
 
   # this says that if I can't get a significant difference on the right side, then it's infinity
@@ -631,7 +638,7 @@ You can try a lower value for control$lik_interval[1].")
                           mcox = list(coefficients = g, loglik = mcox$loglik),  # a "fake" cox model
                           Cvec = Cvec, lt = distribution$left_truncation,
                           Cvec_lt = Cvec_lt, se  = FALSE,
-                          inner_control = control$inner_control)$root
+                          em_control = control$em_control)$root
   }
   } else
     log_theta_low <- log_theta_high <- NA
@@ -644,7 +651,7 @@ You can try a lower value for control$lik_interval[1].")
                       mcox = list(coefficients = g, loglik = mcox$loglik),  # a "fake" cox model
                       Cvec = Cvec, lt = distribution$left_truncation,
                       Cvec_lt = Cvec_lt, se = TRUE,
-                      inner_control = control$inner_control,
+                      em_control = control$em_control,
                       return_loglik = FALSE)
   } else
     inner_m <- em_fit(logfrailtypar = outer_m$estimate,
@@ -653,8 +660,25 @@ You can try a lower value for control$lik_interval[1].")
                       mcox = list(coefficients = g, loglik = mcox$loglik),  # a "fake" cox model
                       Cvec = Cvec, lt = distribution$left_truncation,
                       Cvec_lt = Cvec_lt, se = FALSE,
-                      inner_control = control$inner_control,
+                      em_control = control$em_control,
                       return_loglik = FALSE)
+
+
+  # Cox.ZPH stuff
+  if(isTRUE(control$zph)) {
+
+    # Here just fit a Cox model with the log-frailty as offset
+    if(!is.null(strats))
+      zph <- cox.zph(coxph(Y ~ X + strata(strats) + offset(inner_m$logz), ties = "breslow"),
+                     transform =  control$zph_transform) else
+        zph <- cox.zph(coxph(Y ~ X + offset(inner_m$logz), ties = "breslow"),
+                       transform =  control$zph_transform)
+
+      # fix the names for nice output
+      # if there is only one covariate there is not "GLOBAL" test
+      attr(zph$table, "dimnames")[[1]][1:length(inner_m$coef)] <- names(inner_m$coef)
+      attr(zph$y, "dimnames")[[2]] <- names(mcox$coef)
+  } else zph <- NULL
 
 
   # adjusted standard errors
@@ -683,7 +707,7 @@ You can try a lower value for control$lik_interval[1].")
                               mcox = list(coefficients = g, loglik = mcox$loglik),  # a "fake" cox model
                               Cvec = Cvec, lt = distribution$left_truncation,
                               Cvec_lt = Cvec_lt, se = FALSE,
-                              inner_control = control$inner_control,
+                              em_control = control$em_control,
                               return_loglik = FALSE)
 
     final_fit_plus <- em_fit(logfrailtypar = lfp_plus,
@@ -692,7 +716,7 @@ You can try a lower value for control$lik_interval[1].")
                              mcox = list(coefficients = g, loglik = mcox$loglik),  # a "fake" cox model
                              Cvec = Cvec, lt = distribution$left_truncation,
                              Cvec_lt = Cvec_lt, se = FALSE,
-                             inner_control = control$inner_control, return_loglik = FALSE)
+                             em_control = control$em_control, return_loglik = FALSE)
 
 
     # instructional: this should be more or less equal to the
@@ -780,6 +804,7 @@ You can try a lower value for control$lik_interval[1].")
                loglik = c(mcox$loglik[length(mcox$loglik)], -outer_m$minimum),
                ca_test = ca_test,
                cens_test = cens_test,
+               zph = zph,
                formula = formula,
                distribution = distribution,
                control = control,
