@@ -681,7 +681,7 @@ You can try a lower value for control$lik_interval[1].")
   } else zph <- NULL
 
 
-  # adjusted standard errors
+  # adjusted standard error
 
   if(isTRUE(control$se) & isTRUE(attr(inner_m$Vcov, "class") == "try-error")) {
     inner_m$Vcov <- matrix(NA, length(inner_m$coef) + length(inner_m$haz))

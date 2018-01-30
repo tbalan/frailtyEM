@@ -475,18 +475,25 @@ em_fit <- function(logfrailtypar, dist, pvfm,
 
   if(!is.null(atrisk$strats)) {
   zz_z2_clus <- lapply(
-  lapply(split(atrisk$order_id, atrisk$strats), unique), function(x) sqrt(zz - z^2)[x])
-
+    lapply(
+      split(atrisk$order_id, atrisk$strats),
+      unique),
+    function(x) sqrt(zz - z^2)[x])
 
   elptev_zzz2 <- mapply(function(elptev, zzz2) Map(function(a,b) a * b, elptev, zzz2),
        elp_to_tev, zz_z2_clus, SIMPLIFY = FALSE)
 
-
-  cor_dh <- bdiag(lapply(elptev_zzz2, function(a) {
-  m <- matrix(0, length(a[[1]]),  length(a[[1]]))
-  m[upper.tri(m, diag = TRUE)] <- sumxxt(a, length(a[[1]]))
-  m + t(m) - diag(diag(m))
-}))
+  # browser()
+  cor_dh <- bdiag(
+    lapply(elptev_zzz2, function(a)
+      {
+        m <- matrix(0, length(a[[1]]),  length(a[[1]]))
+        m[upper.tri(m, diag = TRUE)] <- sumxxt(a, length(a[[1]]))
+        m + t(m) -diag(diag(m), nrow = dim(m)[1],
+                            ncol = dim(m)[2])
+        }
+      )
+    )
   } else {
     a <- Map(function(a,b) a * b,
              elp_to_tev,
@@ -495,7 +502,6 @@ em_fit <- function(logfrailtypar, dist, pvfm,
     m[upper.tri(m, diag = TRUE)] <- sumxxt(a, length(a[[1]]))
     cor_dh <- m + t(m) - diag(diag(m))
   }
-
 
   I_hh <- m_d2l_dhdh - cor_dh
 

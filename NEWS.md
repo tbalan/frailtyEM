@@ -1,3 +1,6 @@
+# frailtyEM 0.8.3
+- Bugfix when empty strata was part of the input
+
 # frailtyEM 0.8.2
 - Added the `zph` option in `emfrail_control()` so that the result of the `cox.zph` for the frailty model is also returned
 
