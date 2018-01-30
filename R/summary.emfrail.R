@@ -388,7 +388,7 @@ summary.emfrail <- function(object,
       coef = object$coef,
       "exp(coef)" = exp(object$coef),
       "se(coef)" = sqrt(diag(object$var)[seq_along(object$coef)]),
-      "adjusted se" = sqrt(diag(object$var_adj)[seq_along(object$coef)] ))
+      "adj. se" = sqrt(diag(object$var_adj)[seq_along(object$coef)] ))
 
     if(all(is.na(object$var_adj))) {
       coefmat$`adjusted se` <- NULL
