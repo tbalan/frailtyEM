@@ -2,7 +2,7 @@
 #' @method print emfrail_summary
 #' @keywords internal
 print.emfrail_summary <- function(x,
-                                  digits = max(getOption('digits')-3, 3),
+                                  digits = max(getOption('digits')-4, 3),
                                   signif.stars =
                                     getOption("show.signif.stars"),
                                   ...) {
