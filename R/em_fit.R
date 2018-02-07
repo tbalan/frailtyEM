@@ -249,9 +249,17 @@ em_fit <- function(logfrailtypar, dist, pvfm,
 
 
   if(!isTRUE(se)) {
-      Vcov <- mcox$var
+      # Vcov <- mcox$var
+    if(!is.null(atrisk$strats)) {
+      tev <- tev_str
+      len <- length(do.call(c, tev_str))
+    } else
+      len <- length(tev)
+
+    Vcov <- matrix(NA, len + length(mcox$coefficients),
+                   len + length(mcox$coefficients))
       res = list(loglik = loglik,
-               tev = atrisk,
+               tev = tev,
                haz = haz_tev,
                nev_id = atrisk$nev_id,
                Cvec = Cvec,
@@ -529,6 +537,7 @@ em_fit <- function(logfrailtypar, dist, pvfm,
   if(!is.null(atrisk$strats)) {
     tev <- tev_str
   }
+
 
   if(!isTRUE(return_loglik)) {
     res = list(loglik = loglik,

@@ -787,8 +787,6 @@ You can try a lower value for control$lik_interval[1].")
 
   }
 
-
-
   res <- list(coefficients = inner_m$coef, #
                hazard = haz,
                var = inner_m$Vcov,

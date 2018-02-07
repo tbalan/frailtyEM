@@ -1,8 +1,9 @@
-# frailtyEM 0.8.3
-- Bugfix when empty strata was part of the input
+## frailtyEM 0.8.4 (CRAN release)
+- Fixed a bug where se = FALSE would break the predict() method
 
-# frailtyEM 0.8.2
-- Added the `zph` option in `emfrail_control()` so that the result of the `cox.zph` for the frailty model is also returned
+# frailtyEM 0.8.3 (CRAN release)
+- Added the `zph` option in `emfrail_control()` so that the result of the `cox.zph` for the frailty model is also returned. This can be used to for goodness of fit. A guide on that soon to come!
+- Bugfix (when empty strata was part of the input)
 
 # frailtyEM 0.8.1
 Major update. Now stratified models are supported! 
