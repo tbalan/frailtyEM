@@ -91,16 +91,17 @@ print.emfrail_summary <- function(x,
     if(!is.null(x$stable_pars)) {
 
 
-      tmp <- as.data.frame(with(x$stable_pars, rbind(c(round(tau[[1]], digits = 3),  round(tau[[3]], digits = 3), round(tau[[4]], digits = 3)),
-                                                    c(round(kappa[[1]], digits = 3),  round(kappa[[3]], digits = 3), round(kappa[[4]], digits = 3)),
-                                                    c(round(e_log_z[[1]], digits = 3), round(e_log_z[[3]], digits = 3),  round(e_log_z[[4]], digits = 3)),
-                                                    c(round(var_log_z[[1]], digits = 3), round(var_log_z[[3]], digits = 3), round(var_log_z[[4]], digits = 3))),
-                                                    c(round(attenuation[[1]], digits = 3), round(attenuation[[3]], digits = 3),round(attenuation[[4]], digits = 3))
+      tmp <- as.data.frame(with(x$stable_pars,
+                                rbind(c(round(tau[[1]], digits = 3),  round(tau[[3]], digits = 3), round(tau[[4]], digits = 3)),
+                                c(round(kappa[[1]], digits = 3),  round(kappa[[3]], digits = 3), round(kappa[[4]], digits = 3)),
+                                c(round(e_log_z[[1]], digits = 3), round(e_log_z[[3]], digits = 3),  round(e_log_z[[4]], digits = 3)),
+                                c(round(var_log_z[[1]], digits = 3), round(var_log_z[[3]], digits = 3), round(var_log_z[[4]], digits = 3)),
+                                c(round(attenuation[[1]], digits = 3), round(attenuation[[3]], digits = 3),round(attenuation[[4]], digits = 3))
 
-      ))
+      )))
 
 
-      dimnames(tmp)[[2]] <- dimnames(fsum)[[2]]
+      dimnames(tmp)[[2]] <- c("A","B","C")
       dimnames(tmp)[[1]] <- c("Kendall's tau", "Median concordance", "E[logZ]", "Var[logZ]", "Attenuation")
       fsum <- rbind(fsum, tmp)
 
