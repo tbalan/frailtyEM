@@ -41,3 +41,10 @@ The main fitting function is `emfrail()`, which in general returns an `emfrail()
 
 Another useful tool is the Commenges-Andersen score test for heterogeneity. This test does not require estimating the shared frailty model. The `ca_test()` function may be used in conjunction with a `coxph` object to calculate this. 
 
+### Future plans
+A few things that will follow in the future:
+
+- plots and calculation of the cross-ratio
+- more frailty distributions
+- piecewise constant and parametric hazards
+- a big update to the vignette

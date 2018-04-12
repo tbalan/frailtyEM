@@ -1,22 +1,12 @@
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
-
 [![CRAN\_Status\_Badge](https://www.r-pkg.org/badges/version/frailtyEM)](https://cran.r-project.org/package=frailtyEM)
 
 [![CRAN\_Downloads\_Badge](https://cranlogs.r-pkg.org/badges/frailtyEM)](https://CRAN.R-project.org/package=frailtyEM)
 
-[![Build
-Status](https://travis-ci.org/tbalan/frailtyEM.svg?branch=master)](https://travis-ci.org/tbalan/frailtyEM)
+[![Build Status](https://travis-ci.org/tbalan/frailtyEM.svg?branch=master)](https://travis-ci.org/tbalan/frailtyEM)
 
-This is an R package for fitting semiparametric shared frailty models
-with the EM algorithm. You can check the “issues” section to see about
-known issues. For the gamma frailty model, the results are identical
-with those from the `survival` pacakage, although `frailtyEM` provides a
-more readable output, including confidence intervals for the frailty
-variance. Other supported distributions include the PVF, compound
-Poisson, inverse Gaussian, positive stable. Univariate and multivariate
-data with left truncation are supported, including recurrent events data
-in Andersen-Gill formulation.
+This is an R package for fitting semiparametric shared frailty models with the EM algorithm. You can check the "issues" section to see about known issues. For the gamma frailty model, the results are identical with those from the `survival` pacakage, although `frailtyEM` provides a more readable output, including confidence intervals for the frailty variance. Other supported distributions include the PVF, compound Poisson, inverse Gaussian, positive stable. Univariate and multivariate data with left truncation are supported, including recurrent events data in Andersen-Gill formulation.
 
 The stable version may be installed from `CRAN`:
 
@@ -30,9 +20,7 @@ and the development version from `GitHub`:
 devtools::install_github("tbalan/frailtyEM")
 ```
 
-The bulk of the documentation of the package can be found in the
-vignette. If the package is installed from `GitHub`, then the vignette
-is installed if the pacakge is installed like this:
+The bulk of the documentation of the package can be found in the vignette. If the package is installed from `GitHub`, then the vignette is installed if the pacakge is installed like this:
 
 ``` r
 devtools::install_github("tbalan/frailtyEM", build_vignettes = TRUE)
@@ -40,12 +28,15 @@ devtools::install_github("tbalan/frailtyEM", build_vignettes = TRUE)
 
 ### Functions
 
-The main fitting function is `emfrail()`, which in general returns an
-`emfrail()` object. Several plots can be produced from this objects, via
-the `plot.emfrail()` and `autoplot.emfrail()` methods (the latter using
-`ggplot2`).
+The main fitting function is `emfrail()`, which in general returns an `emfrail()` object. Several plots can be produced from this objects, via the `plot.emfrail()` and `autoplot.emfrail()` methods (the latter using `ggplot2`).
 
-Another useful tool is the Commenges-Andersen score test for
-heterogeneity. This test does not require estimating the shared frailty
-model. The `ca_test()` function may be used in conjunction with a
-`coxph` object to calculate this.
+Another useful tool is the Commenges-Andersen score test for heterogeneity. This test does not require estimating the shared frailty model. The `ca_test()` function may be used in conjunction with a `coxph` object to calculate this.
+
+### Future plans
+
+A few things that will follow in the future:
+
+-   plots and calculation of the cross-ratio
+-   more frailty distributions
+-   piecewise constant and parametric hazards
+-   a big update to the vignette

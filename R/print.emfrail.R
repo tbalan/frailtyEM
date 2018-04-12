@@ -22,9 +22,15 @@ print.emfrail <- function(x, ...) {
       coef = x$coef,
       "exp(coef)" = exp(x$coef),
       "se(coef)" = sqrt(diag(x$var)[seq_along(x$coef)]),
-      "adjusted se" = sqrt(diag(x$var_adj)[seq_along(x$coef)] ))
+      "adj. se" = sqrt(diag(x$var_adj)[seq_along(x$coef)] ))
 
-    coefmat$z <- coefmat$coef / coefmat$`se(coef)`
+    if(all(is.na(coefmat$`adj. se`))) {
+      coefmat$`adj. se` <- NULL
+      coefmat$z <- coefmat$coef / coefmat$`se(coef)`
+    } else {
+      coefmat$z <- coefmat$coef / coefmat$`adj. se`
+    }
+
     coefmat$p <-  1 - pchisq(coefmat$z^2, df = 1)
 
     coefmat <- do.call(cbind, coefmat)

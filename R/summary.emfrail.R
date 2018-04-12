@@ -390,13 +390,12 @@ summary.emfrail <- function(object,
       "se(coef)" = sqrt(diag(object$var)[seq_along(object$coef)]),
       "adj. se" = sqrt(diag(object$var_adj)[seq_along(object$coef)] ))
 
-    if(all(is.na(object$var_adj))) {
-      coefmat$`adj. se` <- NULL
-      coefmat$z <- coefmat$coef / coefmat$`se(coef)`} else
+      if(all(is.na(coefmat$`adj. se`))) {
+        coefmat$`adj. se` <- NULL
+        coefmat$z <- coefmat$coef / coefmat$`se(coef)`
+      } else {
         coefmat$z <- coefmat$coef / coefmat$`adj. se`
-
-
-
+      }
 
     coefmat$p <-  1 - pchisq(coefmat$z^2, df = 1)
 
