@@ -1,11 +1,15 @@
-## frailtyEM 0.8.4 (CRAN release)
+## frailtyEM 0.8.6
+- Nicer print in summary() and print()
+- Added a sort of safety net when the likelihood is very flat. The program will switch then from `nlm()` to `optimize()`, which is generally more stable in these cases. The reason why I do not switch all the time top `optimize()` is because that one cannot be programmed with. Then, in combination with `numDeriv::hessian`, estimation would take forever and be basically impossible to check. 
+
+# frailtyEM 0.8.4 (CRAN release)
 - Fixed a bug where se = FALSE would break the predict() method
 
 # frailtyEM 0.8.3 (CRAN release)
 - Added the `zph` option in `emfrail_control()` so that the result of the `cox.zph` for the frailty model is also returned. This can be used to for goodness of fit. A guide on that soon to come!
 - Bugfix (when empty strata was part of the input)
 
-# frailtyEM 0.8.1
+### frailtyEM 0.8.1
 Major update. Now stratified models are supported! 
 Several improvements in the documentation and in the performance section. 
 

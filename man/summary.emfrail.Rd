@@ -26,8 +26,7 @@ Summary for \code{emfrail} objects
 }
 \details{
 Regardless of
-the fitted model, one can expect the following
-fields in this object: \code{est_dist} (an object of class \code{emfrail_distribution}) with the estimated
+the fitted model, the following fields will be present in this object: \code{est_dist} (an object of class \code{emfrail_distribution}) with the estimated
 distribution, \code{loglik} (a named vector with the log-likelihoods of the no-frailty model, the frailty model,
 the likelihood ratio test statistic and the p-value of the one-sided likelihood ratio test), \code{theta} (a named vector with
 the estimated value of the parameter \eqn{\theta}, the standard error, and the limits of a 95% cofindence interval) and \code{frail}, which
@@ -37,7 +36,9 @@ is a data frame with the following columns: \code{id} (cluster identifier), \cod
 For the the PVF or gamma distributions, the field \code{fr_var} contains a transformation of \code{theta} to correspond to the
 frailty variance.
 The fields \code{pvf_pars} and \code{stable_pars} are for quantities that are calculated only when the distribution is PVF or stable.
-If the model contains covariates, the field \code{coefmat} contains the corresponding details.
+If the model contains covariates, the field \code{coefmat} contains the corresponding estimates. The p-values are based on
+the adjusted standard errors, if they have been calculated successfully (i.e. if they appear when prining the summary object).
+Otherwise, they are based on the regular standard errors.
 }
 \examples{
 data("bladder")
