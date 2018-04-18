@@ -219,6 +219,8 @@ emfrail <- function(formula,
                     model = FALSE, model.matrix = FALSE,
                     ...) {
 
+
+  # browser()
   # This part is because the update breaks old code
   extraargs <- list(...)
 
@@ -547,7 +549,7 @@ emfrail <- function(formula,
       )
   }
 
-  browser()
+  # browser()
 
   if(distribution$dist == "stable") {
     # thing is: with stable small values of theta mean high dependence
