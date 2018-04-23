@@ -277,7 +277,7 @@ autoplot.emfrail <- function(object,
           geom_step(aes_string(y = "cumhaz", col = shQuote("1"))) +
           geom_step(aes_string(y = "cumhaz_m", col = shQuote("2"))) +
           theme_minimal() +
-          ylab("H(t)") +
+          ylab("cumulative hazard") +
           scale_colour_manual(name = "type", values = c("#fc8d59", "#000000" ), labels = c("conditional", "marginal") )
 
         if(conf_int == "adjusted") {
