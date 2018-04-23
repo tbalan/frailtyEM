@@ -1,3 +1,6 @@
+## frailtyEM 0.8.7
+- fixed the vignette and made the plots nicer
+
 ## frailtyEM 0.8.6
 - Nicer print in summary() and print()
 - Added a sort of safety net when the likelihood is very flat. The program will switch then from `nlm()` to `optimize()`, which is generally more stable in these cases. The reason why I do not switch all the time top `optimize()` is because that one cannot be programmed with. Then, in combination with `numDeriv::hessian`, estimation would take forever and be basically impossible to check. 

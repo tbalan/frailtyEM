@@ -4,7 +4,7 @@
 autoplot <- autoplot
 
 #' Plots for emfrail objects using \code{ggplot2}
-#' @importFrom ggplot2 autoplot ggplot geom_step geom_path geom_point geom_histogram geom_abline geom_errorbar aes_string ylim xlab ylab scale_colour_manual aes_string geom_hline scale_x_continuous
+#' @importFrom ggplot2 autoplot theme_minimal ggplot geom_step geom_path geom_point geom_histogram geom_abline geom_errorbar aes_string ylim xlab ylab scale_colour_manual aes_string geom_hline scale_x_continuous
 #' @param object \code{emfrail} object, typically result of \code{emfrail()}
 #' @param type One (or more) of \code{hist} for a histogram of the estimated frailty values,
 #'  \code{hr} for a plot of the conditional and marginal hazard ratio between two cases,
@@ -140,9 +140,8 @@ autoplot.emfrail <- function(object,
       geom_hline(aes_string("yintercept" = 1), col = "gray") +
       geom_step(aes_string(y = "hr_cond", col = shQuote("1"))) +
       geom_step(aes_string(y = "hr_mar", col = shQuote("2"))) +
-      scale_colour_manual(name = "type",
-                          values=c("black", "red"),
-                          labels = c("conditional", "marginal")) +
+      theme_minimal() +
+      scale_colour_manual(name = "type", values = c("#fc8d59", "#000000" ), labels = c("conditional", "marginal") )
       ylab("hazard ratio")
 
     res[[i]] <- plot2
@@ -277,9 +276,8 @@ autoplot.emfrail <- function(object,
           ggplot(aes_string(x = "time")) +
           geom_step(aes_string(y = "cumhaz", col = shQuote("1"))) +
           geom_step(aes_string(y = "cumhaz_m", col = shQuote("2"))) +
-          scale_colour_manual(name = "type",
-                              values=c("black", "red"),
-                              labels = c("conditional", "marginal"))
+          theme_minimal() +
+          scale_colour_manual(name = "type", values = c("#fc8d59", "#000000" ), labels = c("conditional", "marginal") )
 
         if(conf_int == "adjusted") {
           plot1 <- plot1 +
@@ -312,9 +310,9 @@ autoplot.emfrail <- function(object,
           geom_step(aes_string(y = "survival_m", col = shQuote("2"))) +
           ylim(c(0,1)) +
           ylab("S(t)") +
-          scale_colour_manual(name = "type",
-                              values=c("black", "red"),
-                              labels = c("conditional", "marginal"))
+          theme_minimal() +
+          scale_colour_manual(name = "type", values = c("#fc8d59", "#000000" ), labels = c("conditional", "marginal") )
+
         # with(p1, plot(time, survival_m,
         #               type = "s",
         #               #main = "Survival",

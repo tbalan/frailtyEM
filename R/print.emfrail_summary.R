@@ -88,6 +88,7 @@ print.emfrail_summary <- function(x,
 
       }
 
+      # browser()
     if(!is.null(x$stable_pars)) {
 
 
