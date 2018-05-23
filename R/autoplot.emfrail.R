@@ -1,3 +1,6 @@
+#' Generic autoplot function
+#'
+#' The following is imported and then re-exported to avoid conflicts with \code{ggplot2}
 #' @importFrom ggplot2 autoplot
 #' @name autoplot
 #' @export
