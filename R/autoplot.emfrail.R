@@ -1,7 +1,7 @@
 #' @importFrom ggplot2 autoplot
 #' @export
 #' @rdname autoplot.emfrail
-autoplot <- autoplot
+autoplot <- ggplot2::autoplot
 
 #' Plots for emfrail objects using \code{ggplot2}
 #' @importFrom ggplot2 autoplot theme_minimal ggplot geom_step geom_path geom_point geom_histogram geom_abline geom_errorbar aes_string ylim xlab ylab scale_colour_manual aes_string geom_hline scale_x_continuous
@@ -32,7 +32,6 @@ autoplot <- autoplot
 #' easier to create an interactive plot out of the resulting object.
 #'
 #'
-#' @export autoplot.emfrail
 #' @export
 #' @seealso \code{\link{predict.emfrail}}, \code{\link{summary.emfrail}}, \code{\link{plot.emfrail}}.
 #'
