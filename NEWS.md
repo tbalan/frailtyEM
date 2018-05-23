@@ -1,3 +1,6 @@
+## frailtyEM 0.8.8
+- fixed an error that would happen in recognizing the `autoplot()` method on Linux systems
+
 ## frailtyEM 0.8.7
 - fixed the vignette and made the plots nicer
 
