@@ -1,3 +1,9 @@
+## frailtyEM 0.8.10
+- fixed a bug that would occur in predict() when strata() was also used. 
+
+## frailtyEM 0.8.9
+- minor fixes, and by default predict() now doesn't calculate CI for the hazard function (it's slow and most people don't need that anyway)
+
 ## frailtyEM 0.8.8
 - fixed an error that would happen in recognizing the `autoplot()` method on Linux systems
 

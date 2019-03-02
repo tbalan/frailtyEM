@@ -5,7 +5,7 @@
 \title{Distribution parameters for emfrail}
 \usage{
 emfrail_dist(dist = "gamma", theta = 2, pvfm = -1/2,
-  left_truncation = FALSE)
+  left_truncation = FALSE, basehaz = "breslow")
 }
 \arguments{
 \item{dist}{One of 'gamma', 'stable' or 'pvf'.}
@@ -15,6 +15,8 @@ emfrail_dist(dist = "gamma", theta = 2, pvfm = -1/2,
 \item{pvfm}{Only relevant if \code{dist = 'pvf'} is used. It determines which PVF distribution should be used. Must be  larger than -1 and not equal to 0.}
 
 \item{left_truncation}{Logical. Whether the data set represents left truncated survival times.}
+
+\item{basehaz}{A character string which determines how the baseline hazard is calculated. The default is "breslow", but other possible options are "weibull", "exponential" "gaussian", "logistic", "lognormal" or "loglogistic".}
 }
 \value{
 An object of the type \code{emfrail_dist}, which is mostly used to denote the

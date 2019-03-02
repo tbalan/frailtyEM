@@ -471,6 +471,7 @@ emfrail <- function(formula,
 
 
   } else {
+
     ord_tstop <- match(Y[,2], sort(unique(Y[,2])))
     ord_tstart <- match(Y[,1], sort(unique(Y[,1])))
 
@@ -515,7 +516,68 @@ emfrail <- function(formula,
 
   Cvec <- rowsum(cumhaz_line, order_id, reorder = FALSE)
 
-  ca_test <- NULL
+  # browser()
+  # this part under construction!
+  # if(distribution$basehaz != "breslow") {
+  #   if(any(Y[,1] != 0))
+  #     stop("(tstart, tstop) not supported for parametric models")
+  #
+  #   dlist <- survival::survreg.distributions[[distribution$basehaz]]
+  #
+  #   # this stuff is more or less copied from survreg
+  #
+  #   logcorrect <- 0  #correction to the loglik due to transformations
+  #   Ysave <- Y  # for use in the y component
+  #   if (!is.null(dlist$trans)) {
+  #     tranfun <- dlist$trans
+  #     exactsurv <- Y[, ncol(Y)] == 1
+  #     if (any(exactsurv)) {
+  #       logcorrect <- sum(log(dlist$dtrans(Y[exactsurv, 1])))
+  #     }
+  #     if (!all(is.finite(Y)))
+  #       stop("Invalid survival times for this distribution")
+  #
+  #   }
+  #
+  #   if (!is.null(dlist$scale)) {
+  #     if (!missing(scale))
+  #       warning(paste(dlist$name, "has a fixed scale, user specified value ignored"))
+  #     scale <- dlist$scale
+  #   } else scale <- 0
+  #
+  #   if (!is.null(dlist$dist))
+  #     if (is.atomic(dlist$dist))
+  #       dlist <- survreg.distributions[[dlist$dist]] else dlist <- dlist$dist
+  #
+  #   if (any(scale < 0))
+  #     stop("Invalid scale value")
+  #   # Now we convert this to a format that survreg.fit likes
+  #
+  #   fit <- survreg.fit(cbind(1, X), cbind(tranfun(Y[,2]), Y[,3]),
+  #                      weights = NULL,
+  #                      offset = NULL,
+  #                      init = NULL,
+  #                      controlvals = survreg.control() ,
+  #                      dist = dlist, scale = scale, nstrat = 1, strata = 0, parms= NULL)
+  #
+  #
+  # }
+  #
+  #
+  #
+  # srg1 <- survreg_simple(formula = Surv(time, status) ~ rx + sex, data = rats, dist = "weibull")
+  #
+  # srg1$coefficients
+  # fit$coefficients
+  #
+  # fit <- survreg.fit(X, Y, weights = NULL, offset = NULL, init = NULL,
+  #                    controlvals = survreg.control(), dist = dlist, scale = 0)
+  #
+  # distribution
+
+  # dlist <- survival::survreg.distributions[[distribution$]]
+
+  # ca_test <- NULL
 
   # ca_test_fit does not know strata ?!?
   if(isTRUE(control$ca_test)) {
@@ -819,6 +881,9 @@ You can try a lower value for control$lik_interval[1].")
     cens_test = c(tstat = tr, pval = p.cor)
   } else cens_test = NULL
 
+
+  # Prepare some things for the output object
+
   if(!isTRUE(model)) model_frame <- NULL else
     model_frame <- mf
   if(!isTRUE(model.matrix)) X <- NULL
@@ -826,6 +891,12 @@ You can try a lower value for control$lik_interval[1].")
 
   frail <- inner_m$frail
   names(frail) <- unique(id)
+
+  residuals <- list(group = as.numeric(inner_m$Cvec),
+                    individual = as.numeric(inner_m$cumhaz_line * inner_m$fitted))
+
+  names(residuals$group) <- unique(id)
+
 
   haz <- inner_m$haz
   tev <- inner_m$tev
@@ -837,6 +908,7 @@ You can try a lower value for control$lik_interval[1].")
 
   }
 
+
   res <- list(coefficients = inner_m$coef, #
                hazard = haz,
                var = inner_m$Vcov,
@@ -845,8 +917,7 @@ You can try a lower value for control$lik_interval[1].")
                var_logtheta = 1/hessian,
                ci_logtheta = c(log_theta_low, log_theta_high),
                frail = frail,
-               residuals = list(group = inner_m$Cvec,
-                                individual = inner_m$cumhaz_line * inner_m$fitted),
+               residuals = residuals,
                tev = tev,
                nevents_id = inner_m$nev_id,
                loglik = c(mcox$loglik[length(mcox$loglik)], -outer_m$minimum),

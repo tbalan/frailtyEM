@@ -114,7 +114,7 @@ emfrail_control <- function(opt_fit = TRUE,
 #' @param theta A starting value for the 'outer' maximization with respect to the frailty parameter \eqn{\theta}. Must be >0.
 #' @param pvfm Only relevant if \code{dist = 'pvf'} is used. It determines which PVF distribution should be used. Must be  larger than -1 and not equal to 0.
 #' @param left_truncation Logical. Whether the data set represents left truncated survival times.
-#'
+#' @param basehaz A character string which determines how the baseline hazard is calculated. The default is "breslow", but other possible options are "weibull", "exponential" "gaussian", "logistic", "lognormal" or "loglogistic".
 #' @return An object of the type \code{emfrail_dist}, which is mostly used to denote the
 #' supported frailty distributions in a consistent way.
 #' @export
@@ -132,7 +132,7 @@ emfrail_control <- function(opt_fit = TRUE,
 #' emfrail_dist(dist = 'pvf', theta = 1.5, pvfm = 0.5)
 #' # Inverse Gaussian distribution:
 #' emfrail_dist(dist = 'pvf')
-emfrail_dist <- function(dist = "gamma", theta = 2, pvfm = -1/2, left_truncation = FALSE) {
+emfrail_dist <- function(dist = "gamma", theta = 2, pvfm = -1/2, left_truncation = FALSE, basehaz = "breslow") {
 
   if (!(dist %in% c("gamma", "stable", "pvf")))
     stop("frailty distribution must be one of gamma, stable, pvf")
@@ -144,7 +144,12 @@ emfrail_dist <- function(dist = "gamma", theta = 2, pvfm = -1/2, left_truncation
     stop("pvfm must be >-1 and not equal to 0")
 
   if(!is.logical(left_truncation)) stop("left_truncation must be TRUE or FALSE")
-  res <- list(dist = dist, theta = theta, pvfm = pvfm, left_truncation = left_truncation)
+
+  if(basehaz != "breslow") {
+    # here some check for this stuff so that it matches something
+  }
+
+  res <- list(dist = dist, theta = theta, pvfm = pvfm, left_truncation = left_truncation, basehaz = basehaz)
   attr(res, "class") <- c("emfrail_dist")
   return(res)
 }

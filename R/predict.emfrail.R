@@ -106,7 +106,7 @@ predict.emfrail <- function(object,
                             strata = NULL,
                             quantity = c("cumhaz", "survival"),
                             type = c("conditional", "marginal"),
-                            conf_int = c("regular", "adjusted"),
+                            conf_int = NULL,
                             individual = FALSE,
                             ...) {
 
@@ -149,10 +149,19 @@ predict.emfrail <- function(object,
   if(!is.null(newdata)) {
     if(!inherits(newdata, "data.frame")) stop("newdata must be a data.frame")
 
+    # browser()
+    # here the point is ot take newdata and make it into a value of linear predictor
+    # this is the hacky way of getting some stuff from the model fit
     mdata <- attr(object, "metadata")
+    # [[1]] is terms
     mf <- model.frame(mdata[[1]], data = newdata, xlev = mdata[[2]])
     mm <- try(model.matrix(mdata[[1]], mf)[,-1,drop=FALSE])
     if(inherits(mm, "try-error")) stop("newdata probably misspecified")
+
+    if(!is.null(strata))
+      mm <- mm[1:nrow(mm), -grep("strata", dimnames(mm)[[2]])]
+
+    # browser()
     lp <- as.numeric(mm %*% object$coef)
 
     if(!("tstart" %in% names(newdata))) {

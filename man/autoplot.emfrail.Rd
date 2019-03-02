@@ -4,10 +4,10 @@
 \alias{autoplot.emfrail}
 \title{Plots for emfrail objects using \code{ggplot2}}
 \usage{
-\method{autoplot}{emfrail}(object, type = c("hist", "hr", "pred", "frail"),
-  newdata = NULL, lp = NULL, strata = NULL, quantity = "cumhaz",
-  type_pred = c("conditional", "marginal"), conf_int = "adjusted",
-  individual = FALSE, ...)
+\method{autoplot}{emfrail}(object, type = c("hist", "hr", "pred",
+  "frail"), newdata = NULL, lp = NULL, strata = NULL,
+  quantity = "cumhaz", type_pred = c("conditional", "marginal"),
+  conf_int = "adjusted", individual = FALSE, ...)
 }
 \arguments{
 \item{object}{\code{emfrail} object, typically result of \code{emfrail()}}
@@ -40,6 +40,10 @@ for the first value of \code{lp} is calculated.}
 }
 \value{
 A list of \code{ggplot2} objects corresponding to the required plots, or one \code{ggplot2} if only one plot is selected
+
+For the catterpillar plot, in the case of the gamma frailty model, the vertical lines represent the 0.025 and 0.975 quantiles of the
+posterior gamma distribution. For other distributions, this quantity is not easy to calculate (at least not in closed form)
+and only the frailty estimates are shown.
 }
 \description{
 Plots for emfrail objects using \code{ggplot2}

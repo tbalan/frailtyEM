@@ -6,7 +6,7 @@
 \usage{
 \method{predict}{emfrail}(object, newdata = NULL, lp = NULL,
   strata = NULL, quantity = c("cumhaz", "survival"),
-  type = c("conditional", "marginal"), conf_int = c("regular", "adjusted"),
+  type = c("conditional", "marginal"), conf_int = NULL,
   individual = FALSE, ...)
 }
 \arguments{

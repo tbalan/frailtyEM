@@ -1,7 +1,7 @@
 Package: frailtyEM
 Type: Package
 Title: Fitting Frailty Models with the EM Algorithm
-Version: 0.8.8
+Version: 0.8.10
 Author: Theodor Adrian Balan, Hein Putter
 Maintainer: Theodor Adrian Balan <t.a.balan@lumc.nl>
 URL: https://github.com/tbalan/frailtyEM
@@ -27,10 +27,9 @@ Imports:
     Matrix,
     numDeriv
 LinkingTo: Rcpp
-RoxygenNote: 6.0.1
+RoxygenNote: 6.1.1
 Suggests:
     dplyr,
-    statmod,
     plotly,
     gridExtra,
     egg

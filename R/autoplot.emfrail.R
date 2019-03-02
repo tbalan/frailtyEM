@@ -1,7 +1,7 @@
 #' Generic autoplot function
 #'
 #' The following is imported and then re-exported to avoid conflicts with \code{ggplot2}
-#' @importFrom ggplot2 autoplot
+#' @importFrom ggplot2 autoplot labs
 #' @name autoplot
 #' @export
 NULL
@@ -28,6 +28,10 @@ NULL
 #' @param ... Further arguments to be passed on to `ggplot` (ignored)
 #'
 #' @return A list of \code{ggplot2} objects corresponding to the required plots, or one \code{ggplot2} if only one plot is selected
+#'
+#' For the catterpillar plot, in the case of the gamma frailty model, the vertical lines represent the 0.025 and 0.975 quantiles of the
+#' posterior gamma distribution. For other distributions, this quantity is not easy to calculate (at least not in closed form)
+#' and only the frailty estimates are shown.
 #'
 #' @note It's normal for \code{autoplot} to give a warning of the type \code{Warning: Ignoring unknown aesthetics: id
 #' }. This is because, in \code{ggplot2} terms, the \code{id} aesthetic is not recognized. This is correct, and for any
@@ -80,7 +84,7 @@ autoplot.emfrail <- function(object,
                              individual = FALSE,
                              ...) {
 
-
+  # browser()
   if(any(!(type %in% c("hist", "hr", "pred", "frail"))))
     stop("type misspecified, check ?autoplot.emfrail")
 
@@ -92,7 +96,7 @@ autoplot.emfrail <- function(object,
     plot1 <- sobj$frail %>%
       ggplot(aes_string(x = "z")) +
       geom_histogram() +
-      xlab("frailties")
+      labs(x = "Frailties", y = "Frequency")
     res[[i]] <- plot1
     i <- i+1
   }
@@ -175,9 +179,10 @@ autoplot.emfrail <- function(object,
 
     if("both" %in% type_pred)
       type_pred <- c("conditional", "marginal")
-
+    # browser()
     p1 <- predict.emfrail(object,
                           lp = lp,
+                          strata = strata,
                           newdata = newdata,
                           quantity = quantity,
                           type = type_pred,

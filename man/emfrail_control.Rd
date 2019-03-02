@@ -7,8 +7,9 @@
 emfrail_control(opt_fit = TRUE, se = TRUE, se_adj = TRUE,
   ca_test = TRUE, lik_ci = TRUE, lik_interval = exp(c(-3, 20)),
   lik_interval_stable = exp(c(0, 20)), nlm_control = list(stepmax = 1),
-  zph = FALSE, zph_transform = "km", em_control = list(eps = 1e-04, maxit
-  = Inf, fast_fit = TRUE, verbose = FALSE, upper_tol = exp(10), lik_tol = 1))
+  zph = FALSE, zph_transform = "km", em_control = list(eps = 1e-04,
+  maxit = Inf, fast_fit = TRUE, verbose = FALSE, upper_tol = exp(10),
+  lik_tol = 1))
 }
 \arguments{
 \item{opt_fit}{Logical. Whether the outer optimization should be carried out.

@@ -91,6 +91,29 @@ em_fit <- function(logfrailtypar, dist, pvfm,
 
     loglik_old <- loglik
 
+
+    # browser()
+    # working here
+    #
+    # dlist <- survival::survreg.distributions$exponential
+    #
+    # # this has a trans aspect
+    # tranfun <- dlist$trans
+    # exactsurv <- (Y[, ncol(Y)] == 1)
+
+    # if (any(exactsurv)) {
+    #     logcorrect <- sum(log(dlist$dtrans(Y[exactsurv, 1])))                                                                 1])))
+    # }
+
+   #  scale <- dlist$scale
+   #
+   #  dlist <- survival::survreg.distributions[[dlist$dist]]
+   #  Yss <- cbind(dlist$trans(Y[,1]), Y[,2])
+   # mcox_par <- survival::survreg.fit(x = Xmat, y = Y, strata = atrisk$strats, offset = logz, init = NULL,
+   #                              control = survival::survreg.control(), weights = NULL,
+   #                              scale = scale,
+   #                              dist = dlist)
+
     mcox <- survival::agreg.fit(x = Xmat, y = Y, strata = atrisk$strats, offset = logz, init = NULL,
                                 control = survival::coxph.control(), weights = NULL,
                                 method = "breslow", rownames = NULL)
