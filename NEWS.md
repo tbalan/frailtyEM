@@ -1,3 +1,7 @@
+# frailtyEM 1.0.0 (CRAN release)
+- release version
+- updated CITATION info and documentation
+
 ## frailtyEM 0.8.10
 - fixed a bug that would occur in predict() when strata() was also used. 
 

@@ -215,6 +215,9 @@ plot(m_gamma$zph)
   summary(mod_3)
 }
 }
+\references{
+Balan TA, Putter H (2019) "frailtyEM: An R Package for Estimating Semiparametric Shared Frailty Models", \emph{Journal of Statistical Software} \strong{90}(7) 1-29. doi:10.18637/jss.v090.i07
+}
 \seealso{
 \code{\link{plot.emfrail}} and \code{\link{autoplot.emfrail}} for plot functions directly available, \code{\link{emfrail_pll}} for calculating \eqn{\widehat{L}(\theta)} at specific values of \eqn{\theta},
 \code{\link{summary.emfrail}} for transforming the \code{emfrail} object into a more human-readable format and for
@@ -222,4 +225,7 @@ visualizing the frailty (empirical Bayes) estimates,
 \code{\link{predict.emfrail}} for calculating and visalizing conditional and marginal survival and cumulative
 hazard curves. \code{\link{residuals.emfrail}} for extracting martingale residuals and \code{\link{logLik.emfrail}} for extracting
 the log-likelihood of the fitted model.
+}
+\author{
+Theodor Balan \email{hello@tbalan.com}
 }

@@ -212,6 +212,9 @@
 #'   summary(mod_2)
 #'   summary(mod_3)
 #' }
+#' @author Theodor Balan \email{hello@@tbalan.com}
+#' @references Balan TA, Putter H (2019) "frailtyEM: An R Package for Estimating Semiparametric Shared Frailty Models", \emph{Journal of Statistical Software} \strong{90}(7) 1-29. doi:10.18637/jss.v090.i07
+
 emfrail <- function(formula,
                     data,
                     distribution = emfrail_dist(),
