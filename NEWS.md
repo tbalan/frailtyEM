@@ -1,3 +1,7 @@
+# frailtyEM 1.0.1 (CRAN release)
+- fixed some interals to work with `survival` package version 3.0
+- added a `conf_level` argument that can set the width of the confidence intervals for the predicted cumulative hazards
+
 # frailtyEM 1.0.0 (CRAN release)
 - release version
 - updated CITATION info and documentation

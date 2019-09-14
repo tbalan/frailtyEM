@@ -783,11 +783,37 @@ You can try a lower value for control$lik_interval[1].")
   if(isTRUE(control$zph)) {
 
     # Here just fit a Cox model with the log-frailty as offset
-    if(!is.null(strats))
-      zph <- cox.zph(coxph(Y ~ X + strata(strats) + offset(inner_m$logz), ties = "breslow"),
-                     transform =  control$zph_transform) else
-        zph <- cox.zph(coxph(Y ~ X + offset(inner_m$logz), ties = "breslow"),
-                       transform =  control$zph_transform)
+    # note: the cox.zph function in the new version of the survival package has a terms = TRUE argument.
+    # This part here is added so that emfrail continues to work with both versions.
+    # do.call is needed because otherwise R CMD check returns a warning when ran on a system with the
+    # old version of cox.zph
+    if("terms" %in% names(formals(cox.zph))) {
+    if(!is.null(strats)) {
+      zph <- do.call(cox.zph, args = list(fit = coxph(Y ~ X + strata(strats) + offset(inner_m$logz), ties = "breslow"),
+                                   transform = control$zph_transform,
+                                   terms = FALSE))
+      # zph <- cox.zph(coxph(Y ~ X + strata(strats) + offset(inner_m$logz), ties = "breslow"),
+      #                transform =  control$zph_transform, terms = FALSE)
+    } else {
+      zph <- do.call(cox.zph, args = list(fit = coxph(Y ~ X + offset(inner_m$logz), ties = "breslow"),
+                                   transform = control$zph_transform,
+                                   terms = FALSE))
+      # zph <- cox.zph(coxph(Y ~ X + offset(inner_m$logz), ties = "breslow"),
+      #                transform =  control$zph_transform, terms = FALSE)
+    }
+    } else {
+      if(!is.null(strats)) {
+        zph <- do.call(cox.zph, args = list(fit = coxph(Y ~ X + strata(strats) + offset(inner_m$logz), ties = "breslow"),
+                                            transform = control$zph_transform))
+
+      } else {
+        zph <- do.call(cox.zph, args = list(fit = coxph(Y ~ X + offset(inner_m$logz), ties = "breslow"),
+                                            transform = control$zph_transform,
+                                            terms = FALSE))
+      }
+
+      }
+
 
       # fix the names for nice output
       # if there is only one covariate there is not "GLOBAL" test

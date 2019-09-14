@@ -7,7 +7,7 @@
 \method{autoplot}{emfrail}(object, type = c("hist", "hr", "pred",
   "frail"), newdata = NULL, lp = NULL, strata = NULL,
   quantity = "cumhaz", type_pred = c("conditional", "marginal"),
-  conf_int = "adjusted", individual = FALSE, ...)
+  conf_int = "adjusted", conf_level = 0.95, individual = FALSE, ...)
 }
 \arguments{
 \item{object}{\code{emfrail} object, typically result of \code{emfrail()}}
@@ -32,6 +32,8 @@ for the first value of \code{lp} is calculated.}
 \item{type_pred}{One of \code{c("conditional", "marginal")} for \code{type == "pred"}; see \code{type} in \code{\link{predict.emfrail}}}
 
 \item{conf_int}{One of \code{c("regular", "adjusted")} for \code{type == "pred"}; see \code{conf_int} in \code{\link{predict.emfrail}}}
+
+\item{conf_level}{The width of the confidence interval for \code{type == "pred"}; see \code{conf_level} in \code{\link{predict.emfrail}}}
 
 \item{individual}{Logical, for \code{type == "pred"} to be used for drawing a curve when the rows of \code{newdata} refer to the same individual; see
 \code{individual} in \code{\link{predict.emfrail}}}

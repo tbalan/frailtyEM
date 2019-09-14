@@ -23,6 +23,7 @@ NULL
 #' @param quantity One of \code{c("cumhaz", "survival")} for \code{type == "pred"}; see \code{quantity} in \code{\link{predict.emfrail}}
 #' @param type_pred One of \code{c("conditional", "marginal")} for \code{type == "pred"}; see \code{type} in \code{\link{predict.emfrail}}
 #' @param conf_int One of \code{c("regular", "adjusted")} for \code{type == "pred"}; see \code{conf_int} in \code{\link{predict.emfrail}}
+#' @param conf_level The width of the confidence interval for \code{type == "pred"}; see \code{conf_level} in \code{\link{predict.emfrail}}
 #' @param individual Logical, for \code{type == "pred"} to be used for drawing a curve when the rows of \code{newdata} refer to the same individual; see
 #' \code{individual} in \code{\link{predict.emfrail}}
 #' @param ... Further arguments to be passed on to `ggplot` (ignored)
@@ -81,6 +82,7 @@ autoplot.emfrail <- function(object,
                              quantity = "cumhaz",
                              type_pred = c("conditional", "marginal"),
                              conf_int = "adjusted",
+                             conf_level = 0.95,
                              individual = FALSE,
                              ...) {
 
@@ -125,7 +127,8 @@ autoplot.emfrail <- function(object,
                          newdata = newdata,
                          strata = strata,
                          quantity = "cumhaz",
-                         conf_int = NULL)
+                         conf_int = NULL,
+                         conf_level = conf_level)
 
 
     hr_cond <- p[[1]]$cumhaz / p[[2]]$cumhaz

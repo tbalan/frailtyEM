@@ -15,6 +15,7 @@
 #' @param quantity For \code{type == "pred"} the predicted quantity; see \code{quantity} in \code{\link{predict.emfrail}}
 #' @param type_pred For \code{type == "pred"} the type of predicted quantity; see \code{type} in \code{\link{predict.emfrail}}
 #' @param conf_int For \code{type == "pred"} the type of confidence intervals; see \code{conf_int} in \code{\link{predict.emfrail}}
+#' @param conf_level The width of the confidence interval for \code{type == "pred"}; see \code{conf_level} in \code{\link{predict.emfrail}}
 #' @param individual For \code{type == "pred"} for drawing a curve when the rows of \code{newdata} refer to the same individual; see
 #' \code{individual} in \code{\link{predict.emfrail}}
 #' @param ... Further arguments to be passed to the plot function
@@ -56,6 +57,7 @@ plot.emfrail <- function(x, type = c("hist", "hr", "pred"), newdata = NULL, lp =
                          quantity = "cumhaz",
                          type_pred = c("conditional", "marginal"),
                          conf_int = "adjusted",
+                         conf_level = 0.95,
                          individual = FALSE,
                          ...) {
 
@@ -87,6 +89,7 @@ plot.emfrail <- function(x, type = c("hist", "hr", "pred"), newdata = NULL, lp =
                          newdata = newdata,
                          strata = strata,
                          quantity = "cumhaz",
+                         conf_level = conf_level,
                          conf_int = NULL)
 
 

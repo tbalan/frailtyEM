@@ -1,9 +1,9 @@
 Package: frailtyEM
 Type: Package
 Title: Fitting Frailty Models with the EM Algorithm
-Version: 1.0.0
+Version: 1.0.1
 Author: Theodor Adrian Balan, Hein Putter
-Maintainer: Theodor Adrian Balan <t.a.balan@lumc.nl>
+Maintainer: Theodor Adrian Balan <hello@tbalan.com>
 URL: https://github.com/tbalan/frailtyEM
 BugReports: https://github.com/tbalan/frailtyEM/issues
 Description: Contains functions for fitting shared frailty models with a semi-parametric

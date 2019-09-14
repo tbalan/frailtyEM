@@ -1,6 +1,6 @@
 #' Predicted hazard and survival curves from an \code{emfrail} object
 #'
-#' @importFrom stats .getXlevels delete.response drop.terms as.formula
+#' @importFrom stats .getXlevels delete.response drop.terms as.formula qnorm
 #' @param object An \code{emfrail} fit object
 #' @param newdata A data frame with the same variable names as those that appear in the \code{emfrail} formula, used to calculate the \code{lp} (optional).
 #' @param lp A vector of linear predictor values at which to calculate the curves. Default is 0 (baseline).
@@ -8,6 +8,7 @@
 #' @param quantity Can be \code{"cumhaz"} and/or \code{"survival"}. The quantity to be calculated for the values of \code{lp}.
 #' @param type Can be \code{"conditional"} and/or \code{"marginal"}. The type of the quantity to be calculated.
 #' @param conf_int Can be \code{"regular"} and/or \code{"adjusted"}. The type of confidence interval to be calculated.
+#' @param conf_level The width of the confidence intervals. By default, 95\% confidence intervals are calculated.
 #' @param individual Logical. Are the observations in \code{newdata} from the same individual? See details.
 #' @param ... Ignored
 #'
@@ -108,6 +109,7 @@ predict.emfrail <- function(object,
                             type = c("conditional", "marginal"),
                             conf_int = NULL,
                             individual = FALSE,
+                            conf_level = 0.95,
                             ...) {
 
 
@@ -271,8 +273,8 @@ predict.emfrail <- function(object,
                                       ses = TRUE))
 
         attr(x, "bounds") <- c(attr(x, "bounds"), "cumhaz_l", "cumhaz_r")
-        x$cumhaz_l <- pmax(0, exp(log(x$cumhaz) - 1.96*x$se_logH))
-        x$cumhaz_r <- exp(log(x$cumhaz) + 1.96*x$se_logH)
+        x$cumhaz_l <- pmax(0, exp(log(x$cumhaz) + qnorm((1 - conf_level) / 2) * x$se_logH))
+        x$cumhaz_r <- exp(log(x$cumhaz) - qnorm((1 - conf_level) / 2) *x$se_logH)
       }
 
       if("adjusted" %in% conf_int) {
@@ -282,8 +284,8 @@ predict.emfrail <- function(object,
                                           ses = TRUE))
 
         attr(x, "bounds") <- c(attr(x, "bounds"), "cumhaz_l_a", "cumhaz_r_a")
-        x$cumhaz_l_a <- pmax(0, exp(log(x$cumhaz) - 1.96*x$se_logH_adj))
-        x$cumhaz_r_a <- exp(log(x$cumhaz) + 1.96*x$se_logH_adj)
+        x$cumhaz_l_a <- pmax(0, exp(log(x$cumhaz) + qnorm((1 - conf_level) / 2) *x$se_logH_adj))
+        x$cumhaz_r_a <- exp(log(x$cumhaz) - qnorm((1 - conf_level) / 2)*x$se_logH_adj)
       }
 
 

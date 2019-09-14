@@ -7,7 +7,7 @@
 \method{predict}{emfrail}(object, newdata = NULL, lp = NULL,
   strata = NULL, quantity = c("cumhaz", "survival"),
   type = c("conditional", "marginal"), conf_int = NULL,
-  individual = FALSE, ...)
+  individual = FALSE, conf_level = 0.95, ...)
 }
 \arguments{
 \item{object}{An \code{emfrail} fit object}
@@ -25,6 +25,8 @@
 \item{conf_int}{Can be \code{"regular"} and/or \code{"adjusted"}. The type of confidence interval to be calculated.}
 
 \item{individual}{Logical. Are the observations in \code{newdata} from the same individual? See details.}
+
+\item{conf_level}{The width of the confidence intervals. By default, 95\% confidence intervals are calculated.}
 
 \item{...}{Ignored}
 }
