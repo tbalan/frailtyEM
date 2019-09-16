@@ -806,9 +806,9 @@ You can try a lower value for control$lik_interval[1].")
         zph <- do.call(cox.zph, args = list(fit = coxph(Y ~ X + strata(strats) + offset(inner_m$logz), ties = "breslow"),
                                             transform = control$zph_transform))
 
-      } else {
+      } else
         zph <- do.call(cox.zph, args = list(fit = coxph(Y ~ X + offset(inner_m$logz), ties = "breslow"),
-                                            transform = control$zph_transform)
+                                            transform = control$zph_transform))
       }
 
       }
