@@ -811,7 +811,6 @@ You can try a lower value for control$lik_interval[1].")
                                             transform = control$zph_transform))
       }
 
-      }
 
 
       # fix the names for nice output
