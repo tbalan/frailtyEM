@@ -20,16 +20,16 @@
 #' The \code{nlm_control} argument should not overalp with \code{hessian}, \code{f} or \code{p}.
 #'
 #' The \code{em_control} argument should be a list with the following items:
-#' \itemize{
-#' \item{\code{eps}}{ A criterion for convergence of the EM algorithm (difference between two consecutive values of the log-likelihood)}
-#' \item{\code{maxit}}{ The maximum number of iterations between the E step and the M step}
-#' \item{\code{fast_fit}}{ Logical, whether the closed form formulas should be used for the E step when available}
-#' \item{\code{verbose}}{ Logical, whether details of the optimization should be printed}
-#' \item{\code{upper_tol}}{ An upper bound for \eqn{\theta}; after this treshold, the algorithm returns the limiting log-likelihood of the no-frailty model.
+#' \describe{
+#' \item{\code{eps}}{A criterion for convergence of the EM algorithm (difference between two consecutive values of the log-likelihood)}
+#' \item{\code{maxit}}{The maximum number of iterations between the E step and the M step}
+#' \item{\code{fast_fit}}{Logical, whether the closed form formulas should be used for the E step when available}
+#' \item{\code{verbose}}{Logical, whether details of the optimization should be printed}
+#' \item{\code{upper_tol}}{An upper bound for \eqn{\theta}; after this treshold, the algorithm returns the limiting log-likelihood of the no-frailty model.
 #' That is because the no-frailty scenario corresponds to a \eqn{\theta = \infty}, which could lead to some numerical issues}
-#' \item{\code{lik_tol}}{ For values higher than this, the algorithm returns a warning when the log-likelihood decreases between EM steps. Technically, this should not happen, but
-#' if the parameter \eqn{\theta} is somewhere really far from the maximum, numerical problems might lead in very small likelihood decreases.
-#' }}
+#' \item{\code{lik_tol}}{For values higher than this, the algorithm returns a warning when the log-likelihood decreases between EM steps. Technically, this should not happen, but
+#' if the parameter \eqn{\theta} is somewhere really far from the maximum, numerical problems might lead in very small likelihood decreases.}
+#' }
 #' The \code{fast_fit} option make a difference when the distribution is gamma (with or without left truncation) or
 #' inverse Gaussian, i.e. pvf with m = -1/2 (without left truncation). For all the other scenarios, the fast_fit option will
 #' automatically be changed to FALSE. When the number of events in a cluster / individual is not very small, the cases for which

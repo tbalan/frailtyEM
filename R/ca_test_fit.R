@@ -1,3 +1,5 @@
+if(getRversion() >= "2.15.1")  utils::globalVariables(".")
+
 #' ca_test_fit
 #'
 #' @param mcox An object as returned by  \code{agreg.fit}
@@ -14,7 +16,6 @@
 #'
 #' @references Commenges, D. and Andersen, P.K., 1995. Score test of homogeneity for survival data. Lifetime Data Analysis, 1(2), pp.145-156.
 #'
-if(getRversion() >= "2.15.1")  utils::globalVariables(".")
 ca_test_fit <- function(mcox, X, atrisk, exp_g_x, cumhaz) {
 
   # numerator

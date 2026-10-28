@@ -1,17 +1,18 @@
+## Resubmission
+
+This is a maintenance release (1.0.2) that addresses the NOTEs on the CRAN check page:
+
+* Fixed "Lost braces in \itemize" in `emfrail_control.Rd` (now uses `\describe`).
+* Added an `Authors@R` field to DESCRIPTION.
+
 ## Test environments
-* local OS X install, R 3.6.1
-* ubuntu 16.04, x86_64-pc-linux-gnu (64-bit) R 3.6.1
+* local macOS (aarch64), R 4.4.2
 * win-builder (devel and release)
 
 ## R CMD check results
 
-0 errors | 0 warnings | 1 note
-
-The note is about the email address. Since my previous email address (t.a.balan@lumc.nl) will soon be 
-closed, I changed to my new one (hello@tbalan.com).
+0 errors | 0 warnings | 0 notes
 
 ## Reverse dependencies
 
 No reverse dependencies.
-
----

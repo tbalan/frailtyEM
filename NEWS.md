@@ -1,3 +1,8 @@
+# frailtyEM 1.0.2 (CRAN release)
+- fixed Rd markup in `emfrail_control()` documentation (`\itemize` -> `\describe`) flagged by CRAN checks
+- added `Authors@R` field to DESCRIPTION
+- re-generated documentation with roxygen2 8.1.1
+
 # frailtyEM 1.0.1 (CRAN release)
 - fixed some interals to work with `survival` package version 3.0
 - added a `conf_level` argument that can set the width of the confidence intervals for the predicted cumulative hazards
