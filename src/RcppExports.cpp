@@ -5,6 +5,11 @@
 
 using namespace Rcpp;
 
+#ifdef RCPP_USE_GLOBAL_ROSTREAM
+Rcpp::Rostream<true>&  Rcpp::Rcout = Rcpp::Rcpp_cout_get();
+Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
+#endif
+
 // Estep
 NumericMatrix Estep(NumericVector c, NumericVector c_lt, IntegerVector delta, double alpha, double bbeta, const double& pvfm, const int& dist);
 RcppExport SEXP _frailtyEM_Estep(SEXP cSEXP, SEXP c_ltSEXP, SEXP deltaSEXP, SEXP alphaSEXP, SEXP bbetaSEXP, SEXP pvfmSEXP, SEXP distSEXP) {

@@ -4,10 +4,19 @@
 \alias{autoplot.emfrail}
 \title{Plots for emfrail objects using \code{ggplot2}}
 \usage{
-\method{autoplot}{emfrail}(object, type = c("hist", "hr", "pred",
-  "frail"), newdata = NULL, lp = NULL, strata = NULL,
-  quantity = "cumhaz", type_pred = c("conditional", "marginal"),
-  conf_int = "adjusted", conf_level = 0.95, individual = FALSE, ...)
+\method{autoplot}{emfrail}(
+  object,
+  type = c("hist", "hr", "pred", "frail"),
+  newdata = NULL,
+  lp = NULL,
+  strata = NULL,
+  quantity = "cumhaz",
+  type_pred = c("conditional", "marginal"),
+  conf_int = "adjusted",
+  conf_level = 0.95,
+  individual = FALSE,
+  ...
+)
 }
 \arguments{
 \item{object}{\code{emfrail} object, typically result of \code{emfrail()}}

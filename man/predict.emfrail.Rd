@@ -4,10 +4,18 @@
 \alias{predict.emfrail}
 \title{Predicted hazard and survival curves from an \code{emfrail} object}
 \usage{
-\method{predict}{emfrail}(object, newdata = NULL, lp = NULL,
-  strata = NULL, quantity = c("cumhaz", "survival"),
-  type = c("conditional", "marginal"), conf_int = NULL,
-  individual = FALSE, conf_level = 0.95, ...)
+\method{predict}{emfrail}(
+  object,
+  newdata = NULL,
+  lp = NULL,
+  strata = NULL,
+  quantity = c("cumhaz", "survival"),
+  type = c("conditional", "marginal"),
+  conf_int = NULL,
+  individual = FALSE,
+  conf_level = 0.95,
+  ...
+)
 }
 \arguments{
 \item{object}{An \code{emfrail} fit object}

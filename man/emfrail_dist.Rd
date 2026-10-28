@@ -4,8 +4,13 @@
 \alias{emfrail_dist}
 \title{Distribution parameters for emfrail}
 \usage{
-emfrail_dist(dist = "gamma", theta = 2, pvfm = -1/2,
-  left_truncation = FALSE, basehaz = "breslow")
+emfrail_dist(
+  dist = "gamma",
+  theta = 2,
+  pvfm = -1/2,
+  left_truncation = FALSE,
+  basehaz = "breslow"
+)
 }
 \arguments{
 \item{dist}{One of 'gamma', 'stable' or 'pvf'.}

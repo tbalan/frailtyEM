@@ -4,9 +4,15 @@
 \alias{emfrail}
 \title{Fitting semi-parametric shared frailty models with the EM algorithm}
 \usage{
-emfrail(formula, data, distribution = emfrail_dist(),
-  control = emfrail_control(), model = FALSE, model.matrix = FALSE,
-  ...)
+emfrail(
+  formula,
+  data,
+  distribution = emfrail_dist(),
+  control = emfrail_control(),
+  model = FALSE,
+  model.matrix = FALSE,
+  ...
+)
 }
 \arguments{
 \item{formula}{A formula that contains on the left hand side an object of the type \code{Surv}

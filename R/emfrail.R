@@ -61,7 +61,7 @@
 #' \item{logtheta}{The logarithm of the point estimate of \eqn{\theta}. For the gamma and
 #' PVF family of distributions, this is the inverse of the estimated frailty variance.}
 #' \item{var_logtheta}{The variance of the estimated logarithm of \eqn{\theta}}
-#' \item{ci_logtheta}{The likelihood-based 95\% confidence interval for the logarithm of \eqn{\theta}}
+#' \item{ci_logtheta}{The likelihood-based 95% confidence interval for the logarithm of \eqn{\theta}}
 #' \item{frail}{The posterior (empirical Bayes) estimates of the frailty for each cluster}
 #' \item{residuals}{A list with two elements, cluster which is a vector that the sum of the
 #' cumulative hazards from each cluster for a frailty value of 1, and
@@ -698,7 +698,7 @@ emfrail <- function(formula,
                        Cvec = Cvec, lt = distribution$left_truncation,
                        Cvec_lt = Cvec_lt, se = FALSE,
                        em_control = control$em_control), silent = TRUE)
-  if(class(lower_llik) == "try-error") {
+  if(inherits(lower_llik, "try-error")) {
     warning("likelihood-based CI could not be calcuated; disable or change lik_interval[1] in emfrail_control")
     lower_llik <- NA
     log_theta_low <- log_theta_high <- NA
@@ -714,7 +714,7 @@ emfrail <- function(formula,
          Cvec_lt = Cvec_lt, se = FALSE,
          em_control = control$em_control), silent = TRUE)
 
-  if(class(upper_llik) == "try-error") {
+  if(inherits(upper_llik, "try-error")) {
     warning("likelihood-based CI could not be calcuated; disable or lik_interval[2] in emfrail_control")
     upper_llik <- NA
     log_theta_low <- log_theta_high <- NA

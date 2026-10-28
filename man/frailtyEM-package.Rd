@@ -6,11 +6,7 @@
 \alias{frailtyEM-package}
 \title{frailtyEM: Fitting Frailty Models with the EM Algorithm}
 \description{
-Contains functions for fitting shared frailty models with a semi-parametric
-    baseline hazard with the Expectation-Maximization algorithm. Supported data formats 
-    include clustered failures with left truncation and recurrent events in gap-time
-    or Andersen-Gill format. Several frailty distributions, such as the the gamma, positive stable
-    and the Power Variance Family are supported.
+Contains functions for fitting shared frailty models with a semi-parametric baseline hazard with the Expectation-Maximization algorithm. Supported data formats include clustered failures with left truncation and recurrent events in gap-time or Andersen-Gill format. Several frailty distributions, such as the the gamma, positive stable and the Power Variance Family are supported.
 }
 \details{
 This is an R package for fitting semiparametric shared frailty models with the EM algorithm.

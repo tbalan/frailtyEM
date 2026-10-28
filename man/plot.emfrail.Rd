@@ -4,10 +4,19 @@
 \alias{plot.emfrail}
 \title{Plots for emfrail objects}
 \usage{
-\method{plot}{emfrail}(x, type = c("hist", "hr", "pred"),
-  newdata = NULL, lp = NULL, strata = NULL, quantity = "cumhaz",
-  type_pred = c("conditional", "marginal"), conf_int = "adjusted",
-  conf_level = 0.95, individual = FALSE, ...)
+\method{plot}{emfrail}(
+  x,
+  type = c("hist", "hr", "pred"),
+  newdata = NULL,
+  lp = NULL,
+  strata = NULL,
+  quantity = "cumhaz",
+  type_pred = c("conditional", "marginal"),
+  conf_int = "adjusted",
+  conf_level = 0.95,
+  individual = FALSE,
+  ...
+)
 }
 \arguments{
 \item{x}{\code{emfrail} object, typically result of \code{emfrail()}}
