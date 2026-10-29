@@ -51,7 +51,7 @@ Although recent years have seen an increased availability of software for fittin
   Leiden University Medical Center\\
   2300 RC Leiden, The Netherlands\\
   E-mail: \email{t.a.balan@lumc.nl}%\\
-  \url{http://tbalan.com}
+  \url{https://tbalan.github.io/}
 }
 
 %% need no \usepackage{Sweave.sty}
